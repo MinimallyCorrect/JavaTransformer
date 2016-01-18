@@ -1,0 +1,64 @@
+plugins {
+	id 'java'
+	id 'maven'
+}
+project.version = '1.0-SNAPSHOT'
+project.group = 'me.nallar'
+
+// Extended project information
+ext.projectName = 'JavaTransformer'
+ext.inceptionYear = '2016'
+ext.packaging = 'jar'
+ext.url = 'https://github.com/nallar/JavaTransformer'
+ext.description = 'Java transformation library'
+ext.organization = 'nallar.me'
+
+// Define variables
+ext.buildNumber = System.getenv("BUILD_NUMBER") ?: 0
+ext.ciSystem = System.getenv("JENKINS_URL") ? 'Jenkins' : 'unknown'
+ext.commit = System.getenv("GIT_COMMIT") ?: 'unknown'
+
+// Source compiler configuration
+tasks.withType(JavaCompile) {
+	options.compilerArgs += ['-Xlint:all', '-Xlint:-path']
+	options.deprecation = true
+	options.encoding = 'utf8'
+}
+
+repositories {
+	jcenter()
+}
+
+configurations {
+	provided
+	compile.extendsFrom provided
+}
+
+dependencies {
+	testCompile "junit:junit:4.12"
+	provided 'org.projectlombok:lombok:1.16.4'
+	provided 'org.ow2.asm:asm-debug-all:5.0.4'
+	provided 'com.github.javaparser:javaparser-core:2.3.0'
+}
+
+compileJava {
+	sourceCompatibility = 8
+	targetCompatibility = 8
+}
+
+jar {
+	baseName = project.name
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+	from((configurations.runtime - configurations.provided).filter { it.exists() }.collect {
+		it.isDirectory() ? it : zipTree(it)
+	}) {
+		exclude "META-INF/**"
+	}
+}
+
+jar.manifest.mainAttributes(
+	"Built-By": System.properties['user.name'],
+	"Created-By": System.properties['java.vm.version'] + " (" + System.properties['java.vm.vendor'] + ")",
+	"Implementation-Title": name,
+	"Implementation-Version": version + "+" + ciSystem + "-b" + buildNumber + ".git-" + commit,
+	"Implementation-Vendor": url)
