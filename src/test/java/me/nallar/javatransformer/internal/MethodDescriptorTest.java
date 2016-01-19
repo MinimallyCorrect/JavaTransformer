@@ -1,5 +1,6 @@
-package me.nallar.javatransformer.internal.description;
+package me.nallar.javatransformer.internal;
 
+import me.nallar.javatransformer.api.Type;
 import org.junit.Assert;
 
 public class MethodDescriptorTest {

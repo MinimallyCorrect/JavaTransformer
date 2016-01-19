@@ -1,10 +1,9 @@
-package me.nallar.javatransformer.internal.editor.asm;
+package me.nallar.javatransformer.internal;
 
 import lombok.val;
 import me.nallar.javatransformer.api.*;
-import me.nallar.javatransformer.internal.description.MethodDescriptor;
-import me.nallar.javatransformer.internal.description.Parameter;
-import me.nallar.javatransformer.internal.description.Type;
+import me.nallar.javatransformer.api.Parameter;
+import me.nallar.javatransformer.api.Type;
 import me.nallar.javatransformer.internal.util.AnnotationParser;
 import me.nallar.javatransformer.internal.util.CollectionUtil;
 import org.objectweb.asm.tree.ClassNode;
@@ -88,6 +87,16 @@ public class ByteCodeInfo implements ClassInfo {
 			nodeInfo.setAll(field);
 		}
 		this.node.fields.add(node);
+	}
+
+	@Override
+	public Type getSuperType() {
+		return new Type("L" + node.superName + ";");
+	}
+
+	@Override
+	public List<Type> getInterfaceTypes() {
+		return node.interfaces.stream().map((it) -> new Type("L" + it + ";")).collect(Collectors.toList());
 	}
 
 	@Override

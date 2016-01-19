@@ -3,10 +3,11 @@ package me.nallar.javatransformer.api;
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParseException;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import lombok.val;
-import me.nallar.javatransformer.internal.editor.asm.ByteCodeInfo;
-import me.nallar.javatransformer.internal.editor.javaparser.SourceInfo;
+import me.nallar.javatransformer.internal.ByteCodeInfo;
+import me.nallar.javatransformer.internal.SourceInfo;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
@@ -83,9 +84,14 @@ public class JavaTransformer {
 
 		String packageName = cu.getPackage().getName().getName();
 		for (TypeDeclaration typeDeclaration : cu.getTypes()) {
-			String shortClassName = typeDeclaration.getName();
+			if (!(typeDeclaration instanceof ClassOrInterfaceDeclaration)) {
+				continue;
+			}
+			val classDeclaration = (ClassOrInterfaceDeclaration) typeDeclaration;
+
+			String shortClassName = classDeclaration.getName();
 			if ((packageName + '.' + shortClassName).equalsIgnoreCase(name)) {
-				transformJar(new SourceInfo(typeDeclaration, cu.getPackage(), cu.getImports()));
+				transformJar(new SourceInfo(classDeclaration, cu.getPackage(), cu.getImports()));
 			}
 		}
 

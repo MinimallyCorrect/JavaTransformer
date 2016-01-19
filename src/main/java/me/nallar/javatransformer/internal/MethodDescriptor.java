@@ -1,8 +1,10 @@
-package me.nallar.javatransformer.internal.description;
+package me.nallar.javatransformer.internal;
 
 import lombok.Getter;
 import lombok.ToString;
 import lombok.val;
+import me.nallar.javatransformer.api.Parameter;
+import me.nallar.javatransformer.api.Type;
 import org.objectweb.asm.tree.MethodNode;
 
 import java.util.*;

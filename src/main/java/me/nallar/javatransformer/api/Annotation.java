@@ -3,7 +3,6 @@ package me.nallar.javatransformer.api;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
-import me.nallar.javatransformer.internal.description.Type;
 
 import java.util.*;
 

@@ -1,4 +1,4 @@
-package me.nallar.javatransformer.internal.description;
+package me.nallar.javatransformer.api;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

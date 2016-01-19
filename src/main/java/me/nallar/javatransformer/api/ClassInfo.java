@@ -8,6 +8,10 @@ public interface ClassInfo extends Accessible, Annotated, ClassMember, Named {
 
 	void add(FieldInfo field);
 
+	Type getSuperType();
+
+	List<Type> getInterfaceTypes();
+
 	List<MethodInfo> getMethods();
 
 	List<FieldInfo> getFields();

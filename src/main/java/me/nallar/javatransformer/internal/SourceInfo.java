@@ -1,4 +1,4 @@
-package me.nallar.javatransformer.internal.editor.javaparser;
+package me.nallar.javatransformer.internal;
 
 import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.PackageDeclaration;
@@ -8,8 +8,8 @@ import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.PrimitiveType;
 import lombok.val;
 import me.nallar.javatransformer.api.*;
-import me.nallar.javatransformer.internal.description.Parameter;
-import me.nallar.javatransformer.internal.description.Type;
+import me.nallar.javatransformer.api.Parameter;
+import me.nallar.javatransformer.api.Type;
 import me.nallar.javatransformer.internal.util.AnnotationParser;
 import me.nallar.javatransformer.internal.util.JVMUtil;
 
@@ -17,11 +17,11 @@ import java.util.*;
 import java.util.stream.*;
 
 public class SourceInfo implements ClassInfo {
-	private final TypeDeclaration type;
+	private final ClassOrInterfaceDeclaration type;
 	private final Iterable<ImportDeclaration> imports;
 	private final PackageDeclaration packageDeclaration;
 
-	public SourceInfo(TypeDeclaration type, PackageDeclaration packageDeclaration, Iterable<ImportDeclaration> imports) {
+	public SourceInfo(ClassOrInterfaceDeclaration type, PackageDeclaration packageDeclaration, Iterable<ImportDeclaration> imports) {
 		this.type = type;
 		this.packageDeclaration = packageDeclaration;
 		this.imports = imports;
@@ -67,6 +67,21 @@ public class SourceInfo implements ClassInfo {
 		fieldDeclaration.setVariables(vars);
 		FieldDeclarationWrapper wrapper = new FieldDeclarationWrapper(fieldDeclaration);
 		wrapper.setAll(field);
+	}
+
+	@Override
+	public Type getSuperType() {
+		val extends_ = type.getExtends();
+
+		if (extends_ == null || extends_.isEmpty())
+			return null;
+
+		return Type.resolve(extends_.get(0), imports);
+	}
+
+	@Override
+	public List<Type> getInterfaceTypes() {
+		return type.getImplements().stream().map((it) -> Type.resolve(it, imports)).collect(Collectors.toList());
 	}
 
 	@Override
