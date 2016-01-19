@@ -4,7 +4,7 @@ import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.expr.*;
 import lombok.val;
 import me.nallar.javatransformer.api.Annotation;
-import me.nallar.javatransformer.internal.description.Type;
+import me.nallar.javatransformer.api.Type;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;

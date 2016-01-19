@@ -1,10 +1,10 @@
-package me.nallar.javatransformer.internal.editor.asm;
+package me.nallar.javatransformer.internal;
 
 import lombok.val;
 import me.nallar.javatransformer.api.AccessFlags;
 import me.nallar.javatransformer.api.MethodInfo;
-import me.nallar.javatransformer.internal.description.Parameter;
-import me.nallar.javatransformer.internal.description.Type;
+import me.nallar.javatransformer.api.Parameter;
+import me.nallar.javatransformer.api.Type;
 import org.junit.Assert;
 import org.junit.Test;
 import org.objectweb.asm.tree.MethodNode;

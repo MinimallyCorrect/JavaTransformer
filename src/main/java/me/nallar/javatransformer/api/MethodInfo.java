@@ -1,8 +1,6 @@
 package me.nallar.javatransformer.api;
 
-import me.nallar.javatransformer.internal.description.Parameter;
-import me.nallar.javatransformer.internal.description.Type;
-import me.nallar.javatransformer.internal.description.impl.MethodInfoImplementation;
+import me.nallar.javatransformer.internal.MethodInfoImplementation;
 
 import java.util.*;
 
