@@ -123,12 +123,24 @@ public class JavaTransformer {
 		}
 	}
 
-	public void parseFolder(Path input) {
+	public void transformFolder(Path input, Path output) {
+		if (!Files.isDirectory(input)) {
+			throw new IOError(new IOException("Input must be a directory: " + input));
+		}
+		try {
+			if (output != null && Files.exists(output) && (!Files.isDirectory(output) || Files.list(output).count() == 0)) {
+				throw new IOError(new IOException("Output must not already exist, or be an empty directory: " + output));
+			}
+		} catch (IOException e) {
+			throw new IOError(e);
+		}
 		try {
 			Files.walkFileTree(input, new SimpleFileVisitor<Path>() {
 				@Override
 				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-					Supplier<byte[]> data = transformBytes(input.relativize(file).toString(), () -> {
+					val relativeName = input.relativize(file).toString();
+
+					val data = transformBytes(relativeName, () -> {
 						try {
 							return Files.readAllBytes(file);
 						} catch (IOException e) {
@@ -136,7 +148,15 @@ public class JavaTransformer {
 						}
 					});
 
-					// TODO implement transformFolder -> use data
+					if (output != null) {
+						Path outputFile = output.resolve(relativeName);
+						if (Files.exists(outputFile)) {
+							throw new IOException("Output file already exists: " + outputFile);
+						}
+
+						Files.createDirectories(outputFile.getParent());
+						Files.write(outputFile, data.get());
+					}
 
 					return FileVisitResult.CONTINUE;
 				}
@@ -144,6 +164,10 @@ public class JavaTransformer {
 		} catch (IOException e) {
 			throw new IOError(e);
 		}
+	}
+
+	public void parseFolder(Path input) {
+		transformFolder(input, null);
 	}
 
 	private void transformJar(ClassInfo editor) {
