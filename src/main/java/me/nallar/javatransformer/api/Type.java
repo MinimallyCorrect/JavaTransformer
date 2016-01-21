@@ -1,6 +1,5 @@
 package me.nallar.javatransformer.api;
 
-import com.github.javaparser.ast.ImportDeclaration;
 import lombok.Data;
 import lombok.val;
 import me.nallar.javatransformer.internal.util.JVMUtil;
@@ -124,31 +123,6 @@ public class Type {
 		return types;
 	}
 
-	public static Type resolve(com.github.javaparser.ast.type.Type type, Iterable<ImportDeclaration> imports) {
-		return resolve(type.toStringWithoutComments().trim(), imports);
-	}
-
-	public static Type resolve(String name, Iterable<ImportDeclaration> imports) {
-		return new Type("L" + resolveName(name, imports) + ";");
-	}
-
-	private static String resolveName(String name, Iterable<ImportDeclaration> imports) {
-		// TODO: 13/01/2016 Handle generic types (ArrayList<Type> -> resolve Type, and ArrayList.)
-
-		for (ImportDeclaration anImport : imports) {
-			String importName = anImport.getName().getName();
-			if (importName.endsWith(name)) {
-				return importName;
-			}
-		}
-
-		if (!name.contains(".") && !Objects.equals(System.getProperty("JarTransformer.allowDefaultPackage"), "true")) {
-			throw new RuntimeException("Couldn't resolve name: " + name);
-		}
-
-		return name;
-	}
-
 	public boolean isPrimitiveType() {
 		return real.charAt(0) != 'L';
 	}
@@ -175,21 +149,5 @@ public class Type {
 
 	public String genericOrReal() {
 		return generic == null ? real : generic;
-	}
-
-	public String unresolve(Iterable<ImportDeclaration> imports) {
-		if (isPrimitiveType()) {
-			return getPrimitiveTypeName();
-		}
-		String className = getClassName();
-
-		for (ImportDeclaration anImport : imports) {
-			String importName = anImport.getName().getName();
-			if (className.startsWith(importName)) {
-				return className.replace(importName + ".", "");
-			}
-		}
-
-		return className;
 	}
 }
