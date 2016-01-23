@@ -1,6 +1,7 @@
 package me.nallar.javatransformer.api;
 
 import lombok.Data;
+import lombok.NonNull;
 import lombok.val;
 import me.nallar.javatransformer.internal.util.JVMUtil;
 
@@ -34,6 +35,7 @@ public class Type {
 	/**
 	 * A descriptor represents the real part of a type
 	 */
+	@NonNull
 	public final String descriptor;
 	/**
 	 * A signature represents the generic part of a type
@@ -126,30 +128,64 @@ public class Type {
 	}
 
 	public boolean isPrimitiveType() {
-		return descriptor.charAt(0) != 'L';
+		val first = descriptor.charAt(0);
+		return first != 'L' && first != 'T';
+	}
+
+	private boolean isClassType() {
+		val first = descriptor.charAt(0);
+		return first == 'L';
+	}
+
+	public boolean isTypeParameter() {
+		val first = descriptor.charAt(0);
+		return first == 'T';
 	}
 
 	public String getSimpleName() {
 		if (isPrimitiveType())
 			return getPrimitiveTypeName();
-		else
+		else if (isClassType())
 			return getClassName();
+		else if (isTypeParameter())
+			return getTypeParameterName();
+
+		throw new IllegalStateException("Unknown type for type: " + this);
 	}
 
 	public String getPrimitiveTypeName() {
 		if (!isPrimitiveType())
-			throw new RuntimeException("Can't get primitive name for class type");
+			throw new RuntimeException("Can't get classname for type: " + this);
 		return JVMUtil.descriptorToPrimitiveType(descriptor);
 	}
 
 	public String getClassName() {
-		if (isPrimitiveType()) {
-			throw new RuntimeException("Can't get classname for primitive type");
-		}
+		if (!isClassType())
+			throw new RuntimeException("Can't get classname for type: " + this);
 		return descriptor.substring(1, descriptor.length() - 1).replace('/', '.');
 	}
 
-	public String genericOrReal() {
+	public String getTypeParameterName() {
+		if (!isTypeParameter())
+			throw new RuntimeException("Can't get type parameter name for type: " + this);
+		return descriptor.substring(1, descriptor.length() - 1);
+	}
+
+	public String signatureIfExists() {
 		return signature == null ? descriptor : signature;
+	}
+
+	public Type withTypeArgument(Type genericType) {
+		if (this.isPrimitiveType())
+			throw new UnsupportedOperationException("Can not add type argument to primitive type");
+
+		String signature = signatureIfExists();
+		int semicolon = signature.lastIndexOf(';');
+		if (semicolon == -1)
+			throw new IllegalStateException("Couldn't find ';' in: " + this);
+
+		StringBuilder sb = new StringBuilder(signature);
+		sb.insert(semicolon - 1, '<' + genericType.signatureIfExists() + '>');
+		return new Type(descriptor, sb.toString());
 	}
 }

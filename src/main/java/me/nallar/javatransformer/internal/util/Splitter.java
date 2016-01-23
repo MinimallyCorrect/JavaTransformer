@@ -6,18 +6,22 @@ public interface Splitter {
 	static Splitter on(char c) {
 		return s -> {
 			ArrayList<String> split = new ArrayList<>();
-			int current = 0;
+			int base = 0;
 			do {
-				int next = current = s.indexOf(c, current);
+				int next = s.indexOf(c, base);
+
+				int nextBase = next + 1;
 
 				if (next == -1)
 					next = s.length();
 
-				String part = s.substring(0, next).trim();
+				String part = s.substring(base, next).trim();
 
 				if (!part.isEmpty())
 					split.add(part);
-			} while (current != -1);
+
+				base = nextBase;
+			} while (base != 0);
 			return split;
 		};
 	}

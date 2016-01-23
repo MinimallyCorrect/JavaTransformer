@@ -1,28 +1,86 @@
 package me.nallar.javatransformer.internal;
 
+import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.ImportDeclaration;
+import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.TypeParameter;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
-import lombok.Data;
+import com.github.javaparser.ast.type.PrimitiveType;
 import lombok.NonNull;
 import lombok.val;
 import me.nallar.javatransformer.api.Type;
+import me.nallar.javatransformer.internal.util.JVMUtil;
+import me.nallar.javatransformer.internal.util.Joiner;
+import me.nallar.javatransformer.internal.util.NodeUtil;
+import me.nallar.javatransformer.internal.util.Splitter;
 
 import java.util.*;
 
 public class ResolutionContext {
+	private static final Splitter dotSplitter = Splitter.on('.');
+	@NonNull
 	private final String packageName;
+	@NonNull
 	private final Iterable<ImportDeclaration> imports;
+	@NonNull
 	private final Iterable<TypeParameter> typeParameters;
 
-	public ResolutionContext(String packageName, Iterable<ImportDeclaration> imports, Iterable<TypeParameter> typeParameters) {
+	private ResolutionContext(String packageName, Iterable<ImportDeclaration> imports, Iterable<TypeParameter> typeParameters) {
+		this.packageName = packageName;
 		this.imports = imports;
 		this.typeParameters = typeParameters;
-		this.packageName = packageName;
+	}
+
+	public static ResolutionContext of(String packageName, Iterable<ImportDeclaration> imports, Iterable<TypeParameter> typeParameters) {
+		return new ResolutionContext(packageName, imports, typeParameters);
+	}
+
+	public static ResolutionContext of(Node node) {
+		CompilationUnit cu = NodeUtil.getParentNode(node, CompilationUnit.class);
+		String packageName = cu.getPackage().getName().getName();
+		List<TypeParameter> typeParameters = NodeUtil.getTypeParameters(node);
+
+		return new ResolutionContext(packageName, cu.getImports(), typeParameters);
+	}
+
+	static boolean hasPackages(String name) {
+		// Guesses whether input name includes packages or is just classes
+		return Character.isUpperCase(name.charAt(0)) && name.indexOf('.') != -1;
+	}
+
+	static String classNameToDescriptor(String className) {
+		// TODO: 23/01/2016 Handle inner classes properly? currently depend on following naming standards
+		// depends on: lower case package names, uppercase first letter of class name
+		List<String> parts = new ArrayList<>();
+		dotSplitter.split(className).forEach(parts::add);
+
+		boolean possibleClass = true;
+		for (int i = parts.size() - 1, size = i; i >= 0; i--) {
+			String part = parts.get(i);
+
+			boolean last = i == size;
+
+			if (!last && !Character.isUpperCase(part.charAt(0))) {
+				possibleClass = false;
+			}
+
+			if (!last) {
+				parts.set(i, part + (possibleClass ? '$' : '/'));
+			}
+		}
+
+		return "L" + Joiner.on().join(parts) + ";";
 	}
 
 	public Type resolve(com.github.javaparser.ast.type.Type type) {
-		return resolve(type.toStringWithoutComments().trim());
+		if (type instanceof ClassOrInterfaceType) {
+			return resolve(((ClassOrInterfaceType) type).getName());
+		} else if (type instanceof PrimitiveType) {
+			return new Type(JVMUtil.primitiveTypeToDescriptor(((PrimitiveType) type).getType().name().toLowerCase()));
+		} else {
+			// TODO: 23/01/2016 Is this behaviour correct?
+			return resolve(type.toStringWithoutComments());
+		}
 	}
 
 	/**
@@ -52,14 +110,11 @@ public class ResolutionContext {
 			}
 		} else {
 			if (type != null && genericType != null) {
-				return addTypeArgument(type, genericType);
+				return type.withTypeArgument(genericType);
 			}
 		}
-		throw new RuntimeException("Couldn't resolve name: " + name + "\nFound real type: " + type + "\nGeneric type: " + genericType);
-	}
 
-	private Type addTypeArgument(Type type, Type genericType) {
-		throw new UnsupportedOperationException("TODO"); // TODO: 23/01/2016
+		throw new RuntimeException("Couldn't resolve name: " + name + "\nFound real type: " + type + "\nGeneric type: " + genericType);
 	}
 
 	private Type resolveReal(String name) {
@@ -67,26 +122,14 @@ public class ResolutionContext {
 		if (result != null)
 			return result;
 
-		result = resolveImportedType(name);
-		if (result != null)
-			return result;
-
-		result = resolveFullType(name);
+		result = resolveClassType(name);
 		if (result != null)
 			return result;
 
 		return null;
 	}
 
-	private Type resolveFullType(String name) {
-		if (!name.contains(".") && !Objects.equals(System.getProperty("JarTransformer.allowDefaultPackage"), "true")) {
-			return null;
-		}
-
-		return new Type("L" + name + ";");
-	}
-
-	private Type resolveImportedType(String name) {
+	private Type resolveClassType(String name) {
 		String dotName = name.contains(".") ? name : '.' + name;
 
 		for (ImportDeclaration anImport : imports) {
@@ -96,6 +139,36 @@ public class ResolutionContext {
 			}
 		}
 
+		Type type = resolveIfExists(packageName + '.' + name);
+		if (type != null) {
+			return type;
+		}
+
+		for (ImportDeclaration anImport : imports) {
+			String importName = anImport.getName().getName();
+			if (importName.endsWith(".*")) {
+				type = resolveIfExists(importName.replace(".*", ".") + name);
+				if (type != null) {
+					return type;
+				}
+			}
+		}
+
+		if (!hasPackages(name) && !Objects.equals(System.getProperty("JarTransformer.allowDefaultPackage"), "true")) {
+			return null;
+		}
+
+		return new Type(classNameToDescriptor(name));
+	}
+
+	private Type resolveIfExists(String s) {
+		if (s.startsWith("java.") || s.startsWith("javax.")) {
+			try {
+				return new Type(Class.forName(s).getName());
+			} catch (ClassNotFoundException ignored) {
+			}
+		}
+		// TODO: 23/01/2016 Move to separate class, do actual searching for files
 		return null;
 	}
 
@@ -146,6 +219,9 @@ public class ResolutionContext {
 		if (t.isPrimitiveType()) {
 			return t.getPrimitiveTypeName();
 		}
+		if (t.isTypeParameter()) {
+			return t.getTypeParameterName();
+		}
 		String className = t.getClassName();
 
 		for (ImportDeclaration anImport : imports) {
@@ -156,12 +232,5 @@ public class ResolutionContext {
 		}
 
 		return className;
-	}
-
-	@Data
-	private class DescriptorSignaturePair {
-		@NonNull
-		private final String descriptor;
-		private final String signature;
 	}
 }

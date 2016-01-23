@@ -1,10 +1,11 @@
 package me.nallar.javatransformer.internal.util;
 
-import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.expr.*;
+import lombok.experimental.UtilityClass;
 import lombok.val;
 import me.nallar.javatransformer.api.Annotation;
 import me.nallar.javatransformer.api.Type;
+import me.nallar.javatransformer.internal.ResolutionContext;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
@@ -13,6 +14,7 @@ import org.objectweb.asm.tree.AnnotationNode;
 import java.util.*;
 import java.util.stream.*;
 
+@UtilityClass
 public class AnnotationParser {
 	public static List<Annotation> parseAnnotations(byte[] bytes) {
 		ClassReader cr = new ClassReader(bytes);
@@ -30,8 +32,8 @@ public class AnnotationParser {
 		return Annotation.of(new Type(annotationNode.desc), values);
 	}
 
-	public static Annotation annotationFromAnnotationExpr(AnnotationExpr annotationExpr, Iterable<ImportDeclaration> imports) {
-		Type t = Type.resolve(annotationExpr.getName().getName(), imports);
+	public static Annotation annotationFromAnnotationExpr(AnnotationExpr annotationExpr) {
+		Type t = ResolutionContext.of(annotationExpr).resolve(annotationExpr.getName().getName());
 		if (annotationExpr instanceof SingleMemberAnnotationExpr) {
 			return Annotation.of(t, expressionToValue(((SingleMemberAnnotationExpr) annotationExpr).getMemberValue()));
 		} else if (annotationExpr instanceof NormalAnnotationExpr) {

@@ -91,7 +91,7 @@ public class JavaTransformer {
 
 			String shortClassName = classDeclaration.getName();
 			if ((packageName + '.' + shortClassName).equalsIgnoreCase(name)) {
-				transformJar(new SourceInfo(classDeclaration, cu.getPackage(), cu.getImports()));
+				transformJar(new SourceInfo(classDeclaration));
 			}
 		}
 

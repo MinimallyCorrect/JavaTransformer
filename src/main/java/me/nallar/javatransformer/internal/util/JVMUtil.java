@@ -1,10 +1,12 @@
 package me.nallar.javatransformer.internal.util;
 
+import lombok.experimental.UtilityClass;
 import me.nallar.javatransformer.api.AccessFlags;
 
 import java.lang.reflect.*;
 import java.util.*;
 
+@UtilityClass
 public class JVMUtil {
 	public static String getDescriptor(Class<?> clazz) {
 		if (clazz.isPrimitive()) {
