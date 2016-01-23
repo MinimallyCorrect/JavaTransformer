@@ -1,7 +1,6 @@
 package me.nallar.javatransformer.internal;
 
-import com.github.javaparser.ast.ImportDeclaration;
-import com.github.javaparser.ast.PackageDeclaration;
+import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
@@ -9,36 +8,36 @@ import com.github.javaparser.ast.type.PrimitiveType;
 import lombok.val;
 import me.nallar.javatransformer.api.*;
 import me.nallar.javatransformer.api.Parameter;
-import me.nallar.javatransformer.api.Type;
 import me.nallar.javatransformer.internal.util.AnnotationParser;
 import me.nallar.javatransformer.internal.util.JVMUtil;
+import me.nallar.javatransformer.internal.util.NodeUtil;
 
 import java.util.*;
 import java.util.stream.*;
 
 public class SourceInfo implements ClassInfo {
 	private final ClassOrInterfaceDeclaration type;
-	private final Iterable<ImportDeclaration> imports;
-	private final PackageDeclaration packageDeclaration;
+	private final String packageName;
+	private final ResolutionContext context;
 
-	public SourceInfo(ClassOrInterfaceDeclaration type, PackageDeclaration packageDeclaration, Iterable<ImportDeclaration> imports) {
+	public SourceInfo(ClassOrInterfaceDeclaration type) {
 		this.type = type;
-		this.packageDeclaration = packageDeclaration;
-		this.imports = imports;
+		this.context = ResolutionContext.of(type);
+		this.packageName = NodeUtil.getParentNode(type, CompilationUnit.class).getPackage().getName().getName();
 	}
 
 	@Override
 	public String getName() {
-		return packageDeclaration.getName().getName() + '.' + type.getName();
+		return packageName + '.' + type.getName();
 	}
 
 	@Override
 	public void setName(String name) {
-		String packageName = packageDeclaration.getName().getName();
+		String packageName = this.packageName;
 		if (name.startsWith(packageName)) {
 			type.setName(name.replace(packageName, ""));
 		} else {
-			throw new RuntimeException("Name '" + name + "' must be in package: " + packageDeclaration);
+			throw new RuntimeException("Name '" + name + "' must be in package: " + this.packageName);
 		}
 	}
 
@@ -76,12 +75,12 @@ public class SourceInfo implements ClassInfo {
 		if (extends_ == null || extends_.isEmpty())
 			return null;
 
-		return Type.resolve(extends_.get(0), imports);
+		return context.resolve(extends_.get(0));
 	}
 
 	@Override
 	public List<Type> getInterfaceTypes() {
-		return type.getImplements().stream().map((it) -> Type.resolve(it, imports)).collect(Collectors.toList());
+		return type.getImplements().stream().map(context::resolve).collect(Collectors.toList());
 	}
 
 	@Override
@@ -101,7 +100,7 @@ public class SourceInfo implements ClassInfo {
 	}
 
 	private com.github.javaparser.ast.type.Type toType(Type t) {
-		String name = t.unresolve(imports);
+		String name = context.unresolve(t);
 		if (t.isPrimitiveType()) {
 			return new PrimitiveType(JVMUtil.searchEnum(PrimitiveType.Primitive.class, name));
 		} else {
@@ -126,7 +125,7 @@ public class SourceInfo implements ClassInfo {
 	}
 
 	private List<Annotation> getAnnotations(List<AnnotationExpr> l) {
-		return l.stream().map((it) -> AnnotationParser.annotationFromAnnotationExpr(it, imports)).collect(Collectors.toList());
+		return l.stream().map(AnnotationParser::annotationFromAnnotationExpr).collect(Collectors.toList());
 	}
 
 	@Override
@@ -136,12 +135,18 @@ public class SourceInfo implements ClassInfo {
 
 	class FieldDeclarationWrapper implements FieldInfo {
 		private final FieldDeclaration declaration;
+		private ResolutionContext context;
 
 		FieldDeclarationWrapper(FieldDeclaration declaration) {
 			this.declaration = declaration;
 			if (declaration.getVariables().size() != 1) {
 				throw new UnsupportedOperationException("Not yet implemented: multiple variables in one field decl.");
 			}
+		}
+
+		private ResolutionContext getContext() {
+			if (context != null) return context;
+			return context = ResolutionContext.of(declaration);
 		}
 
 		@Override
@@ -166,7 +171,7 @@ public class SourceInfo implements ClassInfo {
 
 		@Override
 		public Type getType() {
-			return Type.resolve(declaration.getType(), imports);
+			return getContext().resolve(declaration.getType());
 		}
 
 		@Override
@@ -187,14 +192,20 @@ public class SourceInfo implements ClassInfo {
 
 	class MethodDeclarationWrapper implements MethodInfo {
 		private final MethodDeclaration declaration;
+		private ResolutionContext context;
 
 		public MethodDeclarationWrapper(MethodDeclaration declaration) {
 			this.declaration = declaration;
 		}
 
+		private ResolutionContext getContext() {
+			if (context != null) return context;
+			return context = ResolutionContext.of(declaration);
+		}
+
 		@Override
 		public Type getReturnType() {
-			return Type.resolve(declaration.getType(), imports);
+			return getContext().resolve(declaration.getType());
 		}
 
 		@Override

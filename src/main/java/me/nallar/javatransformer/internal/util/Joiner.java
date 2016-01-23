@@ -3,9 +3,23 @@ package me.nallar.javatransformer.internal.util;
 import java.util.*;
 
 public interface Joiner {
+	static Joiner on() {
+		return parts -> {
+			@SuppressWarnings("unchecked")
+			StringBuilder sb = new StringBuilder();
+
+			for (Object part : parts) {
+				sb.append(part.toString());
+			}
+
+			return sb.toString();
+		};
+	}
+
 	static Joiner on(String join) {
 		return parts -> {
-			Iterator<Object> i = parts.iterator();
+			@SuppressWarnings("unchecked")
+			Iterator<Object> i = (Iterator<Object>) parts.iterator();
 
 			if (!i.hasNext())
 				return "";
@@ -19,5 +33,5 @@ public interface Joiner {
 		};
 	}
 
-	String join(Iterable<Object> s);
+	String join(Iterable<?> s);
 }

@@ -1,8 +1,11 @@
 package me.nallar.javatransformer.internal.util;
 
+import lombok.experimental.UtilityClass;
+
 import java.util.*;
 import java.util.stream.*;
 
+@UtilityClass
 public class CollectionUtil {
 	@SafeVarargs
 	@SuppressWarnings("varargs")
