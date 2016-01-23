@@ -11,7 +11,7 @@ public class Parameter extends Type {
 	public final String name;
 
 	public Parameter(Type t, String name) {
-		super(t.real, t.generic);
+		super(t.descriptor, t.signature);
 		this.name = name;
 	}
 

@@ -160,8 +160,8 @@ public class ByteCodeInfo implements ClassInfo {
 		@Override
 		public void setType(Type type) {
 			this.type = type;
-			node.desc = type.real;
-			node.signature = type.generic;
+			node.desc = type.descriptor;
+			node.signature = type.signature;
 		}
 
 		@Override
