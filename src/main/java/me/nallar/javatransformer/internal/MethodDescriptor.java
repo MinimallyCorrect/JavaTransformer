@@ -92,10 +92,10 @@ public class MethodDescriptor {
 		StringBuilder desc = new StringBuilder("(");
 
 		for (Parameter parameter : parameters) {
-			desc.append(parameter.real);
+			desc.append(parameter.descriptor);
 		}
 
-		desc.append(")").append(returnType.real);
+		desc.append(")").append(returnType.descriptor);
 
 		return desc.toString();
 	}
@@ -105,9 +105,9 @@ public class MethodDescriptor {
 		StringBuilder signature = new StringBuilder("(");
 
 		for (Parameter parameter : parameters) {
-			String generic = parameter.generic;
+			String generic = parameter.signature;
 			if (generic == null)
-				generic = parameter.real;
+				generic = parameter.descriptor;
 			else
 				any = true;
 
@@ -115,9 +115,9 @@ public class MethodDescriptor {
 		}
 
 		signature.append(")");
-		String generic = returnType.generic;
+		String generic = returnType.signature;
 		if (generic == null)
-			generic = returnType.real;
+			generic = returnType.descriptor;
 		else
 			any = true;
 

@@ -7,46 +7,48 @@ import me.nallar.javatransformer.internal.util.JVMUtil;
 import java.util.*;
 
 /**
+ * <pre><code>
+ * 		a variable of type List<String> has:
+ * 			real type: Ljava/util/List;
+ * 			generic type: Ljava/util/List<Ljava/lang/String
+ *
+ * 		;>
+ *
+ *     When the type parameter T is <T:Ljava/lang/Object;>
+ *
+ * 		a variable of type T has:
+ * 			real type: Ljava/lang/Object;
+ * 			generic type: TT;
+ *
+ * 		a variable of type List<T> has:
+ * 			real type: Ljava/util/List;
+ * 			generic type: Ljava/util/List<TT;>
  * // access flags 0x8
  * // signature <T:Ljava/lang/Object;>(Ljava/util/ArrayList<TT;>;Ljava/util/List<Ljava/lang/String;>;)TT;
  * // declaration: T test<T>(java.util.ArrayList<T>, java.util.List<java.lang.String>)
  * static test(Ljava/util/ArrayList;Ljava/util/List;)Ljava/lang/Object;
- * <p>
  * </code></pre>
  */
 @Data
 public class Type {
 	/**
-	 * <pre><code>
-	 * 		a variable of type List<String> has:
-	 * 			real type: Ljava/util/List;
-	 * 			generic type: Ljava/util/List<Ljava/lang/String
-	 *
-	 * 		;>
-	 *
-	 *     When the type parameter T is <T:Ljava/lang/Object;>
-	 *
-	 * 		a variable of type T has:
-	 * 			real type: Ljava/lang/Object;
-	 * 			generic type: TT;
-	 *
-	 * 		a variable of type List<T> has:
-	 * 			real type: Ljava/util/List;
-	 * 			generic type: Ljava/util/List<TT;>
-	 * </code></pre>
+	 * A descriptor represents the real part of a type
 	 */
-	public final String real;
-	public final String generic;
+	public final String descriptor;
+	/**
+	 * A signature represents the generic part of a type
+	 */
+	public final String signature;
 
-	public Type(String real, String generic) {
-		if (generic != null && generic.equals(real))
-			generic = null;
-		this.real = real;
-		this.generic = generic;
+	public Type(String descriptor, String signature) {
+		if (signature != null && signature.equals(descriptor))
+			signature = null;
+		this.descriptor = descriptor;
+		this.signature = signature;
 	}
 
-	public Type(String real) {
-		this(real, null);
+	public Type(String descriptor) {
+		this(descriptor, null);
 	}
 
 	public static List<Type> of(String realDesc, String genericDesc) {
@@ -124,7 +126,7 @@ public class Type {
 	}
 
 	public boolean isPrimitiveType() {
-		return real.charAt(0) != 'L';
+		return descriptor.charAt(0) != 'L';
 	}
 
 	public String getSimpleName() {
@@ -137,17 +139,17 @@ public class Type {
 	public String getPrimitiveTypeName() {
 		if (!isPrimitiveType())
 			throw new RuntimeException("Can't get primitive name for class type");
-		return JVMUtil.descriptorToPrimitiveType(real);
+		return JVMUtil.descriptorToPrimitiveType(descriptor);
 	}
 
 	public String getClassName() {
 		if (isPrimitiveType()) {
 			throw new RuntimeException("Can't get classname for primitive type");
 		}
-		return real.substring(1, real.length() - 1).replace('/', '.');
+		return descriptor.substring(1, descriptor.length() - 1).replace('/', '.');
 	}
 
 	public String genericOrReal() {
-		return generic == null ? real : generic;
+		return signature == null ? descriptor : signature;
 	}
 }
