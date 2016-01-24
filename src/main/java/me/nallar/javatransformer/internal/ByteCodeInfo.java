@@ -13,7 +13,7 @@ import java.util.*;
 import java.util.stream.*;
 
 @SuppressWarnings("unchecked")
-public class ByteCodeInfo implements ClassInfo {
+public class ByteCodeInfo implements ClassInfoStreams {
 	private final ClassNode node;
 	@Getter(lazy = true)
 	private final List<Annotation> annotations = getAnnotationsInternal();
@@ -42,7 +42,6 @@ public class ByteCodeInfo implements ClassInfo {
 		node.access = accessFlags.access;
 	}
 
-	@Override
 	public void add(MethodInfo method) {
 		MethodNode node = new MethodNode();
 		if (method instanceof MethodNodeInfo) {
@@ -72,7 +71,6 @@ public class ByteCodeInfo implements ClassInfo {
 		this.node.methods.add(node);
 	}
 
-	@Override
 	public void add(FieldInfo field) {
 		FieldNode node;
 		if (field instanceof FieldNodeInfo) {
@@ -101,14 +99,12 @@ public class ByteCodeInfo implements ClassInfo {
 		return node.interfaces.stream().map((it) -> new Type("L" + it + ";")).collect(Collectors.toList());
 	}
 
-	@Override
-	public List<MethodInfo> getMethods() {
-		return node.methods.stream().map(MethodNodeInfo::new).collect(Collectors.toCollection(ArrayList::new));
+	public Stream<MethodInfo> getMethodStream() {
+		return node.methods.stream().map(MethodNodeInfo::new);
 	}
 
-	@Override
-	public List<FieldInfo> getFields() {
-		return node.fields.stream().map(FieldNodeInfo::new).collect(Collectors.toCollection(ArrayList::new));
+	public Stream<FieldInfo> getFieldStream() {
+		return node.fields.stream().map(FieldNodeInfo::new);
 	}
 
 	private List<Annotation> getAnnotationsInternal() {
