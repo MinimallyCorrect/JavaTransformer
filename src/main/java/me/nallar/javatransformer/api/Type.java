@@ -32,6 +32,8 @@ import java.util.*;
  */
 @Data
 public class Type {
+	public static final Type UNKNOWN = new Type("Ljava/lang/Object;", "Tunknown;");
+
 	/**
 	 * A descriptor represents the real part of a type
 	 */
@@ -138,17 +140,17 @@ public class Type {
 	}
 
 	public boolean isTypeParameter() {
-		val first = descriptor.charAt(0);
+		val first = signature.charAt(0);
 		return first == 'T';
 	}
 
 	public String getSimpleName() {
-		if (isPrimitiveType())
+		if (isTypeParameter())
+			return getTypeParameterName();
+		else if (isPrimitiveType())
 			return getPrimitiveTypeName();
 		else if (isClassType())
 			return getClassName();
-		else if (isTypeParameter())
-			return getTypeParameterName();
 
 		throw new IllegalStateException("Unknown type for type: " + this);
 	}
@@ -168,7 +170,7 @@ public class Type {
 	public String getTypeParameterName() {
 		if (!isTypeParameter())
 			throw new RuntimeException("Can't get type parameter name for type: " + this);
-		return descriptor.substring(1, descriptor.length() - 1);
+		return signature.substring(1, signature.length() - 1);
 	}
 
 	public String signatureIfExists() {
@@ -187,5 +189,9 @@ public class Type {
 		StringBuilder sb = new StringBuilder(signature);
 		sb.insert(semicolon - 1, '<' + genericType.signatureIfExists() + '>');
 		return new Type(descriptor, sb.toString());
+	}
+
+	public boolean similar(@NonNull Type other) {
+		return UNKNOWN == this || UNKNOWN == other || this.equals(other);
 	}
 }

@@ -16,4 +16,9 @@ public interface FieldInfo extends ClassMember {
 		this.setAccessFlags(info.getAccessFlags());
 		this.setType(info.getType());
 	}
+
+	default boolean similar(FieldInfo other) {
+		return other.getName().equals(this.getName()) &&
+			other.getType().similar(this.getType());
+	}
 }
