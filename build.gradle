@@ -2,7 +2,7 @@ plugins {
 	id 'java'
 	id 'maven'
 }
-project.version = '1.0-SNAPSHOT'
+project.version = '1.0'
 project.group = 'me.nallar'
 
 // Extended project information
