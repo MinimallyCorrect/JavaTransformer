@@ -26,30 +26,30 @@ public class JavaTransformer {
 
 	private static byte[] readFully(InputStream is) {
 		byte[] output = {};
-		int pos = 0;
+		int position = 0;
 		while (true) {
 			int bytesToRead;
-			if (pos >= output.length) {
+			if (position >= output.length) {
 				bytesToRead = output.length + 4096;
-				if (output.length < pos + bytesToRead) {
-					output = Arrays.copyOf(output, pos + bytesToRead);
+				if (output.length < position + bytesToRead) {
+					output = Arrays.copyOf(output, position + bytesToRead);
 				}
 			} else {
-				bytesToRead = output.length - pos;
+				bytesToRead = output.length - position;
 			}
-			int cc = 0;
+			int bytesRead;
 			try {
-				cc = is.read(output, pos, bytesToRead);
+				bytesRead = is.read(output, position, bytesToRead);
 			} catch (IOException e) {
 				throw new IOError(e);
 			}
-			if (cc < 0) {
-				if (output.length != pos) {
-					output = Arrays.copyOf(output, pos);
+			if (bytesRead < 0) {
+				if (output.length != position) {
+					output = Arrays.copyOf(output, position);
 				}
 				break;
 			}
-			pos += cc;
+			position += bytesRead;
 		}
 		return output;
 	}

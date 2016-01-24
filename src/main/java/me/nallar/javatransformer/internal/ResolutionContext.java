@@ -84,15 +84,15 @@ public class ResolutionContext {
 	}
 
 	/**
-	 * Resolves a given part to a JVM type string.
+	 * Resolves a given name to a JVM type string.
 	 * <p>
 	 * EG:
 	 * ArrayList -> Ljava/util/ArrayList;
 	 * T -> TT;
 	 * boolean -> Z
 	 *
-	 * @param name
-	 * @return JVM format resolved name
+	 * @param name Name to resolve
+	 * @return Type containing resolved name with descriptor/signature
 	 */
 	public Type resolve(String name) {
 		if (name == null)

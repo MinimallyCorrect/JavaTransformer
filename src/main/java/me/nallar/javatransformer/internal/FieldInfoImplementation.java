@@ -1,11 +1,7 @@
 package me.nallar.javatransformer.internal;
 
 import lombok.Data;
-import me.nallar.javatransformer.api.AccessFlags;
-import me.nallar.javatransformer.api.Annotation;
-import me.nallar.javatransformer.api.ClassInfo;
-import me.nallar.javatransformer.api.FieldInfo;
-import me.nallar.javatransformer.api.Type;
+import me.nallar.javatransformer.api.*;
 
 import java.util.*;
 
