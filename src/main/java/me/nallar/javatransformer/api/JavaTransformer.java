@@ -5,7 +5,7 @@ import com.github.javaparser.ParseException;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
-import lombok.val;
+import lombok.*;
 import me.nallar.javatransformer.internal.ByteCodeInfo;
 import me.nallar.javatransformer.internal.SourceInfo;
 import org.objectweb.asm.ClassReader;
@@ -20,9 +20,13 @@ import java.util.*;
 import java.util.function.*;
 import java.util.zip.*;
 
+@Getter
+@Setter
+@ToString
 public class JavaTransformer {
 	private final List<Transformer> transformers = new ArrayList<>();
 	private final SimpleMultiMap<String, Transformer> classTransformers = new SimpleMultiMap<>();
+	private final Map<String, byte[]> transformedFiles = new HashMap<>();
 
 	private static byte[] readFully(InputStream is) {
 		byte[] output = {};
@@ -54,7 +58,116 @@ public class JavaTransformer {
 		return output;
 	}
 
-	public void addTransformer(String s, Transformer t) {
+	public void save(@NonNull Path path) {
+		switch (PathType.of(path)) {
+			case JAR:
+				saveJar(path);
+				break;
+			case FOLDER:
+				saveFolder(path);
+				break;
+		}
+	}
+
+	public void load(@NonNull Path path) {
+		load(path, true);
+	}
+
+	public void load(@NonNull Path path, boolean saveTransformedResults) {
+		switch (PathType.of(path)) {
+			case JAR:
+				loadJar(path, saveTransformedResults);
+				break;
+			case FOLDER:
+				loadFolder(path, saveTransformedResults);
+				break;
+		}
+	}
+
+	public void transform(@NonNull Path load, @NonNull Path save) {
+		load(load, true);
+		save(save);
+
+		clear();
+	}
+
+	private void loadFolder(Path input, boolean saveTransformedResults) {
+		try {
+			Files.walkFileTree(input, new SimpleFileVisitor<Path>() {
+				@Override
+				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+					val relativeName = input.relativize(file).toString();
+
+					val supplier = transformBytes(relativeName, () -> {
+						try {
+							return Files.readAllBytes(file);
+						} catch (IOException e) {
+							throw new IOError(e);
+						}
+					});
+
+					saveTransformedResult(relativeName, supplier, saveTransformedResults);
+
+					return FileVisitResult.CONTINUE;
+				}
+			});
+		} catch (IOException e) {
+			throw new IOError(e);
+		}
+	}
+
+	private void loadJar(Path p, boolean saveTransformedResults) {
+		ZipEntry entry;
+		try (ZipInputStream is = new ZipInputStream(new BufferedInputStream(new FileInputStream(p.toFile())))) {
+			while ((entry = is.getNextEntry()) != null) {
+				saveTransformedResult(entry.getName(), transformBytes(entry.getName(), () -> readFully(is)), saveTransformedResults);
+			}
+		} catch (IOException e) {
+			throw new IOError(e);
+		}
+	}
+
+	private void saveTransformedResult(String relativeName, Supplier<byte[]> supplier, boolean saveTransformedResults) {
+		if (saveTransformedResults)
+			transformedFiles.put(relativeName, supplier.get());
+	}
+
+	private void saveFolder(Path output) {
+		transformedFiles.forEach(((fileName, bytes) -> {
+			Path outputFile = output.resolve(fileName);
+
+			try {
+				if (Files.exists(outputFile)) {
+					throw new IOException("Output file already exists: " + outputFile);
+				}
+				Files.createDirectories(outputFile.getParent());
+				Files.write(outputFile, bytes);
+			} catch (IOException e) {
+				throw new IOError(e);
+			}
+		}));
+	}
+
+	private void saveJar(Path jar) {
+		try (ZipOutputStream os = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(jar.toFile())))) {
+			transformedFiles.forEach(((relativeName, bytes) -> {
+				try {
+					os.putNextEntry(new ZipEntry(relativeName));
+					os.write(bytes);
+				} catch (IOException e) {
+					throw new IOError(e);
+				}
+			}));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void clear() {
+		transformedFiles.clear();
+	}
+
+	public void addTransformer(@NonNull String s, @NonNull Transformer t) {
 		if (!t.shouldTransform(s)) {
 			throw new IllegalArgumentException("Transformer " + t + " must transform class of name " + s);
 		}
@@ -64,14 +177,14 @@ public class JavaTransformer {
 		classTransformers.put(s, t);
 	}
 
-	public void addTransformer(Transformer t) {
+	public void addTransformer(@NonNull Transformer t) {
 		if (transformers.contains(t)) {
 			throw new IllegalArgumentException("Transformer " + t + " has already been added");
 		}
 		transformers.add(t);
 	}
 
-	public byte[] transformJava(byte[] data, String name) {
+	public byte[] transformJava(@NonNull byte[] data, @NonNull String name) {
 		if (!shouldTransform(name))
 			return data;
 
@@ -98,7 +211,7 @@ public class JavaTransformer {
 		return cu.toString().getBytes(Charset.forName("UTF-8"));
 	}
 
-	public byte[] transformClass(byte[] data, String name) {
+	public byte[] transformClass(@NonNull byte[] data, @NonNull String name) {
 		if (!shouldTransform(name))
 			return data;
 
@@ -111,69 +224,6 @@ public class JavaTransformer {
 		ClassWriter classWriter = new ClassWriter(reader, 0);
 		node.accept(classWriter);
 		return classWriter.toByteArray();
-	}
-
-	public void transformJar(File input, File output) {
-		try {
-			transformJar(new ZipInputStream(new BufferedInputStream(new FileInputStream(input))), new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(output))));
-		} catch (FileNotFoundException e) {
-			throw new IOError(e);
-		}
-	}
-
-	public void parseJar(File input) {
-		try {
-			transformJar(new ZipInputStream(new BufferedInputStream(new FileInputStream(input))), null);
-		} catch (FileNotFoundException e) {
-			throw new IOError(e);
-		}
-	}
-
-	public void transformFolder(Path input, Path output) {
-		if (!Files.isDirectory(input)) {
-			throw new IOError(new IOException("Input must be a directory: " + input));
-		}
-		try {
-			if (output != null && Files.exists(output) && (!Files.isDirectory(output) || Files.list(output).count() == 0)) {
-				throw new IOError(new IOException("Output must not already exist, or be an empty directory: " + output));
-			}
-		} catch (IOException e) {
-			throw new IOError(e);
-		}
-		try {
-			Files.walkFileTree(input, new SimpleFileVisitor<Path>() {
-				@Override
-				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-					val relativeName = input.relativize(file).toString();
-
-					val data = transformBytes(relativeName, () -> {
-						try {
-							return Files.readAllBytes(file);
-						} catch (IOException e) {
-							throw new IOError(e);
-						}
-					});
-
-					if (output != null) {
-						Path outputFile = output.resolve(relativeName);
-						if (Files.exists(outputFile)) {
-							throw new IOException("Output file already exists: " + outputFile);
-						}
-
-						Files.createDirectories(outputFile.getParent());
-						Files.write(outputFile, data.get());
-					}
-
-					return FileVisitResult.CONTINUE;
-				}
-			});
-		} catch (IOException e) {
-			throw new IOError(e);
-		}
-	}
-
-	public void parseFolder(Path input) {
-		transformFolder(input, null);
 	}
 
 	private void transformJar(ClassInfo editor) {
@@ -198,43 +248,41 @@ public class JavaTransformer {
 		return false;
 	}
 
-	private void transformJar(ZipInputStream is, ZipOutputStream os) {
-		ZipEntry entry;
-		try {
-			while ((entry = is.getNextEntry()) != null) {
-				Supplier<byte[]> data = transformBytes(entry.getName(), () -> readFully(is));
-
-				if (os != null) {
-					os.putNextEntry(new ZipEntry(entry));
-					os.write(data.get());
-				}
-			}
-		} catch (IOException e) {
-			throw new IOError(e);
-		} finally {
-			try {
-				is.close();
-			} catch (IOException ignored) {
-			}
-			try {
-				if (os != null)
-					os.close();
-			} catch (IOException ignored) {
-			}
-		}
-	}
-
 	private Supplier<byte[]> transformBytes(String relativeName, Supplier<byte[]> dataSupplier) {
 		if (relativeName.endsWith(".java")) {
 			String clazzName = relativeName.substring(0, relativeName.length() - 5).replace('/', '.');
+			if (clazzName.startsWith(".")) {
+				clazzName = clazzName.substring(1);
+			}
 			val bytes = transformJava(dataSupplier.get(), clazzName);
 			return () -> bytes;
 		} else if (relativeName.endsWith(".class")) {
 			String clazzName = relativeName.substring(0, relativeName.length() - 6).replace('/', '.');
+			if (clazzName.startsWith(".")) {
+				clazzName = clazzName.substring(1);
+			}
 			val bytes = transformClass(dataSupplier.get(), clazzName);
 			return () -> bytes;
 		}
 		return dataSupplier;
+	}
+
+	private enum PathType {
+		JAR,
+		FOLDER;
+
+		static PathType of(Path p) {
+			if (!p.getFileName().toString().contains(".")) {
+				if (Files.exists(p) && !Files.isDirectory(p)) {
+					throw new RuntimeException("Path " + p + " should be a directory or not already exist");
+				}
+				return FOLDER;
+			}
+			if (Files.isDirectory(p)) {
+				throw new RuntimeException("Path " + p + " should be a file or not already exist");
+			}
+			return JAR;
+		}
 	}
 
 	private static class SimpleMultiMap<K, T> {
