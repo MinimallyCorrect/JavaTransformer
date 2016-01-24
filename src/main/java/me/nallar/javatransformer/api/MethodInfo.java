@@ -27,4 +27,10 @@ public interface MethodInfo extends ClassMember {
 		this.setReturnType(info.getReturnType());
 		this.setParameters(info.getParameters());
 	}
+
+	default boolean similar(MethodInfo other) {
+		return other.getName().equals(this.getName()) &&
+			other.getReturnType().similar(this.getReturnType()) &&
+			(other.getParameters() == null || this.getParameters() == null || other.getParameters().equals(this.getParameters()));
+	}
 }

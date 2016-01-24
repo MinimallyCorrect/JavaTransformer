@@ -216,11 +216,11 @@ public class ResolutionContext {
 	}
 
 	public String unresolve(Type t) {
-		if (t.isPrimitiveType()) {
-			return t.getPrimitiveTypeName();
-		}
 		if (t.isTypeParameter()) {
 			return t.getTypeParameterName();
+		}
+		if (t.isPrimitiveType()) {
+			return t.getPrimitiveTypeName();
 		}
 		String className = t.getClassName();
 

@@ -90,6 +90,26 @@ public class ByteCodeInfo implements ClassInfoStreams {
 	}
 
 	@Override
+	public void remove(MethodInfo method) {
+		MethodNodeInfo methodNodeInfo = !(method instanceof MethodNodeInfo) ? (MethodNodeInfo) get(method) : (MethodNodeInfo) method;
+
+		if (methodNodeInfo == null)
+			throw new RuntimeException("Method " + method + " can not be removed as it is not present");
+
+		node.methods.remove(methodNodeInfo.node);
+	}
+
+	@Override
+	public void remove(FieldInfo field) {
+		FieldNodeInfo fieldNodeInfo = !(field instanceof FieldNodeInfo) ? (FieldNodeInfo) get(field) : (FieldNodeInfo) field;
+
+		if (fieldNodeInfo == null)
+			throw new RuntimeException("Field " + field + " can not be removed as it is not present");
+
+		node.fields.remove(fieldNodeInfo.node);
+	}
+
+	@Override
 	public Type getSuperType() {
 		return new Type("L" + node.superName + ";");
 	}

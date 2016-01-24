@@ -73,6 +73,26 @@ public class SourceInfo implements ClassInfoStreams {
 	}
 
 	@Override
+	public void remove(MethodInfo method) {
+		MethodDeclarationWrapper methodDeclarationWrapper = !(method instanceof MethodDeclarationWrapper) ? (MethodDeclarationWrapper) get(method) : (MethodDeclarationWrapper) method;
+
+		if (methodDeclarationWrapper == null)
+			throw new RuntimeException("Method " + method + " can not be removed as it is not present");
+
+		type.getMembers().remove(methodDeclarationWrapper.declaration);
+	}
+
+	@Override
+	public void remove(FieldInfo field) {
+		FieldDeclarationWrapper fieldDeclarationWrapper = !(field instanceof FieldDeclarationWrapper) ? (FieldDeclarationWrapper) get(field) : (FieldDeclarationWrapper) field;
+
+		if (fieldDeclarationWrapper == null)
+			throw new RuntimeException("Field " + field + " can not be removed as it is not present");
+
+		type.getMembers().remove(fieldDeclarationWrapper.declaration);
+	}
+
+	@Override
 	public Type getSuperType() {
 		val extends_ = type.getExtends();
 
