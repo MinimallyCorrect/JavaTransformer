@@ -132,7 +132,7 @@ public class Type {
 		return first != 'L' && first != 'T';
 	}
 
-	private boolean isClassType() {
+	public boolean isClassType() {
 		val first = descriptor.charAt(0);
 		return first == 'L';
 	}
