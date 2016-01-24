@@ -17,7 +17,7 @@ import java.util.*;
 import java.util.stream.*;
 
 @SuppressWarnings("unchecked")
-public class SourceInfo implements ClassInfo {
+public class SourceInfo implements ClassInfoStreams {
 	private final ClassOrInterfaceDeclaration type;
 	private final String packageName;
 	private final ResolutionContext context;
@@ -87,20 +87,16 @@ public class SourceInfo implements ClassInfo {
 		return type.getImplements().stream().map(context::resolve).collect(Collectors.toList());
 	}
 
-	@Override
-	public List<MethodInfo> getMethods() {
+	public Stream<MethodInfo> getMethodStream() {
 		return type.getMembers().stream()
 			.filter(x -> x instanceof MethodDeclaration)
-			.map(x -> new MethodDeclarationWrapper((MethodDeclaration) x))
-			.collect(Collectors.toCollection(ArrayList::new));
+			.map(x -> new MethodDeclarationWrapper((MethodDeclaration) x));
 	}
 
-	@Override
-	public List<FieldInfo> getFields() {
+	public Stream<FieldInfo> getFieldStream() {
 		return type.getMembers().stream()
 			.filter(x -> x instanceof FieldDeclaration)
-			.map(x -> new FieldDeclarationWrapper((FieldDeclaration) x))
-			.collect(Collectors.toCollection(ArrayList::new));
+			.map(x -> new FieldDeclarationWrapper((FieldDeclaration) x));
 	}
 
 	private com.github.javaparser.ast.type.Type toType(Type t) {

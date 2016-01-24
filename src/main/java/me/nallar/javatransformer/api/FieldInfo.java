@@ -2,7 +2,7 @@ package me.nallar.javatransformer.api;
 
 import me.nallar.javatransformer.internal.FieldInfoImplementation;
 
-public interface FieldInfo extends Accessible, Annotated, ClassMember, Named {
+public interface FieldInfo extends ClassMember {
 	static FieldInfo of(AccessFlags accessFlags, Type type, String name) {
 		return FieldInfoImplementation.of(accessFlags, type, name);
 	}
@@ -16,5 +16,4 @@ public interface FieldInfo extends Accessible, Annotated, ClassMember, Named {
 		this.setAccessFlags(info.getAccessFlags());
 		this.setType(info.getType());
 	}
-
 }

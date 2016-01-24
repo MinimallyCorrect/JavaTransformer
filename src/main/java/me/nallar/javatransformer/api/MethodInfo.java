@@ -4,7 +4,7 @@ import me.nallar.javatransformer.internal.MethodInfoImplementation;
 
 import java.util.*;
 
-public interface MethodInfo extends Accessible, Annotated, ClassMember, Named {
+public interface MethodInfo extends ClassMember {
 	static MethodInfo of(AccessFlags accessFlags, String name, Type returnType, Parameter... parameters) {
 		return of(accessFlags, name, returnType, Arrays.asList(parameters));
 	}
