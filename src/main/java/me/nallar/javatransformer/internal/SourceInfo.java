@@ -5,6 +5,7 @@ import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.PrimitiveType;
+import lombok.Getter;
 import lombok.val;
 import me.nallar.javatransformer.api.*;
 import me.nallar.javatransformer.api.Parameter;
@@ -15,10 +16,13 @@ import me.nallar.javatransformer.internal.util.NodeUtil;
 import java.util.*;
 import java.util.stream.*;
 
+@SuppressWarnings("unchecked")
 public class SourceInfo implements ClassInfo {
 	private final ClassOrInterfaceDeclaration type;
 	private final String packageName;
 	private final ResolutionContext context;
+	@Getter(lazy = true)
+	private final List<Annotation> annotations = getAnnotationsInternal();
 
 	public SourceInfo(ClassOrInterfaceDeclaration type) {
 		this.type = type;
@@ -119,12 +123,11 @@ public class SourceInfo implements ClassInfo {
 		return newType_;
 	}
 
-	@Override
-	public List<Annotation> getAnnotations() {
-		return getAnnotations(type.getAnnotations());
+	private List<Annotation> getAnnotationsInternal() {
+		return getAnnotationsInternal(type.getAnnotations());
 	}
 
-	private List<Annotation> getAnnotations(List<AnnotationExpr> l) {
+	private List<Annotation> getAnnotationsInternal(List<AnnotationExpr> l) {
 		return l.stream().map(AnnotationParser::annotationFromAnnotationExpr).collect(Collectors.toList());
 	}
 
@@ -181,7 +184,7 @@ public class SourceInfo implements ClassInfo {
 
 		@Override
 		public List<Annotation> getAnnotations() {
-			return SourceInfo.this.getAnnotations(declaration.getAnnotations());
+			return SourceInfo.this.getAnnotationsInternal(declaration.getAnnotations());
 		}
 
 		@Override
@@ -245,7 +248,7 @@ public class SourceInfo implements ClassInfo {
 
 		@Override
 		public List<Annotation> getAnnotations() {
-			return SourceInfo.this.getAnnotations(declaration.getAnnotations());
+			return SourceInfo.this.getAnnotationsInternal(declaration.getAnnotations());
 		}
 
 		@Override

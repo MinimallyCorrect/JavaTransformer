@@ -1,9 +1,8 @@
 package me.nallar.javatransformer.internal;
 
+import lombok.Getter;
 import lombok.val;
 import me.nallar.javatransformer.api.*;
-import me.nallar.javatransformer.api.Parameter;
-import me.nallar.javatransformer.api.Type;
 import me.nallar.javatransformer.internal.util.AnnotationParser;
 import me.nallar.javatransformer.internal.util.CollectionUtil;
 import org.objectweb.asm.tree.ClassNode;
@@ -13,8 +12,11 @@ import org.objectweb.asm.tree.MethodNode;
 import java.util.*;
 import java.util.stream.*;
 
+@SuppressWarnings("unchecked")
 public class ByteCodeInfo implements ClassInfo {
 	private final ClassNode node;
+	@Getter(lazy = true)
+	private final List<Annotation> annotations = getAnnotationsInternal();
 
 	public ByteCodeInfo(ClassNode node) {
 		this.node = node;
@@ -109,8 +111,7 @@ public class ByteCodeInfo implements ClassInfo {
 		return node.fields.stream().map(FieldNodeInfo::new).collect(Collectors.toCollection(ArrayList::new));
 	}
 
-	@Override
-	public List<Annotation> getAnnotations() {
+	private List<Annotation> getAnnotationsInternal() {
 		return CollectionUtil.union(node.invisibleAnnotations, node.visibleAnnotations).map(AnnotationParser::annotationFromAnnotationNode).collect(Collectors.toList());
 	}
 
