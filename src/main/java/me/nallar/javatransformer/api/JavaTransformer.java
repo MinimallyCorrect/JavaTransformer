@@ -167,6 +167,16 @@ public class JavaTransformer {
 		transformedFiles.clear();
 	}
 
+	public void addTransformer(@NonNull Transformer.TargetedTransformer t) {
+		if (transformers.contains(t)) {
+			throw new IllegalArgumentException("Transformer " + t + " has already been added");
+		}
+
+		for (String name : t.getTargetClasses()) {
+			classTransformers.put(name, t);
+		}
+	}
+
 	public void addTransformer(@NonNull String s, @NonNull Transformer t) {
 		if (!t.shouldTransform(s)) {
 			throw new IllegalArgumentException("Transformer " + t + " must transform class of name " + s);
@@ -178,6 +188,11 @@ public class JavaTransformer {
 	}
 
 	public void addTransformer(@NonNull Transformer t) {
+		if (t instanceof Transformer.TargetedTransformer) {
+			addTransformer((Transformer.TargetedTransformer) t);
+			return;
+		}
+
 		if (transformers.contains(t)) {
 			throw new IllegalArgumentException("Transformer " + t + " has already been added");
 		}
