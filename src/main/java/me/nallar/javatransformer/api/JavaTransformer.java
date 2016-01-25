@@ -73,6 +73,10 @@ public class JavaTransformer {
 		load(path, true);
 	}
 
+	public void parse(@NonNull Path path) {
+		load(path, false);
+	}
+
 	public void load(@NonNull Path path, boolean saveTransformedResults) {
 		switch (PathType.of(path)) {
 			case JAR:
