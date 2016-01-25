@@ -203,13 +203,13 @@ public class JavaTransformer {
 		transformers.add(t);
 	}
 
-	public byte[] transformJava(@NonNull byte[] data, @NonNull String name) {
+	public Supplier<byte[]> transformJava(@NonNull Supplier<byte[]> data, @NonNull String name) {
 		if (!shouldTransform(name))
 			return data;
 
 		CompilationUnit cu;
 		try {
-			cu = JavaParser.parse(new ByteArrayInputStream(data));
+			cu = JavaParser.parse(new ByteArrayInputStream(data.get()));
 		} catch (ParseException e) {
 			throw new RuntimeException(e);
 		}
@@ -227,22 +227,22 @@ public class JavaTransformer {
 			}
 		}
 
-		return cu.toString().getBytes(Charset.forName("UTF-8"));
+		return () -> cu.toString().getBytes(Charset.forName("UTF-8"));
 	}
 
-	public byte[] transformClass(@NonNull byte[] data, @NonNull String name) {
+	public Supplier<byte[]> transformClass(@NonNull Supplier<byte[]> data, @NonNull String name) {
 		if (!shouldTransform(name))
 			return data;
 
 		ClassNode node = new ClassNode();
-		ClassReader reader = new ClassReader(data);
+		ClassReader reader = new ClassReader(data.get());
 		reader.accept(node, ClassReader.EXPAND_FRAMES);
 
 		transformJar(new ByteCodeInfo(node));
 
 		ClassWriter classWriter = new ClassWriter(reader, 0);
 		node.accept(classWriter);
-		return classWriter.toByteArray();
+		return classWriter::toByteArray;
 	}
 
 	private void transformJar(ClassInfo editor) {
@@ -273,15 +273,13 @@ public class JavaTransformer {
 			if (clazzName.startsWith(".")) {
 				clazzName = clazzName.substring(1);
 			}
-			val bytes = transformJava(dataSupplier.get(), clazzName);
-			return () -> bytes;
+			return transformJava(dataSupplier, clazzName);
 		} else if (relativeName.endsWith(".class")) {
 			String clazzName = relativeName.substring(0, relativeName.length() - 6).replace('/', '.');
 			if (clazzName.startsWith(".")) {
 				clazzName = clazzName.substring(1);
 			}
-			val bytes = transformClass(dataSupplier.get(), clazzName);
-			return () -> bytes;
+			return transformClass(dataSupplier, clazzName);
 		}
 		return dataSupplier;
 	}
