@@ -8,11 +8,13 @@ import com.github.javaparser.ast.body.TypeDeclaration;
 import lombok.*;
 import me.nallar.javatransformer.internal.ByteCodeInfo;
 import me.nallar.javatransformer.internal.SourceInfo;
+import me.nallar.javatransformer.internal.util.JVMUtil;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
 
 import java.io.*;
+import java.net.*;
 import java.nio.charset.*;
 import java.nio.file.*;
 import java.nio.file.attribute.*;
@@ -56,6 +58,20 @@ public class JavaTransformer {
 			position += bytesRead;
 		}
 		return output;
+	}
+
+	/**
+	 * Used to get the path of the jar/folder containing a class
+	 *
+	 * @param clazz Class to get path to
+	 * @return Path to class
+	 */
+	public static Path pathFromClass(Class<?> clazz) {
+		try {
+			return Paths.get(clazz.getProtectionDomain().getCodeSource().getLocation().toURI());
+		} catch (URISyntaxException e) {
+			throw new IOError(e);
+		}
 	}
 
 	public Map<String, List<Transformer>> getClassTransformers() {
@@ -272,19 +288,18 @@ public class JavaTransformer {
 	}
 
 	private Supplier<byte[]> transformBytes(String relativeName, Supplier<byte[]> dataSupplier) {
-		if (relativeName.endsWith(".java")) {
-			String clazzName = relativeName.substring(0, relativeName.length() - 5).replace('/', '.').replace('\\', '.');
-			if (clazzName.startsWith(".")) {
-				clazzName = clazzName.substring(1);
-			}
-			return transformJava(dataSupplier, clazzName);
-		} else if (relativeName.endsWith(".class")) {
-			String clazzName = relativeName.substring(0, relativeName.length() - 6).replace('/', '.').replace('\\', '.');
-			if (clazzName.startsWith(".")) {
-				clazzName = clazzName.substring(1);
-			}
-			return transformClass(dataSupplier, clazzName);
+		boolean isClass = relativeName.endsWith(".class");
+		boolean isSource = relativeName.endsWith(".java");
+
+		if (isClass || isSource) {
+			String className = JVMUtil.fileNameToClassName(relativeName);
+
+			if (isClass)
+				return transformClass(dataSupplier, className);
+
+			return transformJava(dataSupplier, className);
 		}
+
 		return dataSupplier;
 	}
 

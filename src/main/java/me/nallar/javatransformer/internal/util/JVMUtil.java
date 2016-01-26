@@ -131,7 +131,7 @@ public class JVMUtil {
 	}
 
 	public static String fileNameToClassName(String f) {
-		return f.replace("/", ".").replace(".java", "").replace(".class", "");
+		return f.replace('\\', '.').replace('/', '.').replace(".java", "").replace(".class", "");
 	}
 
 	public static boolean hasFlag(int access, int flag) {
