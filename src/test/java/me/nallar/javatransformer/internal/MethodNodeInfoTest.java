@@ -17,7 +17,7 @@ public class MethodNodeInfoTest {
 		node.name = "test";
 		node.desc = "()Ljava/lang/String;";
 
-		ByteCodeInfo b = new ByteCodeInfo(null);
+		ByteCodeInfo b = new ByteCodeInfo(null, "java.lang.String");
 		MethodInfo info = b.wrap(node);
 
 		Assert.assertEquals("test", info.getName());

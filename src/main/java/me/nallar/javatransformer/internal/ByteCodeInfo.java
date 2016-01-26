@@ -1,5 +1,6 @@
 package me.nallar.javatransformer.internal;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 import lombok.val;
@@ -11,33 +12,37 @@ import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
 
 import java.util.*;
+import java.util.function.*;
 import java.util.stream.*;
 
 @Data
+@AllArgsConstructor
 @SuppressWarnings("unchecked")
 public class ByteCodeInfo implements ClassInfoStreams {
-	private final ClassNode node;
+	private final Supplier<ClassNode> node;
 	@Getter(lazy = true)
 	private final List<Annotation> annotations = getAnnotationsInternal();
+	private String className;
 
 	@Override
 	public String getName() {
-		return node.name.replace('/', '.');
+		return className;
 	}
 
 	@Override
 	public void setName(String name) {
-		node.name = name.replace('.', '/');
+		className = name;
+		node.get().name = name.replace('.', '/');
 	}
 
 	@Override
 	public AccessFlags getAccessFlags() {
-		return new AccessFlags(node.access);
+		return new AccessFlags(node.get().access);
 	}
 
 	@Override
 	public void setAccessFlags(AccessFlags accessFlags) {
-		node.access = accessFlags.access;
+		node.get().access = accessFlags.access;
 	}
 
 	public void add(MethodInfo method) {
@@ -66,7 +71,7 @@ public class ByteCodeInfo implements ClassInfoStreams {
 			MethodInfo info = new MethodNodeInfo(node);
 			info.setAll(method);
 		}
-		this.node.methods.add(node);
+		this.node.get().methods.add(node);
 	}
 
 	public void add(FieldInfo field) {
@@ -84,7 +89,7 @@ public class ByteCodeInfo implements ClassInfoStreams {
 			val nodeInfo = new FieldNodeInfo(node);
 			nodeInfo.setAll(field);
 		}
-		this.node.fields.add(node);
+		this.node.get().fields.add(node);
 	}
 
 	@Override
@@ -94,7 +99,7 @@ public class ByteCodeInfo implements ClassInfoStreams {
 		if (methodNodeInfo == null)
 			throw new RuntimeException("Method " + method + " can not be removed as it is not present");
 
-		node.methods.remove(methodNodeInfo.node);
+		node.get().methods.remove(methodNodeInfo.node);
 	}
 
 	@Override
@@ -104,29 +109,29 @@ public class ByteCodeInfo implements ClassInfoStreams {
 		if (fieldNodeInfo == null)
 			throw new RuntimeException("Field " + field + " can not be removed as it is not present");
 
-		node.fields.remove(fieldNodeInfo.node);
+		node.get().fields.remove(fieldNodeInfo.node);
 	}
 
 	@Override
 	public Type getSuperType() {
-		return new Type("L" + node.superName + ";");
+		return new Type("L" + node.get().superName + ";");
 	}
 
 	@Override
 	public List<Type> getInterfaceTypes() {
-		return node.interfaces.stream().map((it) -> new Type("L" + it + ";")).collect(Collectors.toList());
+		return node.get().interfaces.stream().map((it) -> new Type("L" + it + ";")).collect(Collectors.toList());
 	}
 
 	public Stream<MethodInfo> getMethodStream() {
-		return node.methods.stream().map(MethodNodeInfo::new);
+		return node.get().methods.stream().map(MethodNodeInfo::new);
 	}
 
 	public Stream<FieldInfo> getFieldStream() {
-		return node.fields.stream().map(FieldNodeInfo::new);
+		return node.get().fields.stream().map(FieldNodeInfo::new);
 	}
 
 	private List<Annotation> getAnnotationsInternal() {
-		return CollectionUtil.union(node.invisibleAnnotations, node.visibleAnnotations).map(AnnotationParser::annotationFromAnnotationNode).collect(Collectors.toList());
+		return CollectionUtil.union(node.get().invisibleAnnotations, node.get().visibleAnnotations).map(AnnotationParser::annotationFromAnnotationNode).collect(Collectors.toList());
 	}
 
 	@Override

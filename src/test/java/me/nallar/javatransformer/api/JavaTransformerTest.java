@@ -23,6 +23,7 @@ public class JavaTransformerTest {
 		BooleanHolder holder = new BooleanHolder(false);
 
 		transformer.addTransformer(c -> {
+			System.out.println(c.getName());
 			if (c.getName().equals(targetClass)) {
 				holder.value = true;
 			}
