@@ -58,7 +58,7 @@ public class JavaTransformer {
 		return output;
 	}
 
-	private Map<String, List<Transformer>> getClassTransformers() {
+	public Map<String, List<Transformer>> getClassTransformers() {
 		return Collections.unmodifiableMap(classTransformers.map);
 	}
 
