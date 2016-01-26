@@ -8,6 +8,8 @@ import java.util.*;
 
 @UtilityClass
 public class JVMUtil {
+	private static final Splitter dotSplitter = Splitter.on('.');
+
 	public static String getDescriptor(Class<?> clazz) {
 		if (clazz.isPrimitive()) {
 			return descriptorToPrimitiveType(clazz.getSimpleName());
@@ -172,5 +174,27 @@ public class JVMUtil {
 		// not public, protected or private so must be package-local
 		// change to public - protected doesn't include package-local.
 		return access | AccessFlags.ACC_PUBLIC;
+	}
+
+	public static String classNameToJLSName(String className) {
+		List<String> parts = new ArrayList<>();
+		dotSplitter.split(className).forEach(parts::add);
+
+		boolean possibleClass = true;
+		for (int i = parts.size() - 1, size = i; i >= 0; i--) {
+			String part = parts.get(i);
+
+			boolean last = i == size;
+
+			if (!last && !Character.isUpperCase(part.charAt(0))) {
+				possibleClass = false;
+			}
+
+			if (!last) {
+				parts.set(i, part + (possibleClass ? '$' : '/'));
+			}
+		}
+
+		return Joiner.on().join(parts);
 	}
 }
