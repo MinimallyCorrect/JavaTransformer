@@ -25,11 +25,18 @@ public class AnnotationParser {
 	}
 
 	public static Annotation annotationFromAnnotationNode(AnnotationNode annotationNode) {
-		val values = new HashMap<String, Object>();
+		return Annotation.of(new Type(annotationNode.desc), getAnnotationNodeValues(annotationNode));
+	}
+
+	private static Map<String, Object> getAnnotationNodeValues(AnnotationNode annotationNode) {
+		if (annotationNode.values == null)
+			return Collections.emptyMap();
+
+		Map<String, Object> values = new HashMap<>();
 		for (int i = 0; i < annotationNode.values.size(); i += 2) {
 			values.put((String) annotationNode.values.get(i), annotationNode.values.get(i + 1));
 		}
-		return Annotation.of(new Type(annotationNode.desc), values);
+		return values;
 	}
 
 	public static Annotation annotationFromAnnotationExpr(AnnotationExpr annotationExpr) {
