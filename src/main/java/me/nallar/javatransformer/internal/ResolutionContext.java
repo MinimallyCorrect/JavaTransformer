@@ -10,14 +10,11 @@ import lombok.NonNull;
 import lombok.val;
 import me.nallar.javatransformer.api.Type;
 import me.nallar.javatransformer.internal.util.JVMUtil;
-import me.nallar.javatransformer.internal.util.Joiner;
 import me.nallar.javatransformer.internal.util.NodeUtil;
-import me.nallar.javatransformer.internal.util.Splitter;
 
 import java.util.*;
 
 public class ResolutionContext {
-	private static final Splitter dotSplitter = Splitter.on('.');
 	@NonNull
 	private final String packageName;
 	@NonNull
@@ -51,25 +48,7 @@ public class ResolutionContext {
 	static String classNameToDescriptor(String className) {
 		// TODO: 23/01/2016 Handle inner classes properly? currently depend on following naming standards
 		// depends on: lower case package names, uppercase first letter of class name
-		List<String> parts = new ArrayList<>();
-		dotSplitter.split(className).forEach(parts::add);
-
-		boolean possibleClass = true;
-		for (int i = parts.size() - 1, size = i; i >= 0; i--) {
-			String part = parts.get(i);
-
-			boolean last = i == size;
-
-			if (!last && !Character.isUpperCase(part.charAt(0))) {
-				possibleClass = false;
-			}
-
-			if (!last) {
-				parts.set(i, part + (possibleClass ? '$' : '/'));
-			}
-		}
-
-		return "L" + Joiner.on().join(parts) + ";";
+		return 'L' + JVMUtil.classNameToJLSName(className) + ';';
 	}
 
 	public Type resolve(com.github.javaparser.ast.type.Type type) {
