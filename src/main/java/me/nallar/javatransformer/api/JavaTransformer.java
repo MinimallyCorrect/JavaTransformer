@@ -273,13 +273,13 @@ public class JavaTransformer {
 
 	private Supplier<byte[]> transformBytes(String relativeName, Supplier<byte[]> dataSupplier) {
 		if (relativeName.endsWith(".java")) {
-			String clazzName = relativeName.substring(0, relativeName.length() - 5).replace('/', '.');
+			String clazzName = relativeName.substring(0, relativeName.length() - 5).replace('/', '.').replace('\\', '.');
 			if (clazzName.startsWith(".")) {
 				clazzName = clazzName.substring(1);
 			}
 			return transformJava(dataSupplier, clazzName);
 		} else if (relativeName.endsWith(".class")) {
-			String clazzName = relativeName.substring(0, relativeName.length() - 6).replace('/', '.');
+			String clazzName = relativeName.substring(0, relativeName.length() - 6).replace('/', '.').replace('\\', '.');
 			if (clazzName.startsWith(".")) {
 				clazzName = clazzName.substring(1);
 			}
