@@ -202,9 +202,6 @@ public class JavaTransformer {
 	}
 
 	public void addTransformer(@NonNull String s, @NonNull Transformer t) {
-		if (!t.shouldTransform(s)) {
-			throw new IllegalArgumentException("Transformer " + t + " must transform class of name " + s);
-		}
 		if (classTransformers.get(s).contains(t)) {
 			throw new IllegalArgumentException("Transformer " + t + " has already been added for class " + s);
 		}
@@ -227,64 +224,73 @@ public class JavaTransformer {
 		if (!shouldTransform(name))
 			return data;
 
-		CompilationUnit cu;
-		try {
-			cu = JavaParser.parse(new ByteArrayInputStream(data.get()));
-		} catch (ParseException e) {
-			throw new RuntimeException(e);
-		}
-
-		String packageName = cu.getPackage().getName().getName();
-		for (TypeDeclaration typeDeclaration : cu.getTypes()) {
-			if (!(typeDeclaration instanceof ClassOrInterfaceDeclaration)) {
-				continue;
+		CachingSupplier<ClassOrInterfaceDeclaration> supplier = CachingSupplier.of(() -> {
+			CompilationUnit cu;
+			try {
+				cu = JavaParser.parse(new ByteArrayInputStream(data.get()));
+			} catch (ParseException e) {
+				throw new RuntimeException(e);
 			}
-			val classDeclaration = (ClassOrInterfaceDeclaration) typeDeclaration;
 
-			String shortClassName = classDeclaration.getName();
-			if ((packageName + '.' + shortClassName).equalsIgnoreCase(name)) {
-				transformJar(new SourceInfo(classDeclaration));
+			String packageName = cu.getPackage().getName().getName();
+			for (TypeDeclaration typeDeclaration : cu.getTypes()) {
+				if (!(typeDeclaration instanceof ClassOrInterfaceDeclaration)) {
+					continue;
+				}
+				ClassOrInterfaceDeclaration classDeclaration = (ClassOrInterfaceDeclaration) typeDeclaration;
+
+				String shortClassName = classDeclaration.getName();
+				if ((packageName + '.' + shortClassName).equalsIgnoreCase(name)) {
+					return classDeclaration;
+				}
 			}
-		}
 
-		return () -> cu.toString().getBytes(Charset.forName("UTF-8"));
+			throw new Error("Couldn't find any class or interface declaration matching expected name " + name);
+		});
+
+		transformClassInfo(new SourceInfo(supplier, name));
+
+		return supplier.isCached() ? () -> supplier.get().toString().getBytes(Charset.forName("UTF-8")) : data;
+
 	}
 
 	public Supplier<byte[]> transformClass(@NonNull Supplier<byte[]> data, @NonNull String name) {
+		System.out.println("Transforming " + name);
 		if (!shouldTransform(name))
 			return data;
 
-		ClassNode node = new ClassNode();
-		ClassReader reader = new ClassReader(data.get());
-		reader.accept(node, ClassReader.EXPAND_FRAMES);
+		Holder<ClassReader> readerHolder = new Holder<>();
+		CachingSupplier<ClassNode> supplier = CachingSupplier.of(() -> {
+			ClassNode node = new ClassNode();
+			ClassReader reader = new ClassReader(data.get());
+			reader.accept(node, ClassReader.EXPAND_FRAMES);
 
-		transformJar(new ByteCodeInfo(node));
+			readerHolder.value = reader;
 
-		ClassWriter classWriter = new ClassWriter(reader, 0);
-		node.accept(classWriter);
-		return classWriter::toByteArray;
+			return node;
+		});
+
+		transformClassInfo(new ByteCodeInfo(supplier, name));
+
+		if (!supplier.isCached())
+			return data;
+
+		return () -> {
+			ClassWriter classWriter = new ClassWriter(readerHolder.value, 0);
+			supplier.get().accept(classWriter);
+			return classWriter.toByteArray();
+		};
 	}
 
-	private void transformJar(ClassInfo editor) {
-		val name = editor.getName();
+	private void transformClassInfo(ClassInfo editor) {
 		transformers.forEach((x) -> {
-			if (x.shouldTransform(name)) {
-				x.transform(editor);
-			}
+			x.transform(editor);
 		});
-		classTransformers.get(name).forEach((it) -> it.transform(editor));
+		classTransformers.get(editor.getName()).forEach((it) -> it.transform(editor));
 	}
 
 	private boolean shouldTransform(String className) {
-		if (!classTransformers.get(className).isEmpty())
-			return true;
-
-		for (Transformer transformer : transformers) {
-			if (transformer.shouldTransform(className))
-				return true;
-		}
-
-		return false;
+		return !transformers.isEmpty() || !classTransformers.get(className).isEmpty();
 	}
 
 	private Supplier<byte[]> transformBytes(String relativeName, Supplier<byte[]> dataSupplier) {
@@ -341,5 +347,42 @@ public class JavaTransformer {
 		public String toString() {
 			return map.toString();
 		}
+	}
+
+	@Data
+	private static class CachingSupplier<T> implements Supplier<T> {
+		@NonNull
+		private final Supplier<T> wrapped;
+		private transient T value;
+
+		protected CachingSupplier(Supplier<T> wrapped) {
+			this.wrapped = wrapped;
+		}
+
+		public static <T> CachingSupplier<T> of(Supplier<T> wrapped) {
+			return new CachingSupplier<>(wrapped);
+		}
+
+		@Override
+		public T get() {
+			T value = this.value;
+
+			if (value == null) {
+				synchronized (this) {
+					if (this.value == null)
+						this.value = value = Objects.requireNonNull(wrapped.get());
+				}
+			}
+
+			return value;
+		}
+
+		public boolean isCached() {
+			return value != null;
+		}
+	}
+
+	private static class Holder<T> {
+		public T value;
 	}
 }

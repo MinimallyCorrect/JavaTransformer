@@ -131,7 +131,13 @@ public class JVMUtil {
 	}
 
 	public static String fileNameToClassName(String f) {
-		return f.replace('\\', '.').replace('/', '.').replace(".java", "").replace(".class", "");
+		f = removeFromEnd(f, ".class");
+		f = removeFromEnd(f, ".java");
+		return f.replace('\\', '.').replace('/', '.');
+	}
+
+	private static String removeFromEnd(String s, String f) {
+		return s.endsWith(f) ? s.substring(0, s.length() - f.length()) : s;
 	}
 
 	public static boolean hasFlag(int access, int flag) {

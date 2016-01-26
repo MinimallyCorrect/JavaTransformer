@@ -5,6 +5,7 @@ import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.PrimitiveType;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 import lombok.val;
@@ -15,46 +16,53 @@ import me.nallar.javatransformer.internal.util.JVMUtil;
 import me.nallar.javatransformer.internal.util.NodeUtil;
 
 import java.util.*;
+import java.util.function.*;
 import java.util.stream.*;
 
 @Data
+@AllArgsConstructor
 @SuppressWarnings("unchecked")
 public class SourceInfo implements ClassInfoStreams {
-	private final ClassOrInterfaceDeclaration type;
-	private final String packageName;
-	private final ResolutionContext context;
+	private final Supplier<ClassOrInterfaceDeclaration> type;
+	@Getter(lazy = true)
+	private final String packageName = getPackageNameInternal();
+	@Getter(lazy = true)
+	private final ResolutionContext context = getResolutionContextInternal();
 	@Getter(lazy = true)
 	private final List<Annotation> annotations = getAnnotationsInternal();
+	private String className;
 
-	public SourceInfo(ClassOrInterfaceDeclaration type) {
-		this.type = type;
-		this.context = ResolutionContext.of(type);
-		this.packageName = NodeUtil.getParentNode(type, CompilationUnit.class).getPackage().getName().getName();
+	private String getPackageNameInternal() {
+		return NodeUtil.getParentNode(type.get(), CompilationUnit.class).getPackage().getName().getName();
+	}
+
+	private ResolutionContext getResolutionContextInternal() {
+		return ResolutionContext.of(type.get());
 	}
 
 	@Override
 	public String getName() {
-		return packageName + '.' + type.getName();
+		return className;
 	}
 
 	@Override
 	public void setName(String name) {
-		String packageName = this.packageName;
+		String packageName = getPackageName();
 		if (name.startsWith(packageName)) {
-			type.setName(name.replace(packageName, ""));
+			type.get().setName(name.replace(packageName, ""));
 		} else {
-			throw new RuntimeException("Name '" + name + "' must be in package: " + this.packageName);
+			throw new RuntimeException("Name '" + name + "' must be in package: " + packageName);
 		}
 	}
 
 	@Override
 	public AccessFlags getAccessFlags() {
-		return new AccessFlags(type.getModifiers());
+		return new AccessFlags(type.get().getModifiers());
 	}
 
 	@Override
 	public void setAccessFlags(AccessFlags accessFlags) {
-		type.setModifiers(accessFlags.access);
+		type.get().setModifiers(accessFlags.access);
 	}
 
 	@Override
@@ -81,7 +89,7 @@ public class SourceInfo implements ClassInfoStreams {
 		if (methodDeclarationWrapper == null)
 			throw new RuntimeException("Method " + method + " can not be removed as it is not present");
 
-		type.getMembers().remove(methodDeclarationWrapper.declaration);
+		type.get().getMembers().remove(methodDeclarationWrapper.declaration);
 	}
 
 	@Override
@@ -91,38 +99,38 @@ public class SourceInfo implements ClassInfoStreams {
 		if (fieldDeclarationWrapper == null)
 			throw new RuntimeException("Field " + field + " can not be removed as it is not present");
 
-		type.getMembers().remove(fieldDeclarationWrapper.declaration);
+		type.get().getMembers().remove(fieldDeclarationWrapper.declaration);
 	}
 
 	@Override
 	public Type getSuperType() {
-		val extends_ = type.getExtends();
+		val extends_ = type.get().getExtends();
 
 		if (extends_ == null || extends_.isEmpty())
 			return null;
 
-		return context.resolve(extends_.get(0));
+		return getContext().resolve(extends_.get(0));
 	}
 
 	@Override
 	public List<Type> getInterfaceTypes() {
-		return type.getImplements().stream().map(context::resolve).collect(Collectors.toList());
+		return type.get().getImplements().stream().map(getContext()::resolve).collect(Collectors.toList());
 	}
 
 	public Stream<MethodInfo> getMethodStream() {
-		return type.getMembers().stream()
+		return type.get().getMembers().stream()
 			.filter(x -> x instanceof MethodDeclaration)
 			.map(x -> new MethodDeclarationWrapper((MethodDeclaration) x));
 	}
 
 	public Stream<FieldInfo> getFieldStream() {
-		return type.getMembers().stream()
+		return type.get().getMembers().stream()
 			.filter(x -> x instanceof FieldDeclaration)
 			.map(x -> new FieldDeclarationWrapper((FieldDeclaration) x));
 	}
 
 	private com.github.javaparser.ast.type.Type toType(Type t) {
-		String name = context.unresolve(t);
+		String name = getContext().unresolve(t);
 		if (t.isPrimitiveType()) {
 			return new PrimitiveType(JVMUtil.searchEnum(PrimitiveType.Primitive.class, name));
 		} else {
@@ -142,7 +150,7 @@ public class SourceInfo implements ClassInfoStreams {
 	}
 
 	private List<Annotation> getAnnotationsInternal() {
-		return getAnnotationsInternal(type.getAnnotations());
+		return getAnnotationsInternal(type.get().getAnnotations());
 	}
 
 	private List<Annotation> getAnnotationsInternal(List<AnnotationExpr> l) {
