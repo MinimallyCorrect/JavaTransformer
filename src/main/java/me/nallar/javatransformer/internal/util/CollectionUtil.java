@@ -14,6 +14,6 @@ public class CollectionUtil {
 	}
 
 	public static <T> Stream<T> union(Collection<Collection<T>> collections) {
-		return collections.stream().flatMap(Collection::stream);
+		return collections.stream().flatMap(x -> x == null ? Stream.empty() : x.stream());
 	}
 }
