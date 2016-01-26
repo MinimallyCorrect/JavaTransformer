@@ -1,5 +1,6 @@
 package me.nallar.javatransformer.api;
 
+import lombok.val;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -18,16 +19,19 @@ public class JavaTransformerTest {
 
 		JavaTransformer transformer = new JavaTransformer();
 
+		val targetClass = this.getClass().getName();
 		BooleanHolder holder = new BooleanHolder(false);
 
 		transformer.addTransformer(c -> {
-			if (c.getName().equals(JavaTransformerTest.this.getClass().getName())) {
+			if (c.getName().equals(targetClass)) {
 				holder.value = true;
 			}
 		});
 
 		transformer.transform(JavaTransformer.pathFromClass(this.getClass()), output);
 
-		Assert.assertTrue("Transformer must process " + this.getClass().getName(), holder.value);
+		Assert.assertTrue("Transformer must process " + targetClass, holder.value);
+
+		Assert.assertTrue(Files.exists(output.resolve("me/nallar/javatransformer/api/JavaTransformerTest.class")));
 	}
 }
