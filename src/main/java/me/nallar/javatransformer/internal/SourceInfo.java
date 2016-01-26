@@ -5,6 +5,7 @@ import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.PrimitiveType;
+import lombok.Data;
 import lombok.Getter;
 import lombok.val;
 import me.nallar.javatransformer.api.*;
@@ -16,6 +17,7 @@ import me.nallar.javatransformer.internal.util.NodeUtil;
 import java.util.*;
 import java.util.stream.*;
 
+@Data
 @SuppressWarnings("unchecked")
 public class SourceInfo implements ClassInfoStreams {
 	private final ClassOrInterfaceDeclaration type;
