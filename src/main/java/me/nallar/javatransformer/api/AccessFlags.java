@@ -43,6 +43,10 @@ public class AccessFlags {
 		return access;
 	}
 
+	public boolean has(int flag) {
+		return (access & flag) == flag;
+	}
+
 	public AccessFlags makeAccessible(boolean needsPublic) {
 		return new AccessFlags(JVMUtil.makeAccess(access, needsPublic));
 	}
