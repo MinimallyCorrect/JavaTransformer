@@ -1,5 +1,6 @@
 package me.nallar.javatransformer.internal;
 
+import lombok.Data;
 import lombok.Getter;
 import lombok.val;
 import me.nallar.javatransformer.api.*;
@@ -12,6 +13,7 @@ import org.objectweb.asm.tree.MethodNode;
 import java.util.*;
 import java.util.stream.*;
 
+@Data
 @SuppressWarnings("unchecked")
 public class ByteCodeInfo implements ClassInfoStreams {
 	private final ClassNode node;
