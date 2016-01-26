@@ -20,10 +20,6 @@ public class ByteCodeInfo implements ClassInfoStreams {
 	@Getter(lazy = true)
 	private final List<Annotation> annotations = getAnnotationsInternal();
 
-	public ByteCodeInfo(ClassNode node) {
-		this.node = node;
-	}
-
 	@Override
 	public String getName() {
 		return node.name.replace('/', '.');
