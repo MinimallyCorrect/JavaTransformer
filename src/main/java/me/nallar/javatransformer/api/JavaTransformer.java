@@ -58,6 +58,10 @@ public class JavaTransformer {
 		return output;
 	}
 
+	private Map<String, List<Transformer>> getClassTransformers() {
+		return Collections.unmodifiableMap(classTransformers.map);
+	}
+
 	public void save(@NonNull Path path) {
 		switch (PathType.of(path)) {
 			case JAR:
@@ -317,6 +321,10 @@ public class JavaTransformer {
 		public List<T> get(K key) {
 			List<T> values = map.get(key);
 			return values == null ? Collections.emptyList() : values;
+		}
+
+		public String toString() {
+			return map.toString();
 		}
 	}
 }
