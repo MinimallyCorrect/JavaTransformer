@@ -33,7 +33,7 @@ public class SourceInfo implements ClassInfoStreams {
 	private String className;
 
 	private String getPackageNameInternal() {
-		return NodeUtil.getParentNode(type.get(), CompilationUnit.class).getPackage().getName().getName();
+		return NodeUtil.qualifiedName(NodeUtil.getParentNode(type.get(), CompilationUnit.class).getPackage().getName());
 	}
 
 	private ResolutionContext getResolutionContextInternal() {

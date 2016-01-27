@@ -9,6 +9,7 @@ import lombok.*;
 import me.nallar.javatransformer.internal.ByteCodeInfo;
 import me.nallar.javatransformer.internal.SourceInfo;
 import me.nallar.javatransformer.internal.util.JVMUtil;
+import me.nallar.javatransformer.internal.util.NodeUtil;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
@@ -234,7 +235,7 @@ public class JavaTransformer {
 			}
 
 			List<String> tried = new ArrayList<>();
-			String packageName = cu.getPackage().getName().getName();
+			String packageName = NodeUtil.qualifiedName(cu.getPackage().getName());
 			for (TypeDeclaration typeDeclaration : cu.getTypes()) {
 				if (!(typeDeclaration instanceof ClassOrInterfaceDeclaration)) {
 					continue;
