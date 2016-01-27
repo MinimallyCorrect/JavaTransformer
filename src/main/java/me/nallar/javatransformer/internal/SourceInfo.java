@@ -244,7 +244,9 @@ public class SourceInfo implements ClassInfoStreams {
 
 		@Override
 		public List<Parameter> getParameters() {
-			throw new UnsupportedOperationException();
+			return declaration.getParameters().stream()
+				.map((parameter) -> new Parameter(context.resolve(parameter.getType()), parameter.getId().getName()))
+				.collect(Collectors.toList());
 		}
 
 		@Override
