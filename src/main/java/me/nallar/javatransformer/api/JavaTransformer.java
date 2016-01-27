@@ -263,7 +263,6 @@ public class JavaTransformer {
 	}
 
 	public Supplier<byte[]> transformClass(@NonNull Supplier<byte[]> data, @NonNull String name) {
-		System.out.println("Transforming " + name);
 		if (!shouldTransform(name))
 			return data;
 
