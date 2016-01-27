@@ -34,7 +34,7 @@ public class ResolutionContext {
 
 	public static ResolutionContext of(Node node) {
 		CompilationUnit cu = NodeUtil.getParentNode(node, CompilationUnit.class);
-		String packageName = cu.getPackage().getName().getName();
+		String packageName = NodeUtil.qualifiedName(cu.getPackage().getName());
 		List<TypeParameter> typeParameters = NodeUtil.getTypeParameters(node);
 
 		return new ResolutionContext(packageName, cu.getImports(), typeParameters);
@@ -112,7 +112,7 @@ public class ResolutionContext {
 		String dotName = name.contains(".") ? name : '.' + name;
 
 		for (ImportDeclaration anImport : imports) {
-			String importName = anImport.getName().getName();
+			String importName = NodeUtil.qualifiedName(anImport.getName());
 			if (importName.endsWith(dotName)) {
 				return new Type("L" + importName + ";", null);
 			}
@@ -124,7 +124,7 @@ public class ResolutionContext {
 		}
 
 		for (ImportDeclaration anImport : imports) {
-			String importName = anImport.getName().getName();
+			String importName = NodeUtil.qualifiedName(anImport.getName());
 			if (importName.endsWith(".*")) {
 				type = resolveIfExists(importName.replace(".*", ".") + name);
 				if (type != null) {
@@ -204,7 +204,7 @@ public class ResolutionContext {
 		String className = t.getClassName();
 
 		for (ImportDeclaration anImport : imports) {
-			String importName = anImport.getName().getName();
+			String importName = NodeUtil.qualifiedName(anImport.getName());
 			if (className.startsWith(importName)) {
 				return className.replace(importName + ".", "");
 			}

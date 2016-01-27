@@ -4,6 +4,8 @@ import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.TypeParameter;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.expr.NameExpr;
+import com.github.javaparser.ast.expr.QualifiedNameExpr;
 import lombok.experimental.UtilityClass;
 
 import java.util.*;
@@ -71,5 +73,22 @@ public class NodeUtil {
 				return (T) node;
 			}
 		}
+	}
+
+	static void qualifiedName(NameExpr nameExpr, StringBuilder builder) {
+		if (nameExpr instanceof QualifiedNameExpr) {
+			qualifiedName(((QualifiedNameExpr) nameExpr).getQualifier(), builder);
+			builder.append('.');
+		}
+
+		builder.append(nameExpr.getName());
+	}
+
+	public static String qualifiedName(NameExpr nameExpr) {
+		StringBuilder sb = new StringBuilder();
+
+		qualifiedName(nameExpr, sb);
+
+		return sb.toString();
 	}
 }
