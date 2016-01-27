@@ -225,13 +225,15 @@ public class JavaTransformer {
 			return data;
 
 		CachingSupplier<ClassOrInterfaceDeclaration> supplier = CachingSupplier.of(() -> {
+			byte[] bytes = data.get();
 			CompilationUnit cu;
 			try {
-				cu = JavaParser.parse(new ByteArrayInputStream(data.get()));
+				cu = JavaParser.parse(new ByteArrayInputStream(bytes));
 			} catch (ParseException e) {
 				throw new RuntimeException(e);
 			}
 
+			List<String> tried = new ArrayList<>();
 			String packageName = cu.getPackage().getName().getName();
 			for (TypeDeclaration typeDeclaration : cu.getTypes()) {
 				if (!(typeDeclaration instanceof ClassOrInterfaceDeclaration)) {
@@ -240,12 +242,17 @@ public class JavaTransformer {
 				ClassOrInterfaceDeclaration classDeclaration = (ClassOrInterfaceDeclaration) typeDeclaration;
 
 				String shortClassName = classDeclaration.getName();
-				if ((packageName + '.' + shortClassName).equalsIgnoreCase(name)) {
+				String fullName = packageName + '.' + shortClassName;
+				if (fullName.equalsIgnoreCase(name)) {
 					return classDeclaration;
 				}
+
+				tried.add(fullName);
 			}
 
-			throw new Error("Couldn't find any class or interface declaration matching expected name " + name);
+			throw new Error("Couldn't find any class or interface declaration matching expected name " + name
+				+ "\nTried: " + tried
+				+ "\nClass data: " + new String(bytes, Charset.forName("UTF-8")));
 		});
 
 		transformClassInfo(new SourceInfo(supplier, name));
