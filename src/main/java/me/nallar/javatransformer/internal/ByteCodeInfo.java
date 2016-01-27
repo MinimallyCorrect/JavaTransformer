@@ -69,6 +69,7 @@ public class ByteCodeInfo implements ClassInfoStreams {
 			node.tryCatchBlocks = other.tryCatchBlocks;
 		} else {
 			node.desc = "()V";
+			node.exceptions = new ArrayList<>();
 			MethodInfo info = new MethodNodeInfo(node);
 			info.setAll(method);
 		}
