@@ -68,6 +68,7 @@ public class ByteCodeInfo implements ClassInfoStreams {
 			node.localVariables = other.localVariables;
 			node.tryCatchBlocks = other.tryCatchBlocks;
 		} else {
+			node.desc = "()V";
 			MethodInfo info = new MethodNodeInfo(node);
 			info.setAll(method);
 		}
@@ -85,7 +86,7 @@ public class ByteCodeInfo implements ClassInfoStreams {
 			node.visibleAnnotations = other.visibleAnnotations;
 			node.visibleTypeAnnotations = other.visibleTypeAnnotations;
 		} else {
-			node = new FieldNode(0, null, null, null, null);
+			node = new FieldNode(0, null, "V", null, null);
 			val nodeInfo = new FieldNodeInfo(node);
 			nodeInfo.setAll(field);
 		}
