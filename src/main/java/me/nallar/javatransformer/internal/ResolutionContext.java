@@ -103,15 +103,23 @@ public class ResolutionContext {
 
 		if (generic == null) {
 			if (type != null) {
-				return type;
+				return sanityCheck(type);
 			}
 		} else {
 			if (type != null && genericType != null) {
-				return type.withTypeArgument(genericType);
+				return sanityCheck(type.withTypeArgument(genericType));
 			}
 		}
 
 		throw new RuntimeException("Couldn't resolve name: " + name + "\nFound real type: " + type + "\nGeneric type: " + genericType);
+	}
+
+	private Type sanityCheck(Type type) {
+		if (type.isClassType() && (type.getClassName().endsWith(".")) || !type.getClassName().contains(".")) {
+			throw new RuntimeException("Unexpected class name (incorrect dots) in type: " + type);
+		}
+
+		return type;
 	}
 
 	private Type resolveReal(String name) {
