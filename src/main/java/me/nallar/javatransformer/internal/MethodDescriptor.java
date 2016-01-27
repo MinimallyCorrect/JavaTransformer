@@ -44,7 +44,7 @@ public class MethodDescriptor {
 		List<Type> parameterTypes = Type.of(getParameters(descriptor), getParameters(signature));
 
 		for (int i = 0; i < parameterTypes.size(); i++) {
-			String name = parameterNames.isEmpty() ? null : parameterNames.get(i);
+			String name = (parameterNames == null || parameterNames.isEmpty()) ? null : parameterNames.get(i);
 			parameters.add(new Parameter(parameterTypes.get(i), name));
 		}
 
