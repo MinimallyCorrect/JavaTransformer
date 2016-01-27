@@ -16,4 +16,17 @@ public class ResolutionContextTest {
 	private void testClassNameToDescriptor(String in, String expected) {
 		Assert.assertEquals(expected, ResolutionContext.classNameToDescriptor(in));
 	}
+
+	@Test
+	public void testExtractGeneric() throws Exception {
+		Assert.assertEquals("test", ResolutionContext.extractGeneric("test<test>"));
+		Assert.assertEquals(null, ResolutionContext.extractGeneric("test"));
+	}
+
+	@Test(expected = RuntimeException.class)
+	public void testExtractGenericMismatched() throws Exception {
+		ResolutionContext.extractGeneric("te>st<");
+		ResolutionContext.extractGeneric("test<");
+		ResolutionContext.extractGeneric("te>st");
+	}
 }
