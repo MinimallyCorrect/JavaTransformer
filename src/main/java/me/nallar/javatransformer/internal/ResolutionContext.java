@@ -151,6 +151,11 @@ public class ResolutionContext {
 			}
 		}
 
+		type = resolveIfExists("java.lang." + name);
+		if (type != null) {
+			return type;
+		}
+
 		if (!hasPackages(name) && !Objects.equals(System.getProperty("JarTransformer.allowDefaultPackage"), "true")) {
 			return null;
 		}
