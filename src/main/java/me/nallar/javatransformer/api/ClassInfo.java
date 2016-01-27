@@ -7,11 +7,10 @@ public interface ClassInfo extends ClassMember {
 	default void add(ClassMember member) {
 		if (member instanceof MethodInfo)
 			add((MethodInfo) member);
-
-		if (member instanceof FieldInfo)
+		else if (member instanceof FieldInfo)
 			add((FieldInfo) member);
-
-		throw new RuntimeException("Can't add member of type " + member.getClass().getCanonicalName() + " to " + this);
+		else
+			throw new RuntimeException("Can't add member of type " + member.getClass().getCanonicalName() + " to " + this);
 	}
 
 	void add(MethodInfo method);
@@ -21,11 +20,10 @@ public interface ClassInfo extends ClassMember {
 	default void remove(ClassMember member) {
 		if (member instanceof MethodInfo)
 			remove((MethodInfo) member);
-
-		if (member instanceof FieldInfo)
+		else if (member instanceof FieldInfo)
 			remove((FieldInfo) member);
-
-		throw new RuntimeException("Can't remove member of type " + member.getClass().getCanonicalName() + " to " + this);
+		else
+			throw new RuntimeException("Can't remove member of type " + member.getClass().getCanonicalName() + " to " + this);
 	}
 
 	void remove(MethodInfo method);
