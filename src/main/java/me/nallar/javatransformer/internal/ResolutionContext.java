@@ -6,6 +6,7 @@ import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.TypeParameter;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.PrimitiveType;
+import com.github.javaparser.ast.type.VoidType;
 import lombok.NonNull;
 import lombok.val;
 import me.nallar.javatransformer.api.Type;
@@ -74,6 +75,8 @@ public class ResolutionContext {
 			return resolve(((ClassOrInterfaceType) type).getName());
 		} else if (type instanceof PrimitiveType) {
 			return new Type(JVMUtil.primitiveTypeToDescriptor(((PrimitiveType) type).getType().name().toLowerCase()));
+		} else if (type instanceof VoidType) {
+			return new Type("V");
 		} else {
 			// TODO: 23/01/2016 Is this behaviour correct?
 			return resolve(type.toStringWithoutComments());
