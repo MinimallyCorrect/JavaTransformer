@@ -51,6 +51,19 @@ public class ResolutionContext {
 		return 'L' + JVMUtil.classNameToJLSName(className) + ';';
 	}
 
+	static String extractGeneric(String name) {
+		int leftBracket = name.indexOf('<');
+		int rightBracket = name.indexOf('>');
+
+		if (leftBracket == -1 && rightBracket == -1)
+			return null;
+
+		if (rightBracket == name.length() - 1 && leftBracket != -1 && leftBracket < rightBracket)
+			return name.substring(leftBracket + 1, rightBracket);
+
+		throw new RuntimeException("Mismatched angled brackets in: " + name);
+	}
+
 	public Type resolve(com.github.javaparser.ast.type.Type type) {
 		if (type instanceof ClassOrInterfaceType) {
 			return resolve(((ClassOrInterfaceType) type).getName());
@@ -180,13 +193,6 @@ public class ResolutionContext {
 		}
 
 		return null;
-	}
-
-	private String extractGeneric(String name) {
-		int bracket = name.indexOf('<');
-		if (name.lastIndexOf('>') != name.length() - 1)
-			throw new RuntimeException("Mismatched angled brackets in: " + name);
-		return bracket == -1 ? null : name.substring(bracket + 1, name.length() - 1);
 	}
 
 	private String extractReal(String name) {
