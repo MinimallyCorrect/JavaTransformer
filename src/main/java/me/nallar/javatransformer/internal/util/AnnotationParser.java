@@ -58,6 +58,8 @@ public class AnnotationParser {
 	private static Object expressionToValue(Expression e) {
 		if (e instanceof StringLiteralExpr) {
 			return ((StringLiteralExpr) e).getValue();
+		} else if (e instanceof BooleanLiteralExpr) {
+			return ((BooleanLiteralExpr) e).getValue();
 		}
 		throw new RuntimeException("Unknown value: " + e);
 	}
