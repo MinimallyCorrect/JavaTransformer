@@ -174,7 +174,7 @@ public class ResolutionContext {
 	private Type resolveIfExists(String s) {
 		if (s.startsWith("java.") || s.startsWith("javax.")) {
 			try {
-				return new Type(Class.forName(s).getName());
+				return new Type("L" + Class.forName(s).getName() + ";");
 			} catch (ClassNotFoundException ignored) {
 			}
 		}
