@@ -18,6 +18,11 @@ public class ResolutionContextTest {
 	}
 
 	@Test
+	public void testExtractReal() throws Exception {
+		Assert.assertEquals("ab", ResolutionContext.extractReal("ab<bc>"));
+	}
+
+	@Test
 	public void testExtractGeneric() throws Exception {
 		Assert.assertEquals("test", ResolutionContext.extractGeneric("test<test>"));
 		Assert.assertEquals(null, ResolutionContext.extractGeneric("test"));

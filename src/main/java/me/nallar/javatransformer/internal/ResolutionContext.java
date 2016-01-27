@@ -64,6 +64,11 @@ public class ResolutionContext {
 		throw new RuntimeException("Mismatched angled brackets in: " + name);
 	}
 
+	static String extractReal(String name) {
+		int bracket = name.indexOf('<');
+		return bracket == -1 ? name : name.substring(0, bracket);
+	}
+
 	public Type resolve(com.github.javaparser.ast.type.Type type) {
 		if (type instanceof ClassOrInterfaceType) {
 			return resolve(((ClassOrInterfaceType) type).getName());
@@ -193,11 +198,6 @@ public class ResolutionContext {
 		}
 
 		return null;
-	}
-
-	private String extractReal(String name) {
-		int bracket = name.indexOf('<');
-		return bracket == -1 ? name : name.substring(0, bracket);
 	}
 
 	public String unresolve(Type t) {
