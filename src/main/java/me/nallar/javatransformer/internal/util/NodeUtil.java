@@ -69,7 +69,7 @@ public class NodeUtil {
 	public static <T extends Node> T getParentNode(Node node, Class<T> target) {
 		while (true) {
 			node = node.getParentNode();
-			if (node == null || target.isAssignableFrom(target.getClass())) {
+			if (node == null || target.isAssignableFrom(node.getClass())) {
 				return (T) node;
 			}
 		}
