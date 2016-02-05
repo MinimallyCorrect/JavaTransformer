@@ -134,6 +134,7 @@ public class Type {
 								genericCount--;
 								break;
 						}
+					break;
 				default:
 					throw new TransformationException("Unexpected character '" + c + "' in signature: " + signature);
 			}
