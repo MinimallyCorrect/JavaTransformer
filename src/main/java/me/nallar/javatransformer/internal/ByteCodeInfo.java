@@ -203,7 +203,14 @@ public class ByteCodeInfo implements ClassInfoStreams {
 
 		MethodNodeInfo(MethodNode node) {
 			this.node = node;
-			descriptor = new MethodDescriptor(node.desc, node.signature);
+			try {
+				descriptor = new MethodDescriptor(node.desc, node.signature);
+			} catch (TransformationException e) {
+				throw new TransformationException("Failed to parse method parameters:" +
+					"\n\tname: " + node.name +
+					"\n\tdescriptor: " + node.desc +
+					"\n\tsignature:" + node.signature, e);
+			}
 		}
 
 		@Override
@@ -228,7 +235,7 @@ public class ByteCodeInfo implements ClassInfoStreams {
 
 		@Override
 		public Type getReturnType() {
-			return new MethodDescriptor(node.desc, node.signature).getReturnType();
+			return descriptor.getReturnType();
 		}
 
 		@Override
@@ -239,7 +246,6 @@ public class ByteCodeInfo implements ClassInfoStreams {
 
 		@Override
 		public List<Parameter> getParameters() {
-			val descriptor = new MethodDescriptor(node.desc, node.signature);
 			return descriptor.getParameters();
 		}
 
