@@ -61,10 +61,10 @@ public class Type {
 
 		if (parsedSignature != null && parsedSignature.size() != parsedDesc.size()) {
 			throw new TransformationException("Failed to parse type lists." +
-				"\ndesc: " + desc +
-				"\nsignature: " + signature +
-				"\nparsedDesc: " + parsedDesc +
-				"\nparsedSignature: " + parsedSignature
+				"\n\tdesc: " + desc +
+				"\n\tsignature: " + signature +
+				"\n\tparsedDesc: " + parsedDesc +
+				"\n\tparsedSignature: " + parsedSignature
 			);
 		}
 
