@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.val;
 import me.nallar.javatransformer.api.*;
 import me.nallar.javatransformer.internal.util.AnnotationParser;
+import me.nallar.javatransformer.internal.util.CachingSupplier;
 import me.nallar.javatransformer.internal.util.CollectionUtil;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
@@ -199,18 +200,20 @@ public class ByteCodeInfo implements ClassInfoStreams {
 
 	class MethodNodeInfo implements MethodInfo {
 		private final MethodNode node;
-		private MethodDescriptor descriptor;
+		private CachingSupplier<MethodDescriptor> descriptor;
 
 		MethodNodeInfo(MethodNode node) {
 			this.node = node;
-			try {
-				descriptor = new MethodDescriptor(node.desc, node.signature);
-			} catch (TransformationException e) {
-				throw new TransformationException("Failed to parse method parameters:" +
-					"\n\tname: " + node.name +
-					"\n\tdescriptor: " + node.desc +
-					"\n\tsignature:" + node.signature, e);
-			}
+			descriptor = CachingSupplier.of(() -> {
+				try {
+					return new MethodDescriptor(node.desc, node.signature);
+				} catch (TransformationException e) {
+					throw new TransformationException("Failed to parse method parameters in " + node.name + ':' +
+						"\n\tname: " + node.name +
+						"\n\tdescriptor: " + node.desc +
+						"\n\tsignature:" + node.signature, e);
+				}
+			});
 		}
 
 		@Override
@@ -235,28 +238,28 @@ public class ByteCodeInfo implements ClassInfoStreams {
 
 		@Override
 		public Type getReturnType() {
-			return descriptor.getReturnType();
+			return descriptor.get().getReturnType();
 		}
 
 		@Override
 		public void setReturnType(Type returnType) {
-			descriptor = descriptor.withReturnType(returnType);
-			descriptor.saveTo(node);
+			descriptor.set(descriptor.get().withReturnType(returnType));
+			descriptor.get().saveTo(node);
 		}
 
 		@Override
 		public List<Parameter> getParameters() {
-			return descriptor.getParameters();
+			return descriptor.get().getParameters();
 		}
 
 		@Override
 		public void setParameters(List<Parameter> parameters) {
-			descriptor = descriptor.withParameters(parameters);
-			descriptor.saveTo(node);
+			descriptor.set(descriptor.get().withParameters(parameters));
+			descriptor.get().saveTo(node);
 		}
 
 		public String getDescriptor() {
-			return descriptor.getDescriptor();
+			return descriptor.get().getDescriptor();
 		}
 
 		@Override
