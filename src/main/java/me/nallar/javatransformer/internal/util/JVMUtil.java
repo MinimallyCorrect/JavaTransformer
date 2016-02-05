@@ -2,6 +2,7 @@ package me.nallar.javatransformer.internal.util;
 
 import lombok.experimental.UtilityClass;
 import me.nallar.javatransformer.api.AccessFlags;
+import me.nallar.javatransformer.api.TransformationException;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -39,7 +40,7 @@ public class JVMUtil {
 				return "boolean";
 		}
 
-		throw new RuntimeException("Invalid descriptor: " + descriptor);
+		throw new TransformationException("Invalid descriptor: " + descriptor);
 	}
 
 	public static String primitiveTypeToDescriptor(String primitive) {
@@ -64,7 +65,7 @@ public class JVMUtil {
 				return "Z";
 		}
 
-		throw new RuntimeException("Invalid primitive type: " + primitive);
+		throw new TransformationException("Invalid primitive type: " + primitive);
 	}
 
 	public static <T extends Enum<?>> T searchEnum(Class<T> enumeration, String search) {
@@ -126,7 +127,7 @@ public class JVMUtil {
 					a |= AccessFlags.ACC_SYNTHETIC;
 					break;
 				default:
-					throw new RuntimeException("Unknown access string " + access);
+					throw new TransformationException("Unknown access string " + access);
 			}
 		}
 		return a;

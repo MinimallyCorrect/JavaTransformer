@@ -8,7 +8,7 @@ public interface Annotated {
 
 	default List<Annotation> getAnnotations(Type t) {
 		if (!t.isClassType())
-			throw new RuntimeException("Type must be a class type: " + t);
+			throw new TransformationException("Type must be a class type: " + t);
 		return getAnnotations(t.getClassName());
 	}
 
