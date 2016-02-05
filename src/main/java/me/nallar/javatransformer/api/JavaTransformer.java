@@ -48,7 +48,7 @@ public class JavaTransformer {
 			try {
 				bytesRead = is.read(output, position, bytesToRead);
 			} catch (IOException e) {
-				throw new IOError(e);
+				throw new UncheckedIOException(e);
 			}
 			if (bytesRead < 0) {
 				if (output.length != position) {
@@ -71,7 +71,7 @@ public class JavaTransformer {
 		try {
 			return Paths.get(clazz.getProtectionDomain().getCodeSource().getLocation().toURI());
 		} catch (URISyntaxException e) {
-			throw new IOError(e);
+			throw new TransformationException(e);
 		}
 	}
 
@@ -127,7 +127,7 @@ public class JavaTransformer {
 						try {
 							return Files.readAllBytes(file);
 						} catch (IOException e) {
-							throw new IOError(e);
+							throw new UncheckedIOException(e);
 						}
 					});
 
@@ -137,7 +137,7 @@ public class JavaTransformer {
 				}
 			});
 		} catch (IOException e) {
-			throw new IOError(e);
+			throw new UncheckedIOException(e);
 		}
 	}
 
@@ -148,7 +148,7 @@ public class JavaTransformer {
 				saveTransformedResult(entry.getName(), transformBytes(entry.getName(), () -> readFully(is)), saveTransformedResults);
 			}
 		} catch (IOException e) {
-			throw new IOError(e);
+			throw new UncheckedIOException(e);
 		}
 	}
 
@@ -168,7 +168,7 @@ public class JavaTransformer {
 				Files.createDirectories(outputFile.getParent());
 				Files.write(outputFile, bytes);
 			} catch (IOException e) {
-				throw new IOError(e);
+				throw new UncheckedIOException(e);
 			}
 		}));
 	}
@@ -180,7 +180,7 @@ public class JavaTransformer {
 					os.putNextEntry(new ZipEntry(relativeName));
 					os.write(bytes);
 				} catch (IOException e) {
-					throw new IOError(e);
+					throw new UncheckedIOException(e);
 				}
 			}));
 		} catch (IOException e) {
@@ -231,7 +231,7 @@ public class JavaTransformer {
 			try {
 				cu = JavaParser.parse(new ByteArrayInputStream(bytes));
 			} catch (ParseException e) {
-				throw new RuntimeException(e);
+				throw new TransformationException(e);
 			}
 
 			List<String> tried = new ArrayList<>();
@@ -290,9 +290,7 @@ public class JavaTransformer {
 	}
 
 	private void transformClassInfo(ClassInfo editor) {
-		transformers.forEach((x) -> {
-			x.transform(editor);
-		});
+		transformers.forEach((x) -> x.transform(editor));
 		classTransformers.get(editor.getName()).forEach((it) -> it.transform(editor));
 	}
 
@@ -323,12 +321,12 @@ public class JavaTransformer {
 		static PathType of(Path p) {
 			if (!p.getFileName().toString().contains(".")) {
 				if (Files.exists(p) && !Files.isDirectory(p)) {
-					throw new RuntimeException("Path " + p + " should be a directory or not already exist");
+					throw new TransformationException("Path " + p + " should be a directory or not already exist");
 				}
 				return FOLDER;
 			}
 			if (Files.isDirectory(p)) {
-				throw new RuntimeException("Path " + p + " should be a file or not already exist");
+				throw new TransformationException("Path " + p + " should be a file or not already exist");
 			}
 			return JAR;
 		}

@@ -51,7 +51,7 @@ public class SourceInfo implements ClassInfoStreams {
 		if (name.startsWith(packageName)) {
 			type.get().setName(name.replace(packageName, ""));
 		} else {
-			throw new RuntimeException("Name '" + name + "' must be in package: " + packageName);
+			throw new TransformationException("Name '" + name + "' must be in package: " + packageName);
 		}
 	}
 
@@ -87,7 +87,7 @@ public class SourceInfo implements ClassInfoStreams {
 		MethodDeclarationWrapper methodDeclarationWrapper = !(method instanceof MethodDeclarationWrapper) ? (MethodDeclarationWrapper) get(method) : (MethodDeclarationWrapper) method;
 
 		if (methodDeclarationWrapper == null)
-			throw new RuntimeException("Method " + method + " can not be removed as it is not present");
+			throw new TransformationException("Method " + method + " can not be removed as it is not present");
 
 		type.get().getMembers().remove(methodDeclarationWrapper.declaration);
 	}
@@ -97,7 +97,7 @@ public class SourceInfo implements ClassInfoStreams {
 		FieldDeclarationWrapper fieldDeclarationWrapper = !(field instanceof FieldDeclarationWrapper) ? (FieldDeclarationWrapper) get(field) : (FieldDeclarationWrapper) field;
 
 		if (fieldDeclarationWrapper == null)
-			throw new RuntimeException("Field " + field + " can not be removed as it is not present");
+			throw new TransformationException("Field " + field + " can not be removed as it is not present");
 
 		type.get().getMembers().remove(fieldDeclarationWrapper.declaration);
 	}

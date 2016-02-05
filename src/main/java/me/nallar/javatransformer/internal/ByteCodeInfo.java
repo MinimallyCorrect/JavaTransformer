@@ -99,7 +99,7 @@ public class ByteCodeInfo implements ClassInfoStreams {
 		MethodNodeInfo methodNodeInfo = !(method instanceof MethodNodeInfo) ? (MethodNodeInfo) get(method) : (MethodNodeInfo) method;
 
 		if (methodNodeInfo == null)
-			throw new RuntimeException("Method " + method + " can not be removed as it is not present");
+			throw new TransformationException("Method " + method + " can not be removed as it is not present");
 
 		node.get().methods.remove(methodNodeInfo.node);
 	}
@@ -109,7 +109,7 @@ public class ByteCodeInfo implements ClassInfoStreams {
 		FieldNodeInfo fieldNodeInfo = !(field instanceof FieldNodeInfo) ? (FieldNodeInfo) get(field) : (FieldNodeInfo) field;
 
 		if (fieldNodeInfo == null)
-			throw new RuntimeException("Field " + field + " can not be removed as it is not present");
+			throw new TransformationException("Field " + field + " can not be removed as it is not present");
 
 		node.get().fields.remove(fieldNodeInfo.node);
 	}

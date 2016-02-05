@@ -9,6 +9,7 @@ import com.github.javaparser.ast.type.PrimitiveType;
 import com.github.javaparser.ast.type.VoidType;
 import lombok.NonNull;
 import lombok.val;
+import me.nallar.javatransformer.api.TransformationException;
 import me.nallar.javatransformer.api.Type;
 import me.nallar.javatransformer.internal.util.JVMUtil;
 import me.nallar.javatransformer.internal.util.NodeUtil;
@@ -62,7 +63,7 @@ public class ResolutionContext {
 		if (rightBracket == name.length() - 1 && leftBracket != -1 && leftBracket < rightBracket)
 			return name.substring(leftBracket + 1, rightBracket);
 
-		throw new RuntimeException("Mismatched angled brackets in: " + name);
+		throw new TransformationException("Mismatched angled brackets in: " + name);
 	}
 
 	static String extractReal(String name) {
@@ -114,12 +115,12 @@ public class ResolutionContext {
 			}
 		}
 
-		throw new RuntimeException("Couldn't resolve name: " + name + "\nFound real type: " + type + "\nGeneric type: " + genericType);
+		throw new TransformationException("Couldn't resolve name: " + name + "\nFound real type: " + type + "\nGeneric type: " + genericType);
 	}
 
 	private Type sanityCheck(Type type) {
 		if (type.isClassType() && (type.getClassName().endsWith(".")) || !type.getClassName().contains(".")) {
-			throw new RuntimeException("Unexpected class name (incorrect dots) in type: " + type);
+			throw new TransformationException("Unexpected class name (incorrect dots) in type: " + type);
 		}
 
 		return type;
@@ -205,7 +206,7 @@ public class ResolutionContext {
 							extends_ = resolve(scope.getName()).descriptor;
 						}
 					} else {
-						throw new RuntimeException("Bounds must have one object, found: " + bounds);
+						throw new TransformationException("Bounds must have one object, found: " + bounds);
 					}
 				}
 

@@ -55,14 +55,23 @@ public class Type {
 		this(descriptor, null);
 	}
 
-	public static List<Type> of(String realDesc, String genericDesc) {
-		val realTypes = splitTypes(realDesc);
-		val genericTypes = splitTypes(genericDesc);
+	public static List<Type> of(String desc, String signature) {
+		val parsedDesc = splitTypes(desc);
+		val parsedSignature = splitTypes(signature);
+
+		if (parsedSignature != null && parsedSignature.size() != parsedDesc.size()) {
+			throw new TransformationException("Failed to parse type lists." +
+				"\ndesc: " + desc +
+				"\nsignature: " + signature +
+				"\nparsedDesc: " + parsedDesc +
+				"\nparsedSignature: " + parsedSignature
+			);
+		}
 
 		val types = new ArrayList<Type>();
-		for (int i = 0; i < realTypes.size(); i++) {
-			String real = realTypes.get(i);
-			String generic = genericTypes == null ? null : genericTypes.get(i);
+		for (int i = 0; i < parsedDesc.size(); i++) {
+			String real = parsedDesc.get(i);
+			String generic = parsedSignature == null ? null : parsedSignature.get(i);
 			types.add(new Type(real, generic));
 		}
 
@@ -157,19 +166,19 @@ public class Type {
 
 	public String getPrimitiveTypeName() {
 		if (!isPrimitiveType())
-			throw new RuntimeException("Can't get classname for type: " + this);
+			throw new UnsupportedOperationException("Can't get classname for type: " + this);
 		return JVMUtil.descriptorToPrimitiveType(descriptor);
 	}
 
 	public String getClassName() {
 		if (!isClassType())
-			throw new RuntimeException("Can't get classname for type: " + this);
+			throw new UnsupportedOperationException("Can't get classname for type: " + this);
 		return descriptor.substring(1, descriptor.length() - 1).replace('/', '.');
 	}
 
 	public String getTypeParameterName() {
 		if (!isTypeParameter())
-			throw new RuntimeException("Can't get type parameter name for type: " + this);
+			throw new UnsupportedOperationException("Can't get type parameter name for type: " + this);
 		return signature.substring(1, signature.length() - 1);
 	}
 

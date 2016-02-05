@@ -4,6 +4,7 @@ import com.github.javaparser.ast.expr.*;
 import lombok.experimental.UtilityClass;
 import lombok.val;
 import me.nallar.javatransformer.api.Annotation;
+import me.nallar.javatransformer.api.TransformationException;
 import me.nallar.javatransformer.api.Type;
 import me.nallar.javatransformer.internal.ResolutionContext;
 import org.objectweb.asm.ClassReader;
@@ -52,7 +53,7 @@ public class AnnotationParser {
 		} else if (annotationExpr instanceof MarkerAnnotationExpr) {
 			return Annotation.of(t);
 		}
-		throw new RuntimeException("Unknown annotation type: " + annotationExpr.getClass().getCanonicalName());
+		throw new TransformationException("Unknown annotation type: " + annotationExpr.getClass().getCanonicalName());
 	}
 
 	private static Object expressionToValue(Expression e) {
@@ -61,7 +62,7 @@ public class AnnotationParser {
 		} else if (e instanceof BooleanLiteralExpr) {
 			return ((BooleanLiteralExpr) e).getValue();
 		}
-		throw new RuntimeException("Unknown value: " + e);
+		throw new TransformationException("Unknown value: " + e);
 	}
 
 	private static class AnnotationVisitor extends ClassVisitor {

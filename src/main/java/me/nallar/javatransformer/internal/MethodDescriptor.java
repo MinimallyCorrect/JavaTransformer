@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.ToString;
 import lombok.val;
 import me.nallar.javatransformer.api.Parameter;
+import me.nallar.javatransformer.api.TransformationException;
 import me.nallar.javatransformer.api.Type;
 import org.objectweb.asm.tree.MethodNode;
 
@@ -61,7 +62,7 @@ public class MethodDescriptor {
 		int index = in.indexOf(c);
 
 		if (index == -1)
-			throw new RuntimeException("Could not find '" + c + "' in '" + in + "'");
+			throw new TransformationException("Could not find '" + c + "' in '" + in + "'");
 
 		return in.substring(0, index);
 	}
@@ -70,7 +71,7 @@ public class MethodDescriptor {
 		int index = in.indexOf(c);
 
 		if (index == -1)
-			throw new RuntimeException("Could not find '" + c + "' in '" + in + "'");
+			throw new TransformationException("Could not find '" + c + "' in '" + in + "'");
 
 		return in.substring(index + 1, in.length());
 	}
