@@ -42,14 +42,7 @@ public class MethodDescriptor {
 	private static List<Parameter> getParameters(String descriptor, String signature, List<String> parameterNames) {
 		val parameters = new ArrayList<Parameter>();
 
-		List<Type> parameterTypes;
-		try {
-			parameterTypes = Type.of(getParameters(descriptor), getParameters(signature));
-		} catch (TransformationException e) {
-			throw new TransformationException("Failed to parse method parameters:" +
-				"\n\tdescriptor: " + descriptor +
-				"\n\tsignature:" + signature, e);
-		}
+		List<Type> parameterTypes = Type.of(getParameters(descriptor), getParameters(signature));
 
 		for (int i = 0; i < parameterTypes.size(); i++) {
 			String name = (parameterNames == null || parameterNames.isEmpty()) ? null : parameterNames.get(i);
