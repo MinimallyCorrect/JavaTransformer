@@ -110,11 +110,11 @@ public class Type {
 				case 'T':
 					int end = signature.indexOf(';', pos);
 					name = signature.substring(pos, end);
+					pos = end;
 					types.add(current + 'T' + name + ';');
 					current = "";
 					break;
-
-				default: // case 'L':
+				case 'L':
 					int start = pos;
 					int genericCount = 0;
 					innerLoop:
@@ -134,6 +134,8 @@ public class Type {
 								genericCount--;
 								break;
 						}
+				default:
+					throw new TransformationException("Unexpected character '" + c + "' in signature: " + signature);
 			}
 		return types;
 	}
