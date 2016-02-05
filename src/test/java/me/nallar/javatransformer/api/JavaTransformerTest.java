@@ -14,6 +14,11 @@ public class JavaTransformerTest {
 	public TemporaryFolder folder = new TemporaryFolder();
 
 	@Test
+	public void testSkipPackageInfo() throws Exception {
+		Assert.assertNull("Should skip package-info.java", new JavaTransformer().transformBytes(null, "org/example/test/package-info.java"));
+	}
+
+	@Test
 	public void testTransform() throws Exception {
 		Path output = folder.newFolder("output").toPath();
 
