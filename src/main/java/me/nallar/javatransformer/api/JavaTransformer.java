@@ -8,6 +8,7 @@ import com.github.javaparser.ast.body.TypeDeclaration;
 import lombok.*;
 import me.nallar.javatransformer.internal.ByteCodeInfo;
 import me.nallar.javatransformer.internal.SourceInfo;
+import me.nallar.javatransformer.internal.util.CachingSupplier;
 import me.nallar.javatransformer.internal.util.JVMUtil;
 import me.nallar.javatransformer.internal.util.NodeUtil;
 import org.objectweb.asm.ClassReader;
@@ -351,39 +352,6 @@ public class JavaTransformer {
 
 		public String toString() {
 			return map.toString();
-		}
-	}
-
-	@Data
-	private static class CachingSupplier<T> implements Supplier<T> {
-		@NonNull
-		private final Supplier<T> wrapped;
-		private transient T value;
-
-		protected CachingSupplier(Supplier<T> wrapped) {
-			this.wrapped = wrapped;
-		}
-
-		public static <T> CachingSupplier<T> of(Supplier<T> wrapped) {
-			return new CachingSupplier<>(wrapped);
-		}
-
-		@Override
-		public T get() {
-			T value = this.value;
-
-			if (value == null) {
-				synchronized (this) {
-					if (this.value == null)
-						this.value = value = Objects.requireNonNull(wrapped.get());
-				}
-			}
-
-			return value;
-		}
-
-		public boolean isCached() {
-			return value != null;
 		}
 	}
 
