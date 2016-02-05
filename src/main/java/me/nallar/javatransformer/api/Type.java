@@ -110,7 +110,7 @@ public class Type {
 				case 'T':
 					int end = signature.indexOf(';', pos);
 					name = signature.substring(pos, end);
-					pos = end;
+					pos = end + 1;
 					types.add(current + 'T' + name + ';');
 					current = "";
 					break;
