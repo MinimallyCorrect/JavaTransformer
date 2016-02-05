@@ -124,13 +124,13 @@ public class JavaTransformer {
 				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
 					val relativeName = input.relativize(file).toString();
 
-					val supplier = transformBytes(relativeName, () -> {
+					val supplier = transformBytes(() -> {
 						try {
 							return Files.readAllBytes(file);
 						} catch (IOException e) {
 							throw new UncheckedIOException(e);
 						}
-					});
+					}, relativeName);
 
 					saveTransformedResult(relativeName, supplier, saveTransformedResults);
 
@@ -146,7 +146,7 @@ public class JavaTransformer {
 		ZipEntry entry;
 		try (ZipInputStream is = new ZipInputStream(new BufferedInputStream(new FileInputStream(p.toFile())))) {
 			while ((entry = is.getNextEntry()) != null) {
-				saveTransformedResult(entry.getName(), transformBytes(entry.getName(), () -> readFully(is)), saveTransformedResults);
+				saveTransformedResult(entry.getName(), transformBytes(() -> readFully(is), entry.getName()), saveTransformedResults);
 			}
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
@@ -299,12 +299,16 @@ public class JavaTransformer {
 		return !transformers.isEmpty() || !classTransformers.get(className).isEmpty();
 	}
 
-	private Supplier<byte[]> transformBytes(String relativeName, Supplier<byte[]> dataSupplier) {
+	Supplier<byte[]> transformBytes(Supplier<byte[]> dataSupplier, String relativeName) {
 		boolean isClass = relativeName.endsWith(".class");
 		boolean isSource = relativeName.endsWith(".java");
 
 		if (isClass || isSource) {
 			String className = JVMUtil.fileNameToClassName(relativeName);
+
+			// package-info files do not contain classes
+			if (className.endsWith(".package-info"))
+				return dataSupplier;
 
 			if (isClass)
 				return transformClass(dataSupplier, className);
