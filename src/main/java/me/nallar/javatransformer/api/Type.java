@@ -45,7 +45,7 @@ public class Type {
 	public final String signature;
 
 	public Type(String descriptor, String signature) {
-		if (signature != null && signature.equals(descriptor))
+		if (signature != null && (signature.isEmpty() || signature.equals(descriptor)))
 			signature = null;
 		this.descriptor = descriptor;
 		this.signature = signature;
@@ -152,8 +152,9 @@ public class Type {
 	}
 
 	public boolean isTypeParameter() {
-		val first = signature.charAt(0);
-		return first == 'T';
+		val signature = this.signature;
+
+		return signature != null && signature.charAt(0) == 'T';
 	}
 
 	public String getSimpleName() {
