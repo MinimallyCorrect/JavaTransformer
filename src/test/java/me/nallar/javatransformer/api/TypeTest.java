@@ -1,5 +1,6 @@
 package me.nallar.javatransformer.api;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -34,5 +35,19 @@ public class TypeTest {
 		assertTrue(typeParameter.isPrimitiveType());
 
 		assertEquals("boolean", typeParameter.getPrimitiveTypeName());
+	}
+
+	@Test
+	public void testOf() throws Exception {
+		testOf("java.lang.String", "Ljava/lang/String;");
+		testOf("nallar.test.Outer", "Lnallar/test/Outer;");
+		testOf("nallar.test.Outer.Inner", "Lnallar/test/Outer$Inner;");
+		testOf("BadNamingScheme.test.Outer", "LBadNamingScheme/test/Outer;");
+		testOf("BadNamingScheme.test.Outer.Inner", "LBadNamingScheme/test/Outer$Inner;");
+		testOf("BadNamingScheme.Test.Outer.Inner", "LBadNamingScheme$Test$Outer$Inner;");
+	}
+
+	private void testOf(String in, String expected) {
+		Assert.assertEquals(expected, Type.of(in).descriptor);
 	}
 }
