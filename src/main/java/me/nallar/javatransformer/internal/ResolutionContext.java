@@ -44,13 +44,7 @@ public class ResolutionContext {
 
 	static boolean hasPackages(String name) {
 		// Guesses whether input name includes packages or is just classes
-		return Character.isUpperCase(name.charAt(0)) && name.indexOf('.') != -1;
-	}
-
-	static String classNameToDescriptor(String className) {
-		// TODO: 23/01/2016 Handle inner classes properly? currently depend on following naming standards
-		// depends on: lower case package names, uppercase first letter of class name
-		return 'L' + JVMUtil.classNameToJLSName(className) + ';';
+		return !Character.isUpperCase(name.charAt(0)) && name.indexOf('.') != -1;
 	}
 
 	static String extractGeneric(String name) {
@@ -172,13 +166,13 @@ public class ResolutionContext {
 			return null;
 		}
 
-		return new Type(classNameToDescriptor(name));
+		return Type.of(name);
 	}
 
 	private Type resolveIfExists(String s) {
 		if (s.startsWith("java.") || s.startsWith("javax.")) {
 			try {
-				return new Type(classNameToDescriptor(Class.forName(s).getName()));
+				return Type.of(Class.forName(s).getName());
 			} catch (ClassNotFoundException ignored) {
 			}
 		}
@@ -210,7 +204,7 @@ public class ResolutionContext {
 					}
 				}
 
-				return new Type("L" + extends_, "T" + typeName + ";");
+				return new Type(extends_, "T" + typeName + ";");
 			}
 		}
 

@@ -55,7 +55,13 @@ public class Type {
 		this(descriptor, null);
 	}
 
-	public static List<Type> of(String desc, String signature) {
+	public static Type of(String fullClassName) {
+		// TODO: 23/01/2016 Handle inner classes properly? currently depend on following naming standards
+		// depends on: lower case package names, uppercase first letter of class name
+		return new Type('L' + JVMUtil.classNameToJLSName(fullClassName) + ';');
+	}
+
+	public static List<Type> listOf(String desc, String signature) {
 		val parsedDesc = splitTypes(desc);
 		val parsedSignature = splitTypes(signature);
 
