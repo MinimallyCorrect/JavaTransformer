@@ -1,5 +1,6 @@
 package me.nallar.javatransformer.internal;
 
+import me.nallar.javatransformer.api.Type;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -14,7 +15,7 @@ public class ResolutionContextTest {
 	}
 
 	private void testClassNameToDescriptor(String in, String expected) {
-		Assert.assertEquals(expected, ResolutionContext.classNameToDescriptor(in));
+		Assert.assertEquals(expected, Type.of(in).descriptor);
 	}
 
 	@Test
