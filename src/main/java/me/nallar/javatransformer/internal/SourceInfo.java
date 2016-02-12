@@ -1,10 +1,15 @@
 package me.nallar.javatransformer.internal;
 
-import com.github.javaparser.ast.*;
+import com.github.javaparser.ASTHelper;
+import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.AnnotationExpr;
+import com.github.javaparser.ast.expr.NameExpr;
+import com.github.javaparser.ast.expr.QualifiedNameExpr;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.PrimitiveType;
+import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import lombok.*;
 import me.nallar.javatransformer.api.*;
 import me.nallar.javatransformer.api.Parameter;
@@ -25,7 +30,7 @@ public class SourceInfo implements ClassInfoStreams {
 	@Getter(lazy = true)
 	private final String packageName = getPackageNameInternal();
 	@Getter(lazy = true)
-	private final ResolutionContext context = getResolutionContextInternal();
+	private final ResolutionContext context = getContextInternal();
 	@Getter(lazy = true)
 	private final List<Annotation> annotations = getAnnotationsInternal();
 	private String className;
@@ -34,7 +39,7 @@ public class SourceInfo implements ClassInfoStreams {
 		return NodeUtil.qualifiedName(NodeUtil.getParentNode(type.get(), CompilationUnit.class).getPackage().getName());
 	}
 
-	private ResolutionContext getResolutionContextInternal() {
+	private ResolutionContext getContextInternal() {
 		return ResolutionContext.of(type.get());
 	}
 
@@ -68,7 +73,9 @@ public class SourceInfo implements ClassInfoStreams {
 		MethodDeclaration methodDeclaration;
 
 		if (method instanceof MethodDeclarationWrapper) {
-			methodDeclaration = (MethodDeclaration) ((MethodDeclarationWrapper) method).declaration.clone();
+			val wrapper = (MethodDeclarationWrapper) method;
+			methodDeclaration = (MethodDeclaration) wrapper.declaration.clone();
+			wrapper.getClassInfo().unresolveAll(wrapper.getContext(), context, methodDeclaration);
 		} else {
 			methodDeclaration = new MethodDeclaration();
 			new MethodDeclarationWrapper(methodDeclaration).setAll(method);
@@ -82,7 +89,9 @@ public class SourceInfo implements ClassInfoStreams {
 		FieldDeclaration fieldDeclaration;
 
 		if (field instanceof FieldDeclarationWrapper) {
-			fieldDeclaration = (FieldDeclaration) ((FieldDeclarationWrapper) field).declaration.clone();
+			val wrapper = (FieldDeclarationWrapper) field;
+			fieldDeclaration = (FieldDeclaration) wrapper.declaration.clone();
+			wrapper.getClassInfo().unresolveAll(wrapper.getContext(), context, fieldDeclaration);
 		} else {
 			fieldDeclaration = new FieldDeclaration();
 			val vars = new ArrayList<VariableDeclarator>();
@@ -97,6 +106,37 @@ public class SourceInfo implements ClassInfoStreams {
 	private void addMember(BodyDeclaration bodyDeclaration) {
 		bodyDeclaration.setParentNode(type.get());
 		type.get().getMembers().add(bodyDeclaration);
+	}
+
+	void unresolveAll(ResolutionContext old, ResolutionContext new_, Node node) {
+		val nameExprs = new ArrayList<NameExpr>();
+		node.accept(new VoidVisitorAdapter<Void>() {
+			@Override
+			public void visit(NameExpr n, Void arg) {
+				super.visit(n, arg);
+				nameExprs.add(n);
+			}
+
+			@Override
+			public void visit(QualifiedNameExpr n, Void arg) {
+				nameExprs.add(n);
+			}
+		}, null);
+
+		for (NameExpr n : nameExprs) {
+			String qualified = NodeUtil.qualifiedName(n);
+			String unresolved = new_.unresolve(old.resolve(qualified));
+
+			if (!qualified.equals(unresolved)) {
+				NameExpr newName = ASTHelper.createNameExpr(unresolved);
+				Node parent = n.getParentNode();
+				if (parent instanceof AnnotationExpr) {
+					((AnnotationExpr) parent).setName(newName);
+				} else {
+					throw new TransformationException("Unknown type: " + parent.getClass());
+				}
+			}
+		}
 	}
 
 	@Override
@@ -231,7 +271,7 @@ public class SourceInfo implements ClassInfoStreams {
 		}
 
 		@Override
-		public ClassInfo getClassInfo() {
+		public SourceInfo getClassInfo() {
 			return SourceInfo.this;
 		}
 	}
@@ -297,7 +337,7 @@ public class SourceInfo implements ClassInfoStreams {
 		}
 
 		@Override
-		public ClassInfo getClassInfo() {
+		public SourceInfo getClassInfo() {
 			return SourceInfo.this;
 		}
 	}
