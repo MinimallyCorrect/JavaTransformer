@@ -76,7 +76,7 @@ public class SourceInfo implements ClassInfoStreams {
 			val wrapper = (MethodDeclarationWrapper) method;
 			methodDeclaration = (MethodDeclaration) wrapper.declaration.clone();
 			methodDeclaration.setAnnotations(Collections.emptyList());
-			wrapper.getClassInfo().unresolveAll(wrapper.getContext(), getContext(), methodDeclaration);
+			wrapper.getClassInfo().changeTypeContext(wrapper.getContext(), getContext(), methodDeclaration);
 		} else {
 			methodDeclaration = new MethodDeclaration();
 			new MethodDeclarationWrapper(methodDeclaration).setAll(method);
@@ -93,7 +93,7 @@ public class SourceInfo implements ClassInfoStreams {
 			val wrapper = (FieldDeclarationWrapper) field;
 			fieldDeclaration = (FieldDeclaration) wrapper.declaration.clone();
 			fieldDeclaration.setAnnotations(Collections.emptyList());
-			wrapper.getClassInfo().unresolveAll(wrapper.getContext(), getContext(), fieldDeclaration);
+			wrapper.getClassInfo().changeTypeContext(wrapper.getContext(), getContext(), fieldDeclaration);
 		} else {
 			fieldDeclaration = new FieldDeclaration();
 			val vars = new ArrayList<VariableDeclarator>();
@@ -110,7 +110,7 @@ public class SourceInfo implements ClassInfoStreams {
 		type.get().getMembers().add(bodyDeclaration);
 	}
 
-	void unresolveAll(ResolutionContext old, ResolutionContext new_, Node node) {
+	void changeTypeContext(ResolutionContext old, ResolutionContext new_, Node node) {
 		val nameExprs = new ArrayList<NameExpr>();
 		node.accept(new VoidVisitorAdapter<Void>() {
 			@Override
@@ -127,7 +127,7 @@ public class SourceInfo implements ClassInfoStreams {
 
 		for (NameExpr n : nameExprs) {
 			String qualified = NodeUtil.qualifiedName(n);
-			String unresolved = new_.unresolve(old.resolve(qualified));
+			String unresolved = new_.typeToString(old.resolve(qualified), false);
 
 			if (!qualified.equals(unresolved)) {
 				NameExpr newName = ASTHelper.createNameExpr(unresolved);
@@ -189,7 +189,7 @@ public class SourceInfo implements ClassInfoStreams {
 	}
 
 	private com.github.javaparser.ast.type.Type toType(Type t) {
-		String name = getContext().unresolve(t);
+		String name = getContext().typeToString(t);
 		if (t.isPrimitiveType()) {
 			return new PrimitiveType(JVMUtil.searchEnum(PrimitiveType.Primitive.class, name));
 		} else {
