@@ -211,7 +211,11 @@ public class ResolutionContext {
 		return null;
 	}
 
-	public String unresolve(Type t) {
+	public String typeToString(Type t) {
+		return typeToString(t, true);
+	}
+
+	public String typeToString(Type t, boolean unresolve) {
 		if (t.isTypeParameter()) {
 			return t.getTypeParameterName();
 		}
@@ -220,12 +224,13 @@ public class ResolutionContext {
 		}
 		String className = t.getClassName();
 
-		for (ImportDeclaration anImport : imports) {
-			String importName = NodeUtil.qualifiedName(anImport.getName());
-			if (className.startsWith(importName)) {
-				return className.replace(importName + ".", "");
+		if (unresolve)
+			for (ImportDeclaration anImport : imports) {
+				String importName = NodeUtil.qualifiedName(anImport.getName());
+				if (className.startsWith(importName)) {
+					return className.replace(importName + ".", "");
+				}
 			}
-		}
 
 		return className;
 	}
