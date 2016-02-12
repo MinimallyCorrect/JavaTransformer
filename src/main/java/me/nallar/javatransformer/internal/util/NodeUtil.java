@@ -13,6 +13,20 @@ import java.util.function.*;
 
 @UtilityClass
 public class NodeUtil {
+	public static void forChildren(Node node, Consumer<Node> nodeConsumer) {
+		forChildren(node, nodeConsumer, Node.class);
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <T> void forChildren(Node node, Consumer<T> nodeConsumer, Class<T> ofClass) {
+		for (Node child : node.getChildrenNodes()) {
+			if (ofClass.isAssignableFrom(child.getClass()))
+				nodeConsumer.accept((T) child);
+
+			forChildren(child, nodeConsumer, ofClass);
+		}
+	}
+
 	public static <ResultType> List<ResultType> getFromList(Node node, Function<Node, List<ResultType>> getter) {
 		List<ResultType> parameters = new ArrayList<>();
 
