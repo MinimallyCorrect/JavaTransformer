@@ -1,5 +1,7 @@
 package me.nallar.javatransformer.api;
 
+import me.nallar.javatransformer.internal.util.JVMUtil;
+
 import java.util.*;
 import java.util.function.*;
 
@@ -50,6 +52,10 @@ public interface ClassInfo extends ClassMember {
 		}
 
 		return null;
+	}
+
+	default Type getType() {
+		return Type.of(getName());
 	}
 
 	List<MethodInfo> getMethods();
