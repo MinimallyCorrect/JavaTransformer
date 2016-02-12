@@ -75,7 +75,7 @@ public class SourceInfo implements ClassInfoStreams {
 		if (method instanceof MethodDeclarationWrapper) {
 			val wrapper = (MethodDeclarationWrapper) method;
 			methodDeclaration = (MethodDeclaration) wrapper.declaration.clone();
-			wrapper.getClassInfo().unresolveAll(wrapper.getContext(), context, methodDeclaration);
+			wrapper.getClassInfo().unresolveAll(wrapper.getContext(), getContext(), methodDeclaration);
 		} else {
 			methodDeclaration = new MethodDeclaration();
 			new MethodDeclarationWrapper(methodDeclaration).setAll(method);
@@ -91,7 +91,7 @@ public class SourceInfo implements ClassInfoStreams {
 		if (field instanceof FieldDeclarationWrapper) {
 			val wrapper = (FieldDeclarationWrapper) field;
 			fieldDeclaration = (FieldDeclaration) wrapper.declaration.clone();
-			wrapper.getClassInfo().unresolveAll(wrapper.getContext(), context, fieldDeclaration);
+			wrapper.getClassInfo().unresolveAll(wrapper.getContext(), getContext(), fieldDeclaration);
 		} else {
 			fieldDeclaration = new FieldDeclaration();
 			val vars = new ArrayList<VariableDeclarator>();
