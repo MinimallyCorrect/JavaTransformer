@@ -3,7 +3,7 @@ plugins {
 	id 'maven'
 }
 
-project.version = '1.6-SNAPSHOT'
+project.version = '1.6'
 project.group = 'me.nallar'
 
 // Extended project information
