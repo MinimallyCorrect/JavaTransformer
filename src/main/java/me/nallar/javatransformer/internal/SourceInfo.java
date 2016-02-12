@@ -1,15 +1,10 @@
 package me.nallar.javatransformer.internal;
 
-import com.github.javaparser.ASTHelper;
 import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.AnnotationExpr;
-import com.github.javaparser.ast.expr.NameExpr;
-import com.github.javaparser.ast.expr.QualifiedNameExpr;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.PrimitiveType;
-import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import lombok.*;
 import me.nallar.javatransformer.api.*;
 import me.nallar.javatransformer.api.Parameter;
@@ -110,35 +105,23 @@ public class SourceInfo implements ClassInfoStreams {
 		type.get().getMembers().add(bodyDeclaration);
 	}
 
-	void changeTypeContext(ResolutionContext old, ResolutionContext new_, Node node) {
-		val nameExprs = new ArrayList<NameExpr>();
-		node.accept(new VoidVisitorAdapter<Void>() {
-			@Override
-			public void visit(NameExpr n, Void arg) {
-				super.visit(n, arg);
-				nameExprs.add(n);
-			}
-
-			@Override
-			public void visit(QualifiedNameExpr n, Void arg) {
-				nameExprs.add(n);
-			}
-		}, null);
-
-		for (NameExpr n : nameExprs) {
-			String qualified = NodeUtil.qualifiedName(n);
-			String unresolved = new_.typeToString(old.resolve(qualified), false);
-
-			if (!qualified.equals(unresolved)) {
-				NameExpr newName = ASTHelper.createNameExpr(unresolved);
-				Node parent = n.getParentNode();
-				if (parent instanceof AnnotationExpr) {
-					((AnnotationExpr) parent).setName(newName);
-				} else {
-					throw new TransformationException("Unknown type: " + parent.getClass());
-				}
-			}
+	void changeTypeContext(ResolutionContext old, ResolutionContext new_, MethodDeclaration m) {
+		m.setType(changeTypeContext(old, new_, m.getType()));
+		for (com.github.javaparser.ast.body.Parameter parameter : m.getParameters()) {
+			parameter.setType(changeTypeContext(old, new_, parameter.getType()));
 		}
+	}
+
+	void changeTypeContext(ResolutionContext old, ResolutionContext new_, FieldDeclaration f) {
+		f.setType(changeTypeContext(old, new_, f.getType()));
+	}
+
+	com.github.javaparser.ast.type.Type changeTypeContext(ResolutionContext old, ResolutionContext new_, com.github.javaparser.ast.type.Type t) {
+		Type current = old.resolve(t);
+		if (current.isClassType()) {
+			return new ClassOrInterfaceType(new_.typeToString(current));
+		}
+		return t;
 	}
 
 	@Override
