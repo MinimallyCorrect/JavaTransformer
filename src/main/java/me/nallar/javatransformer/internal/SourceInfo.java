@@ -1,14 +1,11 @@
 package me.nallar.javatransformer.internal;
 
-import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.*;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.PrimitiveType;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.Getter;
-import lombok.val;
+import lombok.*;
 import me.nallar.javatransformer.api.*;
 import me.nallar.javatransformer.api.Parameter;
 import me.nallar.javatransformer.internal.util.AnnotationParser;
@@ -23,6 +20,7 @@ import java.util.stream.*;
 @AllArgsConstructor
 @SuppressWarnings("unchecked")
 public class SourceInfo implements ClassInfoStreams {
+	@Getter(AccessLevel.NONE)
 	private final Supplier<ClassOrInterfaceDeclaration> type;
 	@Getter(lazy = true)
 	private final String packageName = getPackageNameInternal();
@@ -66,20 +64,39 @@ public class SourceInfo implements ClassInfoStreams {
 	}
 
 	@Override
-	public void add(MethodInfo description) {
-		MethodDeclaration methodDeclaration = new MethodDeclaration();
-		val wrapper = new MethodDeclarationWrapper(methodDeclaration);
-		wrapper.setAll(description);
+	public void add(MethodInfo method) {
+		MethodDeclaration methodDeclaration;
+
+		if (method instanceof MethodDeclarationWrapper) {
+			methodDeclaration = (MethodDeclaration) ((MethodDeclarationWrapper) method).declaration.clone();
+		} else {
+			methodDeclaration = new MethodDeclaration();
+			new MethodDeclarationWrapper(methodDeclaration).setAll(method);
+		}
+
+		addMember(methodDeclaration);
 	}
 
 	@Override
 	public void add(FieldInfo field) {
-		FieldDeclaration fieldDeclaration = new FieldDeclaration();
-		val vars = new ArrayList<VariableDeclarator>();
-		vars.add(new VariableDeclarator(new VariableDeclaratorId("unknown")));
-		fieldDeclaration.setVariables(vars);
-		FieldDeclarationWrapper wrapper = new FieldDeclarationWrapper(fieldDeclaration);
-		wrapper.setAll(field);
+		FieldDeclaration fieldDeclaration;
+
+		if (field instanceof FieldDeclarationWrapper) {
+			fieldDeclaration = (FieldDeclaration) ((FieldDeclarationWrapper) field).declaration.clone();
+		} else {
+			fieldDeclaration = new FieldDeclaration();
+			val vars = new ArrayList<VariableDeclarator>();
+			vars.add(new VariableDeclarator(new VariableDeclaratorId("unknown")));
+			fieldDeclaration.setVariables(vars);
+			new FieldDeclarationWrapper(fieldDeclaration).setAll(field);
+		}
+
+		addMember(fieldDeclaration);
+	}
+
+	private void addMember(BodyDeclaration bodyDeclaration) {
+		bodyDeclaration.setParentNode(type.get());
+		type.get().getMembers().add(bodyDeclaration);
 	}
 
 	@Override
