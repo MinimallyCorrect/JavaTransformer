@@ -109,11 +109,11 @@ public class SourceInfo implements ClassInfoStreams {
 	void changeTypeContext(ResolutionContext old, ResolutionContext new_, MethodDeclaration m) {
 		m.setType(changeTypeContext(old, new_, m.getType()));
 		NodeUtil.forChildren(m, node -> {
-			val scope = node.getScope();
+			Expression scope = node.getScope();
 			// TODO: Currently guesses that it's a type name if first character is uppercase.
 			// Should check for fields/variables which match instead
 			if (scope instanceof NameExpr && Character.isUpperCase(((NameExpr) scope).getName().charAt(0))) {
-				val name = ((NameExpr) scope).getName();
+				String name = ((NameExpr) scope).getName();
 				node.setScope(ASTHelper.createNameExpr(old.typeToString(new_.resolve(name))));
 			}
 		}, MethodCallExpr.class);
