@@ -15,9 +15,13 @@ import me.nallar.javatransformer.internal.util.AnnotationParser;
 import me.nallar.javatransformer.internal.util.JVMUtil;
 import me.nallar.javatransformer.internal.util.NodeUtil;
 
-import java.util.*;
-import java.util.function.*;
-import java.util.stream.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Data
 @AllArgsConstructor
@@ -174,8 +178,18 @@ public class SourceInfo implements ClassInfoStreams {
 
 	public Stream<MethodInfo> getMethodStream() {
 		return type.get().getMembers().stream()
-			.filter(x -> x instanceof MethodDeclaration)
-			.map(x -> new MethodDeclarationWrapper((MethodDeclaration) x));
+			.map(x -> getMethodInfoWrapper((MethodDeclaration) x))
+			.filter(Objects::nonNull);
+	}
+
+	private MethodInfo getMethodInfoWrapper(BodyDeclaration x) {
+		if (x instanceof MethodDeclaration)
+			return new MethodDeclarationWrapper((MethodDeclaration) x);
+
+		if (x instanceof ConstructorDeclaration)
+			return new ConstructorDeclarationWrapper((ConstructorDeclaration) x);
+
+		return null;
 	}
 
 	public Stream<FieldInfo> getFieldStream() {
@@ -317,6 +331,72 @@ public class SourceInfo implements ClassInfoStreams {
 		@Override
 		public void setName(String name) {
 			declaration.setName(name);
+		}
+
+		@Override
+		public AccessFlags getAccessFlags() {
+			return new AccessFlags(declaration.getModifiers());
+		}
+
+		@Override
+		public void setAccessFlags(AccessFlags accessFlags) {
+			declaration.setModifiers(accessFlags.access);
+		}
+
+		@Override
+		public List<Annotation> getAnnotations() {
+			return SourceInfo.this.getAnnotationsInternal(declaration.getAnnotations());
+		}
+
+		@Override
+		public SourceInfo getClassInfo() {
+			return SourceInfo.this;
+		}
+	}
+
+	class ConstructorDeclarationWrapper implements MethodInfo {
+		private final ConstructorDeclaration declaration;
+		private ResolutionContext context;
+
+		public ConstructorDeclarationWrapper(ConstructorDeclaration declaration) {
+			this.declaration = declaration;
+		}
+
+		private ResolutionContext getContext() {
+			if (context != null) return context;
+			return context = ResolutionContext.of(declaration);
+		}
+
+		@Override
+		public Type getReturnType() {
+			return getType();
+		}
+
+		@Override
+		public void setReturnType(Type type) {
+			throw new UnsupportedOperationException("Can't setReturnType of constructor");
+		}
+
+		@Override
+		public List<Parameter> getParameters() {
+			return declaration.getParameters().stream()
+				.map((parameter) -> new Parameter(context.resolve(parameter.getType()), parameter.getId().getName()))
+				.collect(Collectors.toList());
+		}
+
+		@Override
+		public void setParameters(List<Parameter> parameters) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public String getName() {
+			return "<init>";
+		}
+
+		@Override
+		public void setName(String name) {
+			throw new UnsupportedOperationException("Can't setName of constructor");
 		}
 
 		@Override
