@@ -1,11 +1,9 @@
 package me.nallar.javatransformer.internal;
 
+import com.github.javaparser.ASTHelper;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.*;
-import com.github.javaparser.ast.expr.AnnotationExpr;
-import com.github.javaparser.ast.expr.MethodCallExpr;
-import com.github.javaparser.ast.expr.TypeExpr;
-import com.github.javaparser.ast.expr.VariableDeclarationExpr;
+import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.PrimitiveType;
 import lombok.*;
@@ -110,7 +108,15 @@ public class SourceInfo implements ClassInfoStreams {
 
 	void changeTypeContext(ResolutionContext old, ResolutionContext new_, MethodDeclaration m) {
 		m.setType(changeTypeContext(old, new_, m.getType()));
-		NodeUtil.forChildren(m, node -> System.err.println("expr: " + node + " -> scope: " + node.getScope() + " name: " + node.getName() + " args: " + node.getArgs()), MethodCallExpr.class);
+		NodeUtil.forChildren(m, node -> {
+			val scope = node.getScope();
+			// TODO: Currently guesses that it's a type name if first character is uppercase.
+			// Should check for fields/variables which match instead
+			if (scope instanceof NameExpr && Character.isUpperCase(((NameExpr) scope).getName().charAt(0))) {
+				val name = ((NameExpr) scope).getName();
+				node.setScope(ASTHelper.createNameExpr(old.typeToString(new_.resolve(name))));
+			}
+		}, MethodCallExpr.class);
 		NodeUtil.forChildren(m, node -> node.setType(changeTypeContext(old, new_, node.getType())), VariableDeclarationExpr.class);
 		NodeUtil.forChildren(m, node -> node.setType(changeTypeContext(old, new_, node.getType())), TypeExpr.class);
 		NodeUtil.forChildren(m, node -> node.setType(changeTypeContext(old, new_, node.getType())), com.github.javaparser.ast.body.Parameter.class);
