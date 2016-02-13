@@ -114,7 +114,7 @@ public class SourceInfo implements ClassInfoStreams {
 			// Should check for fields/variables which match instead
 			if (scope instanceof NameExpr && Character.isUpperCase(((NameExpr) scope).getName().charAt(0))) {
 				String name = ((NameExpr) scope).getName();
-				node.setScope(ASTHelper.createNameExpr(old.typeToString(new_.resolve(name))));
+				node.setScope(ASTHelper.createNameExpr(new_.typeToString(old.resolve(name))));
 			}
 		}, MethodCallExpr.class);
 		NodeUtil.forChildren(m, node -> node.setType(changeTypeContext(old, new_, node.getType())), VariableDeclarationExpr.class);
