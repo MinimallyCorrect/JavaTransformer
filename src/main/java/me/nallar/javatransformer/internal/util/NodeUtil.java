@@ -20,7 +20,6 @@ public class NodeUtil {
 	@SuppressWarnings("unchecked")
 	public static <T> void forChildren(Node node, Consumer<T> nodeConsumer, Class<T> ofClass) {
 		for (Node child : node.getChildrenNodes()) {
-			System.err.println(child.getClass() + " -> " + child.toString());
 			if (ofClass.isAssignableFrom(child.getClass()))
 				nodeConsumer.accept((T) child);
 
