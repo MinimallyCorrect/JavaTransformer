@@ -4,6 +4,8 @@ import com.github.javaparser.ASTHelper;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.*;
+import com.github.javaparser.ast.stmt.BlockStmt;
+import com.github.javaparser.ast.stmt.ThrowStmt;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.PrimitiveType;
 import lombok.*;
@@ -108,6 +110,7 @@ public class SourceInfo implements ClassInfoStreams {
 
 	void changeTypeContext(ResolutionContext old, ResolutionContext new_, MethodDeclaration m) {
 		m.setType(changeTypeContext(old, new_, m.getType()));
+		m.setBody(new BlockStmt(Collections.singletonList(new ThrowStmt(new ObjectCreationExpr(null, new ClassOrInterfaceType("UnsupportedOperationException"), Collections.emptyList())))));
 		NodeUtil.forChildren(m, node -> {
 			Expression scope = node.getScope();
 			// TODO: Currently guesses that it's a type name if first character is uppercase.
