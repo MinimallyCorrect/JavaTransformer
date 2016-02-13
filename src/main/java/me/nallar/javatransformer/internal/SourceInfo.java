@@ -178,7 +178,7 @@ public class SourceInfo implements ClassInfoStreams {
 
 	public Stream<MethodInfo> getMethodStream() {
 		return type.get().getMembers().stream()
-			.map(x -> getMethodInfoWrapper((MethodDeclaration) x))
+			.map(this::getMethodInfoWrapper)
 			.filter(Objects::nonNull);
 	}
 
