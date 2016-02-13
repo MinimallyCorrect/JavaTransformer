@@ -3,6 +3,7 @@ package me.nallar.javatransformer.internal;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.AnnotationExpr;
+import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.TypeExpr;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
@@ -109,6 +110,7 @@ public class SourceInfo implements ClassInfoStreams {
 
 	void changeTypeContext(ResolutionContext old, ResolutionContext new_, MethodDeclaration m) {
 		m.setType(changeTypeContext(old, new_, m.getType()));
+		NodeUtil.forChildren(m, node -> System.err.println("expr: " + node + " -> scope: " + node.getScope() + " name: " + node.getName() + " args: " + node.getArgs()), MethodCallExpr.class);
 		NodeUtil.forChildren(m, node -> node.setType(changeTypeContext(old, new_, node.getType())), VariableDeclarationExpr.class);
 		NodeUtil.forChildren(m, node -> node.setType(changeTypeContext(old, new_, node.getType())), TypeExpr.class);
 		NodeUtil.forChildren(m, node -> node.setType(changeTypeContext(old, new_, node.getType())), com.github.javaparser.ast.body.Parameter.class);
