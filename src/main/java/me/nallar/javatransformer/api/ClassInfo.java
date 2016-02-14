@@ -1,7 +1,5 @@
 package me.nallar.javatransformer.api;
 
-import me.nallar.javatransformer.internal.util.JVMUtil;
-
 import java.util.*;
 import java.util.function.*;
 
@@ -35,6 +33,15 @@ public interface ClassInfo extends ClassMember {
 	Type getSuperType();
 
 	List<Type> getInterfaceTypes();
+
+	default ClassMember get(ClassMember member) {
+		if (member instanceof MethodInfo)
+			return get((MethodInfo) member);
+		else if (member instanceof FieldInfo)
+			return get((FieldInfo) member);
+		else
+			throw new TransformationException("Can't get member of type " + member.getClass().getCanonicalName() + " in " + this);
+	}
 
 	default MethodInfo get(MethodInfo like) {
 		for (MethodInfo methodInfo : getMethods()) {
