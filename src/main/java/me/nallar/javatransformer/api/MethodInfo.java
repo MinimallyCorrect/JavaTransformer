@@ -2,8 +2,7 @@ package me.nallar.javatransformer.api;
 
 import me.nallar.javatransformer.internal.SimpleMethodInfo;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public interface MethodInfo extends ClassMember {
 	static MethodInfo of(AccessFlags accessFlags, String name, Type returnType, Parameter... parameters) {
@@ -12,6 +11,11 @@ public interface MethodInfo extends ClassMember {
 
 	static MethodInfo of(AccessFlags accessFlags, String name, Type returnType, List<Parameter> parameters) {
 		return SimpleMethodInfo.of(accessFlags, name, returnType, parameters);
+	}
+
+	static boolean similarParameters(MethodInfo a, MethodInfo b) {
+		System.err.println("a: " + a.getParameters() + " b: " + b.getParameters());
+		return a.getParameters() == null || b.getParameters() == null || a.getParameters().equals(b.getParameters());
 	}
 
 	Type getReturnType();
@@ -32,6 +36,6 @@ public interface MethodInfo extends ClassMember {
 	default boolean similar(MethodInfo other) {
 		return other.getName().equals(this.getName()) &&
 			other.getReturnType().similar(this.getReturnType()) &&
-			(other.getParameters() == null || this.getParameters() == null || other.getParameters().equals(this.getParameters()));
+			similarParameters(this, other);
 	}
 }
