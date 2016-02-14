@@ -31,6 +31,7 @@ public class JavaTransformer {
 	private final List<Transformer> transformers = new ArrayList<>();
 	private final SimpleMultiMap<String, Transformer> classTransformers = new SimpleMultiMap<>();
 	private final Map<String, byte[]> transformedFiles = new HashMap<>();
+	private final List<Consumer<JavaTransformer>> afterTransform = new ArrayList<>();
 
 	private static byte[] readFully(InputStream is) {
 		byte[] output = {};
@@ -108,6 +109,7 @@ public class JavaTransformer {
 				loadFolder(path, saveTransformedResults);
 				break;
 		}
+		afterTransform.stream().forEach(handler -> handler.accept(this));
 	}
 
 	public void transform(@NonNull Path load, @NonNull Path save) {
