@@ -13,11 +13,6 @@ public interface MethodInfo extends ClassMember {
 		return SimpleMethodInfo.of(accessFlags, name, returnType, parameters);
 	}
 
-	static boolean similarParameters(MethodInfo a, MethodInfo b) {
-		System.err.println("a: " + a.getParameters() + " b: " + b.getParameters());
-		return a.getParameters() == null || b.getParameters() == null || a.getParameters().equals(b.getParameters());
-	}
-
 	Type getReturnType();
 
 	void setReturnType(Type returnType);
@@ -36,6 +31,6 @@ public interface MethodInfo extends ClassMember {
 	default boolean similar(MethodInfo other) {
 		return other.getName().equals(this.getName()) &&
 			other.getReturnType().similar(this.getReturnType()) &&
-			similarParameters(this, other);
+			(other.getParameters() == null || this.getParameters() == null || other.getParameters().equals(this.getParameters()));
 	}
 }
