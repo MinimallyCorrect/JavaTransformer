@@ -138,7 +138,7 @@ public class ResolutionContext {
 		for (ImportDeclaration anImport : imports) {
 			String importName = NodeUtil.qualifiedName(anImport.getName());
 			if (importName.endsWith(dotName)) {
-				return new Type("L" + importName + ";", null);
+				return Type.of(importName);
 			}
 		}
 
