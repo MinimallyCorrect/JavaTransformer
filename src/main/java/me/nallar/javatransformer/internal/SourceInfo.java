@@ -15,13 +15,9 @@ import me.nallar.javatransformer.internal.util.AnnotationParser;
 import me.nallar.javatransformer.internal.util.JVMUtil;
 import me.nallar.javatransformer.internal.util.NodeUtil;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.*;
+import java.util.function.*;
+import java.util.stream.*;
 
 @Data
 @AllArgsConstructor
@@ -319,7 +315,7 @@ public class SourceInfo implements ClassInfoStreams {
 		@Override
 		public List<Parameter> getParameters() {
 			return declaration.getParameters().stream()
-				.map((parameter) -> new Parameter(context.resolve(parameter.getType()), parameter.getId().getName()))
+				.map((parameter) -> new Parameter(getContext().resolve(parameter.getType()), parameter.getId().getName()))
 				.collect(Collectors.toList());
 		}
 
@@ -390,7 +386,7 @@ public class SourceInfo implements ClassInfoStreams {
 		@Override
 		public List<Parameter> getParameters() {
 			return declaration.getParameters().stream()
-				.map((parameter) -> new Parameter(context.resolve(parameter.getType()), parameter.getId().getName()))
+				.map((parameter) -> new Parameter(getContext().resolve(parameter.getType()), parameter.getId().getName()))
 				.collect(Collectors.toList());
 		}
 
