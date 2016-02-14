@@ -1,10 +1,10 @@
 package me.nallar.javatransformer.api;
 
-import me.nallar.javatransformer.internal.FieldInfoImplementation;
+import me.nallar.javatransformer.internal.SimpleFieldInfo;
 
 public interface FieldInfo extends ClassMember {
 	static FieldInfo of(AccessFlags accessFlags, Type type, String name) {
-		return FieldInfoImplementation.of(accessFlags, type, name);
+		return SimpleFieldInfo.of(accessFlags, type, name);
 	}
 
 	Type getType();
