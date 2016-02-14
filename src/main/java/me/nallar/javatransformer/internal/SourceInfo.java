@@ -286,6 +286,11 @@ public class SourceInfo implements ClassInfoStreams {
 		public SourceInfo getClassInfo() {
 			return SourceInfo.this;
 		}
+
+		@Override
+		public String toString() {
+			return SimpleFieldInfo.toString(this);
+		}
 	}
 
 	class MethodDeclarationWrapper implements MethodInfo {
@@ -352,6 +357,11 @@ public class SourceInfo implements ClassInfoStreams {
 		public SourceInfo getClassInfo() {
 			return SourceInfo.this;
 		}
+
+		@Override
+		public String toString() {
+			return SimpleMethodInfo.toString(this);
+		}
 	}
 
 	class ConstructorDeclarationWrapper implements MethodInfo {
@@ -417,6 +427,11 @@ public class SourceInfo implements ClassInfoStreams {
 		@Override
 		public SourceInfo getClassInfo() {
 			return SourceInfo.this;
+		}
+
+		@Override
+		public String toString() {
+			return SimpleMethodInfo.toString(this);
 		}
 	}
 }

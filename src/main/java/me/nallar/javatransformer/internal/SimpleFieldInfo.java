@@ -3,28 +3,32 @@ package me.nallar.javatransformer.internal;
 import lombok.Data;
 import me.nallar.javatransformer.api.*;
 
-import java.util.*;
+import java.util.List;
 
 @Data
-public class FieldInfoImplementation implements FieldInfo {
+public class SimpleFieldInfo implements FieldInfo {
 	public AccessFlags accessFlags;
 	public String name;
 	public Type type;
 	public List<Annotation> annotations;
 
-	public FieldInfoImplementation(AccessFlags accessFlags, Type type, String name) {
+	public SimpleFieldInfo(AccessFlags accessFlags, Type type, String name) {
 		this.accessFlags = accessFlags;
 		this.type = type;
 		this.name = name;
 	}
 
 	public static FieldInfo of(AccessFlags accessFlags, Type type, String name) {
-		return new FieldInfoImplementation(accessFlags, type, name);
+		return new SimpleFieldInfo(accessFlags, type, name);
+	}
+
+	public static String toString(FieldInfo info) {
+		return info.getAccessFlags().toString() + ' ' + info.getType() + ' ' + info.getName();
 	}
 
 	@Override
 	public String toString() {
-		return accessFlags.toString() + ' ' + type + ' ' + name;
+		return toString(this);
 	}
 
 	@Override

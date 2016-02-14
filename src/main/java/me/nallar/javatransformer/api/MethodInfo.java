@@ -1,8 +1,9 @@
 package me.nallar.javatransformer.api;
 
-import me.nallar.javatransformer.internal.MethodInfoImplementation;
+import me.nallar.javatransformer.internal.SimpleMethodInfo;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
 
 public interface MethodInfo extends ClassMember {
 	static MethodInfo of(AccessFlags accessFlags, String name, Type returnType, Parameter... parameters) {
@@ -10,7 +11,7 @@ public interface MethodInfo extends ClassMember {
 	}
 
 	static MethodInfo of(AccessFlags accessFlags, String name, Type returnType, List<Parameter> parameters) {
-		return MethodInfoImplementation.of(accessFlags, name, returnType, parameters);
+		return SimpleMethodInfo.of(accessFlags, name, returnType, parameters);
 	}
 
 	Type getReturnType();

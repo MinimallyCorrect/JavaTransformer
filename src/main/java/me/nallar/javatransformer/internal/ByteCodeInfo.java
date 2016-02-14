@@ -12,9 +12,11 @@ import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
 
-import java.util.*;
-import java.util.function.*;
-import java.util.stream.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Data
 @AllArgsConstructor
@@ -196,6 +198,11 @@ public class ByteCodeInfo implements ClassInfoStreams {
 		public ClassInfo getClassInfo() {
 			return ByteCodeInfo.this;
 		}
+
+		@Override
+		public String toString() {
+			return SimpleFieldInfo.toString(this);
+		}
 	}
 
 	class MethodNodeInfo implements MethodInfo {
@@ -270,6 +277,11 @@ public class ByteCodeInfo implements ClassInfoStreams {
 		@Override
 		public ClassInfo getClassInfo() {
 			return ByteCodeInfo.this;
+		}
+
+		@Override
+		public String toString() {
+			return SimpleMethodInfo.toString(this);
 		}
 	}
 }
