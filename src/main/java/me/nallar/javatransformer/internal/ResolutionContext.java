@@ -48,7 +48,7 @@ public class ResolutionContext {
 		return !Character.isUpperCase(name.charAt(0)) && name.indexOf('.') != -1;
 	}
 
-	static String extractGeneric(String name) {
+	public static String extractGeneric(String name) {
 		int leftBracket = name.indexOf('<');
 		int rightBracket = name.indexOf('>');
 
@@ -61,7 +61,7 @@ public class ResolutionContext {
 		throw new TransformationException("Mismatched angled brackets in: " + name);
 	}
 
-	static String extractReal(String name) {
+	public static String extractReal(String name) {
 		int bracket = name.indexOf('<');
 		return bracket == -1 ? name : name.substring(0, bracket);
 	}

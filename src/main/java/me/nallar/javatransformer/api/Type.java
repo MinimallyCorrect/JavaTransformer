@@ -3,6 +3,7 @@ package me.nallar.javatransformer.api;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.val;
+import me.nallar.javatransformer.internal.ResolutionContext;
 import me.nallar.javatransformer.internal.util.JVMUtil;
 
 import java.util.*;
@@ -51,6 +52,8 @@ public class Type {
 		if (signature != null && (signature.isEmpty() || signature.equals(descriptor)))
 			signature = null;
 
+		checkSignature(signature);
+
 		this.descriptor = descriptor;
 		this.signature = signature;
 	}
@@ -59,10 +62,27 @@ public class Type {
 		this(descriptor, null);
 	}
 
+	private static void checkSignature(String signature) {
+		int lastBracket = signature.lastIndexOf('>');
+		if (lastBracket == -1)
+			return;
+
+		val after = signature.charAt(lastBracket + 1);
+		if (after != ';' && after != '>')
+			throw new TransformationException("Invalid signature. After generic brack should either be '>' or ';'");
+	}
+
 	public static Type of(String fullClassName) {
 		// TODO: 23/01/2016 Handle inner classes properly? currently depend on following naming standards
 		// depends on: lower case package names, uppercase first letter of class name
-		return new Type('L' + JVMUtil.classNameToJLSName(fullClassName) + ';');
+		String realType = ResolutionContext.extractReal(fullClassName);
+		val type = new Type('L' + JVMUtil.classNameToJLSName(realType) + ';');
+
+		String genericType = ResolutionContext.extractGeneric(fullClassName);
+		if (genericType == null)
+			return type;
+
+		return type.withTypeArgument(Type.of(genericType));
 	}
 
 	public static List<Type> listOf(String desc, String signature) {
@@ -194,6 +214,12 @@ public class Type {
 		if (!isTypeParameter())
 			throw new UnsupportedOperationException("Can't get type parameter name for type: " + this);
 		return signature.substring(1, signature.length() - 1);
+	}
+
+	public Type getTypeArgument() {
+		val start = signature.indexOf('<');
+		val end = signature.lastIndexOf('>');
+		return new Type(signature.substring(start + 1, end));
 	}
 
 	public String signatureIfExists() {

@@ -1,5 +1,6 @@
 package me.nallar.javatransformer.api;
 
+import lombok.val;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -45,6 +46,13 @@ public class TypeTest {
 		testOf("BadNamingScheme.test.Outer", "LBadNamingScheme/test/Outer;");
 		testOf("BadNamingScheme.test.Outer.Inner", "LBadNamingScheme/test/Outer$Inner;");
 		testOf("BadNamingScheme.Test.Outer.Inner", "LBadNamingScheme$Test$Outer$Inner;");
+	}
+
+	@Test
+	public void testWithGenericType() {
+		val arrayDequeCallable = Type.of("java.util.ArrayDeque").withTypeArgument(Type.of("java.util.Callable"));
+		assertEquals("java.util.ArrayDeque", arrayDequeCallable.getClassName());
+		assertEquals("java.util.Callable", arrayDequeCallable.getTypeArgument().getClassName());
 	}
 
 	private void testOf(String in, String expected) {
