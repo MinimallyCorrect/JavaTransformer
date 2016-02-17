@@ -20,17 +20,17 @@ public class ResolutionContext {
 	@NonNull
 	private final String packageName;
 	@NonNull
-	private final Iterable<ImportDeclaration> imports;
+	private final List<ImportDeclaration> imports;
 	@NonNull
 	private final Iterable<TypeParameter> typeParameters;
 
-	private ResolutionContext(String packageName, Iterable<ImportDeclaration> imports, Iterable<TypeParameter> typeParameters) {
+	private ResolutionContext(String packageName, List<ImportDeclaration> imports, Iterable<TypeParameter> typeParameters) {
 		this.packageName = packageName;
 		this.imports = imports;
 		this.typeParameters = typeParameters;
 	}
 
-	public static ResolutionContext of(String packageName, Iterable<ImportDeclaration> imports, Iterable<TypeParameter> typeParameters) {
+	public static ResolutionContext of(String packageName, List<ImportDeclaration> imports, Iterable<TypeParameter> typeParameters) {
 		return new ResolutionContext(packageName, imports, typeParameters);
 	}
 
@@ -73,6 +73,10 @@ public class ResolutionContext {
 		return type;
 	}
 
+	private static String classOf(ImportDeclaration importDeclaration) {
+		return NodeUtil.qualifiedName(importDeclaration.getName());
+	}
+
 	public Type resolve(com.github.javaparser.ast.type.Type type) {
 		if (type instanceof ClassOrInterfaceType) {
 			return resolve(((ClassOrInterfaceType) type).getName());
@@ -108,7 +112,11 @@ public class ResolutionContext {
 		Type genericType = resolve(generic);
 
 		if (type == null || (generic != null && genericType == null))
-			throw new TransformationException("Couldn't resolve name: " + name + "\nFound real type: " + type + "\nGeneric type: " + genericType + "\nImports:" + imports);
+			throw new TransformationException("Couldn't resolve name: " + name +
+				"\nFound real type: " + type +
+				"\nGeneric type: " + genericType +
+				"\nImports:" + imports.stream().map(ResolutionContext::classOf)
+			);
 
 		if (generic == null) {
 			return sanityCheck(type);
@@ -133,7 +141,7 @@ public class ResolutionContext {
 		String dotName = name.contains(".") ? name : '.' + name;
 
 		for (ImportDeclaration anImport : imports) {
-			String importName = NodeUtil.qualifiedName(anImport.getName());
+			String importName = classOf(anImport);
 			if (importName.endsWith(dotName)) {
 				return Type.of(importName);
 			}
@@ -145,7 +153,7 @@ public class ResolutionContext {
 		}
 
 		for (ImportDeclaration anImport : imports) {
-			String importName = NodeUtil.qualifiedName(anImport.getName());
+			String importName = classOf(anImport);
 			if (importName.endsWith(".*")) {
 				type = resolveIfExists(importName.replace(".*", ".") + name);
 				if (type != null) {
