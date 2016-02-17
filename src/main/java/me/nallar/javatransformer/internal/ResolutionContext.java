@@ -107,17 +107,14 @@ public class ResolutionContext {
 		String generic = extractGeneric(name);
 		Type genericType = resolve(generic);
 
+		if (type == null || (generic != null && genericType == null))
+			throw new TransformationException("Couldn't resolve name: " + name + "\nFound real type: " + type + "\nGeneric type: " + genericType + "\nImports:" + imports);
+
 		if (generic == null) {
-			if (type != null) {
-				return sanityCheck(type);
-			}
-		} else {
-			if (type != null && genericType != null) {
-				return sanityCheck(type.withTypeArgument(genericType));
-			}
+			return sanityCheck(type);
 		}
 
-		throw new TransformationException("Couldn't resolve name: " + name + "\nFound real type: " + type + "\nGeneric type: " + genericType);
+		return sanityCheck(type.withTypeArgument(genericType));
 	}
 
 	private Type resolveReal(String name) {
