@@ -235,7 +235,7 @@ public class Type {
 	}
 
 	public boolean hasTypeArgument() {
-		return signature.indexOf('<') != -1;
+		return signature != null && signature.indexOf('<') != -1;
 	}
 
 	public Type getTypeArgument() {
