@@ -40,7 +40,7 @@ public class SourceInfo implements ClassInfoStreams {
 	static com.github.javaparser.ast.type.Type changeTypeContext(ResolutionContext old, ResolutionContext new_, com.github.javaparser.ast.type.Type t) {
 		Type current = old.resolve(t);
 		if (current.isClassType()) {
-			return new ClassOrInterfaceType(new_.typeToString(current));
+			return ResolutionContext.typeToJavaParserType(current.remapClassNames(new_::typeToJavaParserType));
 		}
 		return t;
 	}

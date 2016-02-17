@@ -7,6 +7,7 @@ import me.nallar.javatransformer.internal.ResolutionContext;
 import me.nallar.javatransformer.internal.util.JVMUtil;
 
 import java.util.*;
+import java.util.function.*;
 
 /**
  * <pre><code>
@@ -217,6 +218,24 @@ public class Type {
 		if (!isTypeParameter())
 			throw new UnsupportedOperationException("Can't get type parameter name for type: " + this);
 		return signature.substring(1, signature.length() - 1);
+	}
+
+	public Type remapClassNames(Function<String, String> mapper) {
+		if (!this.isClassType())
+			return new Type(descriptor, signature);
+
+		Type mappedType = Type.of(mapper.apply(getClassName()));
+		if (isTypeParameter())
+			mappedType = new Type(mappedType.descriptor, signature);
+
+		if (hasTypeArgument())
+			mappedType = mappedType.withTypeArgument(getTypeArgument());
+
+		return mappedType;
+	}
+
+	public boolean hasTypeArgument() {
+		return signature.indexOf('<') != -1;
 	}
 
 	public Type getTypeArgument() {

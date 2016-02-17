@@ -82,6 +82,21 @@ public class ResolutionContext {
 		return NodeUtil.qualifiedName(importDeclaration.getName());
 	}
 
+	public static com.github.javaparser.ast.type.Type typeToJavaParserType(Type t) {
+		if (!t.isClassType())
+			throw new UnsupportedOperationException();
+
+		if (t.isTypeParameter())
+			return new ClassOrInterfaceType(t.getTypeParameterName());
+
+		val type = new ClassOrInterfaceType(t.getClassName());
+
+		if (t.hasTypeArgument())
+			type.setTypeArgs(Collections.singletonList(typeToJavaParserType(t.getTypeArgument())));
+
+		return type;
+	}
+
 	public Type resolve(com.github.javaparser.ast.type.Type type) {
 		if (type instanceof ClassOrInterfaceType) {
 			return resolve(((ClassOrInterfaceType) type).getName());
@@ -229,21 +244,33 @@ public class ResolutionContext {
 	}
 
 	public String typeToString(Type t, boolean unresolve) {
-		if (t.isTypeParameter()) {
-			return t.getTypeParameterName();
-		}
 		if (t.isPrimitiveType()) {
 			return t.getPrimitiveTypeName();
+		}
+		if (t.isTypeParameter()) {
+			return t.getTypeParameterName();
 		}
 		String className = t.getClassName();
 
 		if (unresolve)
-			for (ImportDeclaration anImport : imports) {
-				String importName = NodeUtil.qualifiedName(anImport.getName());
-				if (className.startsWith(importName)) {
-					return className.replace(importName + ".", "");
-				}
+			className = typeToJavaParserType(className);
+
+		if (t.hasTypeArgument())
+			className += '<' + typeToString(t.getTypeArgument()) + '>';
+
+		return className;
+	}
+
+	public String typeToJavaParserType(String className) {
+		for (ImportDeclaration anImport : imports) {
+			if (anImport.isAsterisk() || anImport.isStatic())
+				continue;
+
+			String importName = NodeUtil.qualifiedName(anImport.getName());
+			if (className.startsWith(importName)) {
+				return className.replace(importName + ".", "");
 			}
+		}
 
 		return className;
 	}
