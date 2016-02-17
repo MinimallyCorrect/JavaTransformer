@@ -252,7 +252,13 @@ public class Type {
 
 		val start = signature.indexOf('<');
 		val end = signature.lastIndexOf('>');
-		return new Type(signature.substring(start + 1, end));
+
+		val argument = signature.substring(start + 1, end);
+
+		if (argument.charAt(0) == 'T')
+			return new Type("Ljava/lang/Object;", argument);
+
+		return new Type(argument);
 	}
 
 	public String signatureIfExists() {
