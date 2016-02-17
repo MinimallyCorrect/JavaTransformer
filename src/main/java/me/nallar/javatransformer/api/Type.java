@@ -72,7 +72,7 @@ public class Type {
 
 		val after = signature.charAt(lastBracket + 1);
 		if (after != ';' && after != '>')
-			throw new TransformationException("Invalid signature. After generic brack should either be '>' or ';'");
+			throw new TransformationException("Invalid signature. After generic bracket should either be '>' or ';'");
 	}
 
 	public static Type of(String fullClassName) {
