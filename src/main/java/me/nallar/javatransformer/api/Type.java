@@ -5,6 +5,7 @@ import lombok.NonNull;
 import lombok.val;
 import me.nallar.javatransformer.internal.ResolutionContext;
 import me.nallar.javatransformer.internal.util.JVMUtil;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.*;
@@ -44,9 +45,10 @@ public class Type {
 	/**
 	 * A signature represents the generic part of a type
 	 */
+	@Nullable
 	public final String signature;
 
-	public Type(String descriptor, String signature) {
+	public Type(String descriptor, @Nullable String signature) {
 		if (descriptor.isEmpty())
 			throw new IllegalArgumentException("descriptor");
 
@@ -215,7 +217,7 @@ public class Type {
 	}
 
 	public String getTypeParameterName() {
-		if (!isTypeParameter())
+		if (signature == null || !isTypeParameter())
 			throw new UnsupportedOperationException("Can't get type parameter name for type: " + this);
 		return signature.substring(1, signature.length() - 1);
 	}
@@ -239,6 +241,9 @@ public class Type {
 	}
 
 	public Type getTypeArgument() {
+		if (signature == null || !isTypeParameter())
+			throw new UnsupportedOperationException("Can't get type argument for type: " + this);
+
 		val start = signature.indexOf('<');
 		val end = signature.lastIndexOf('>');
 		return new Type(signature.substring(start + 1, end));

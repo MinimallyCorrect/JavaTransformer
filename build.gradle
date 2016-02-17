@@ -43,6 +43,7 @@ dependencies {
 	testCompile "junit:junit:4.12"
 	compile 'org.ow2.asm:asm-debug-all:5.0.4'
 	compile 'com.github.javaparser:javaparser-core:2.3.0'
+	hidden 'org.jetbrains:annotations:15.0'
 	hidden 'org.projectlombok:lombok:1.16.4'
 }
 
