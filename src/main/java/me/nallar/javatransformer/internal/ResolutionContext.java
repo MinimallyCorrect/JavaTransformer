@@ -74,6 +74,10 @@ public class ResolutionContext {
 		return type;
 	}
 
+	private static String toString(ImportDeclaration importDeclaration) {
+		return (importDeclaration.isStatic() ? "static " : "") + classOf(importDeclaration) + (importDeclaration.isAsterisk() ? ".*" : "");
+	}
+
 	private static String classOf(ImportDeclaration importDeclaration) {
 		return NodeUtil.qualifiedName(importDeclaration.getName());
 	}
@@ -116,7 +120,7 @@ public class ResolutionContext {
 			throw new TransformationException("Couldn't resolve name: " + name +
 				"\nFound real type: " + type +
 				"\nGeneric type: " + genericType +
-				"\nImports:" + imports.stream().map(ResolutionContext::classOf).collect(Collectors.toList())
+				"\nImports:" + imports.stream().map(ResolutionContext::toString).collect(Collectors.toList())
 			);
 
 		if (generic == null) {
@@ -142,6 +146,9 @@ public class ResolutionContext {
 		String dotName = name.contains(".") ? name : '.' + name;
 
 		for (ImportDeclaration anImport : imports) {
+			if (anImport.isAsterisk() || anImport.isStatic())
+				continue;
+
 			String importName = classOf(anImport);
 			if (importName.endsWith(dotName)) {
 				return Type.of(importName);
@@ -154,12 +161,12 @@ public class ResolutionContext {
 		}
 
 		for (ImportDeclaration anImport : imports) {
-			String importName = classOf(anImport);
-			if (importName.endsWith(".*")) {
-				type = resolveIfExists(importName.replace(".*", ".") + name);
-				if (type != null) {
-					return type;
-				}
+			if (!anImport.isAsterisk() || anImport.isStatic())
+				continue;
+
+			type = resolveIfExists(classOf(anImport) + '.' + name);
+			if (type != null) {
+				return type;
 			}
 		}
 
