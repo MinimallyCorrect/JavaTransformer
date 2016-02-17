@@ -241,7 +241,7 @@ public class Type {
 	}
 
 	public Type getTypeArgument() {
-		if (signature == null || !isTypeParameter())
+		if (signature == null || !hasTypeArgument())
 			throw new UnsupportedOperationException("Can't get type argument for type: " + this);
 
 		val start = signature.indexOf('<');
