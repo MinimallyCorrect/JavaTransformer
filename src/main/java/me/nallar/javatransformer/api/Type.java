@@ -63,6 +63,9 @@ public class Type {
 	}
 
 	private static void checkSignature(String signature) {
+		if (signature == null)
+			return;
+
 		int lastBracket = signature.lastIndexOf('>');
 		if (lastBracket == -1)
 			return;
