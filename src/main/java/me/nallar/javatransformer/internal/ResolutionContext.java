@@ -98,9 +98,7 @@ public class ResolutionContext {
 	}
 
 	public Type resolve(com.github.javaparser.ast.type.Type type) {
-		if (type instanceof ClassOrInterfaceType) {
-			return resolve(((ClassOrInterfaceType) type).getName());
-		} else if (type instanceof PrimitiveType) {
+		if (type instanceof PrimitiveType) {
 			return new Type(JVMUtil.primitiveTypeToDescriptor(((PrimitiveType) type).getType().name().toLowerCase()));
 		} else if (type instanceof VoidType) {
 			return new Type("V");
