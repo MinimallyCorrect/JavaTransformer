@@ -1,5 +1,7 @@
 package me.nallar.javatransformer.internal;
 
+import me.nallar.javatransformer.api.TransformationException;
+import me.nallar.javatransformer.api.Type;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -20,5 +22,16 @@ public class ResolutionContextTest {
 		ResolutionContext.extractGeneric("te>st<");
 		ResolutionContext.extractGeneric("test<");
 		ResolutionContext.extractGeneric("te>st");
+	}
+
+	@Test(expected = TransformationException.class)
+	public void testSanityCheckExpectedFailure() {
+		ResolutionContext.sanityCheck(new Type("LDefaultPackageNotAllowed;"));
+	}
+
+	@Test
+	public void testSanityCheckExpectedSuccess() {
+		ResolutionContext.sanityCheck(new Type("Z"));
+		ResolutionContext.sanityCheck(new Type("Ljava/lang/Object;", "TT;"));
 	}
 }

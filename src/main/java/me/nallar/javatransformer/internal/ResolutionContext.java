@@ -65,6 +65,14 @@ public class ResolutionContext {
 		return bracket == -1 ? name : name.substring(0, bracket);
 	}
 
+	static Type sanityCheck(Type type) {
+		if (type.isClassType() && (type.getClassName().endsWith(".")) || !type.getClassName().contains(".")) {
+			throw new TransformationException("Unexpected class name (incorrect dots) in type: " + type);
+		}
+
+		return type;
+	}
+
 	public Type resolve(com.github.javaparser.ast.type.Type type) {
 		if (type instanceof ClassOrInterfaceType) {
 			return resolve(((ClassOrInterfaceType) type).getName());
@@ -110,14 +118,6 @@ public class ResolutionContext {
 		}
 
 		throw new TransformationException("Couldn't resolve name: " + name + "\nFound real type: " + type + "\nGeneric type: " + genericType);
-	}
-
-	private Type sanityCheck(Type type) {
-		if (type.isClassType() && (type.getClassName().endsWith(".")) || !type.getClassName().contains(".")) {
-			throw new TransformationException("Unexpected class name (incorrect dots) in type: " + type);
-		}
-
-		return type;
 	}
 
 	private Type resolveReal(String name) {

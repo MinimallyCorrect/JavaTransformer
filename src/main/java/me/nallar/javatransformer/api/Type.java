@@ -45,8 +45,12 @@ public class Type {
 	public final String signature;
 
 	public Type(String descriptor, String signature) {
+		if (descriptor.isEmpty())
+			throw new IllegalArgumentException("descriptor");
+
 		if (signature != null && (signature.isEmpty() || signature.equals(descriptor)))
 			signature = null;
+
 		this.descriptor = descriptor;
 		this.signature = signature;
 	}
