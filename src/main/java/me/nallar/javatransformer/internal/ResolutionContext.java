@@ -219,7 +219,7 @@ public class ResolutionContext {
 				val bounds = typeParameter.getTypeBound();
 				String extends_ = "Ljava/lang/Object;";
 
-				if (bounds != null) {
+				if (bounds != null && !bounds.isEmpty()) {
 					if (bounds.size() == 1) {
 						ClassOrInterfaceType scope = bounds.get(0).getScope();
 						if (scope != null) {
