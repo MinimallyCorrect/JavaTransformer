@@ -33,6 +33,18 @@ public class SourceInfo implements ClassInfoStreams {
 	private final List<Annotation> annotations = getAnnotationsInternal();
 	private String className;
 
+	static void changeTypeContext(ResolutionContext old, ResolutionContext new_, FieldDeclaration f) {
+		f.setType(changeTypeContext(old, new_, f.getType()));
+	}
+
+	static com.github.javaparser.ast.type.Type changeTypeContext(ResolutionContext old, ResolutionContext new_, com.github.javaparser.ast.type.Type t) {
+		Type current = old.resolve(t);
+		if (current.isClassType()) {
+			return new ClassOrInterfaceType(new_.typeToString(current));
+		}
+		return t;
+	}
+
 	private String getPackageNameInternal() {
 		return NodeUtil.qualifiedName(NodeUtil.getParentNode(type.get(), CompilationUnit.class).getPackage().getName());
 	}
@@ -91,7 +103,11 @@ public class SourceInfo implements ClassInfoStreams {
 			val wrapper = (FieldDeclarationWrapper) field;
 			fieldDeclaration = (FieldDeclaration) wrapper.declaration.clone();
 			fieldDeclaration.setAnnotations(Collections.emptyList());
-			wrapper.getClassInfo().changeTypeContext(wrapper.getContext(), getContext(), fieldDeclaration);
+			changeTypeContext(wrapper.getContext(), getContext(), fieldDeclaration);
+
+			val result = new FieldDeclarationWrapper(fieldDeclaration);
+			if (!field.similar(result))
+				throw new TransformationException("After adding to class, didn't match. added: " + field + " result: " + result);
 		} else {
 			fieldDeclaration = new FieldDeclaration();
 			val vars = new ArrayList<VariableDeclarator>();
@@ -123,18 +139,6 @@ public class SourceInfo implements ClassInfoStreams {
 		NodeUtil.forChildren(m, node -> node.setType(changeTypeContext(old, new_, node.getType())), VariableDeclarationExpr.class);
 		NodeUtil.forChildren(m, node -> node.setType(changeTypeContext(old, new_, node.getType())), TypeExpr.class);
 		NodeUtil.forChildren(m, node -> node.setType(changeTypeContext(old, new_, node.getType())), com.github.javaparser.ast.body.Parameter.class);
-	}
-
-	void changeTypeContext(ResolutionContext old, ResolutionContext new_, FieldDeclaration f) {
-		f.setType(changeTypeContext(old, new_, f.getType()));
-	}
-
-	com.github.javaparser.ast.type.Type changeTypeContext(ResolutionContext old, ResolutionContext new_, com.github.javaparser.ast.type.Type t) {
-		Type current = old.resolve(t);
-		if (current.isClassType()) {
-			return new ClassOrInterfaceType(new_.typeToString(current));
-		}
-		return t;
 	}
 
 	@Override
