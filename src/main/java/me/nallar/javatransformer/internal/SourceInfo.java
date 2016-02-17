@@ -104,10 +104,6 @@ public class SourceInfo implements ClassInfoStreams {
 			fieldDeclaration = (FieldDeclaration) wrapper.declaration.clone();
 			fieldDeclaration.setAnnotations(Collections.emptyList());
 			changeTypeContext(wrapper.getContext(), getContext(), fieldDeclaration);
-
-			val result = new FieldDeclarationWrapper(fieldDeclaration);
-			if (!field.similar(result))
-				throw new TransformationException("After adding to class, didn't match. added: " + field + " result: " + result);
 		} else {
 			fieldDeclaration = new FieldDeclaration();
 			val vars = new ArrayList<VariableDeclarator>();
@@ -117,6 +113,10 @@ public class SourceInfo implements ClassInfoStreams {
 		}
 
 		addMember(fieldDeclaration);
+
+		val result = new FieldDeclarationWrapper(fieldDeclaration);
+		if (!field.similar(result))
+			throw new TransformationException("After adding to class, didn't match. added: " + field + " result: " + result);
 	}
 
 	private void addMember(BodyDeclaration bodyDeclaration) {
