@@ -84,7 +84,7 @@ public class ResolutionContext {
 
 	public static com.github.javaparser.ast.type.Type typeToJavaParserType(Type t) {
 		if (!t.isClassType())
-			throw new UnsupportedOperationException();
+			throw new UnsupportedOperationException(t + " is not a class type");
 
 		if (t.isTypeParameter())
 			return new ClassOrInterfaceType(t.getTypeParameterName());
