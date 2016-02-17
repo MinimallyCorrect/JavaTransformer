@@ -66,7 +66,7 @@ public class ResolutionContext {
 	}
 
 	static Type sanityCheck(Type type) {
-		if (type.isClassType() && (type.getClassName().endsWith(".")) || !type.getClassName().contains(".")) {
+		if (type.isClassType() && (type.getClassName().endsWith(".") || !type.getClassName().contains("."))) {
 			throw new TransformationException("Unexpected class name (incorrect dots) in type: " + type);
 		}
 
