@@ -72,7 +72,7 @@ public class Type {
 
 		val after = signature.charAt(lastBracket + 1);
 		if (after != ';' && after != '>')
-			throw new TransformationException("Invalid signature. After generic bracket should either be '>' or ';'");
+			throw new TransformationException("Invalid signature '" + signature + "'. After generic bracket should either be '>' or ';'");
 	}
 
 	public static Type of(String fullClassName) {
@@ -239,7 +239,7 @@ public class Type {
 			throw new IllegalStateException("Couldn't find ';' in: " + this);
 
 		StringBuilder sb = new StringBuilder(signature);
-		sb.insert(semicolon - 1, '<' + genericType.signatureIfExists() + '>');
+		sb.insert(semicolon, '<' + genericType.signatureIfExists() + '>');
 		return new Type(descriptor, sb.toString());
 	}
 
