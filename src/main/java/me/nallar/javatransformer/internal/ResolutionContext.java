@@ -15,6 +15,7 @@ import me.nallar.javatransformer.internal.util.JVMUtil;
 import me.nallar.javatransformer.internal.util.NodeUtil;
 
 import java.util.*;
+import java.util.stream.*;
 
 public class ResolutionContext {
 	@NonNull
@@ -115,7 +116,7 @@ public class ResolutionContext {
 			throw new TransformationException("Couldn't resolve name: " + name +
 				"\nFound real type: " + type +
 				"\nGeneric type: " + genericType +
-				"\nImports:" + imports.stream().map(ResolutionContext::classOf)
+				"\nImports:" + imports.stream().map(ResolutionContext::classOf).collect(Collectors.toList())
 			);
 
 		if (generic == null) {
