@@ -55,6 +55,7 @@ public class Type {
 		if (signature != null && (signature.isEmpty() || signature.equals(descriptor)))
 			signature = null;
 
+		checkDescriptor(descriptor);
 		checkSignature(signature);
 
 		this.descriptor = descriptor;
@@ -63,6 +64,11 @@ public class Type {
 
 	public Type(String descriptor) {
 		this(descriptor, null);
+	}
+
+	private static void checkDescriptor(String descriptor) {
+		if (descriptor.charAt(0) == 'T')
+			throw new TransformationException("Invalid descriptor '" + descriptor + "'");
 	}
 
 	private static void checkSignature(String signature) {
