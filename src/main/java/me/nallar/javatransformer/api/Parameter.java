@@ -1,10 +1,8 @@
 package me.nallar.javatransformer.api;
 
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
-@EqualsAndHashCode(callSuper = true)
 @Getter
 @ToString
 public class Parameter extends Type {
