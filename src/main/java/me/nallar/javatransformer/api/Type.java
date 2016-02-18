@@ -280,6 +280,6 @@ public class Type {
 	}
 
 	public boolean similar(@NonNull Type other) {
-		return UNKNOWN == this || UNKNOWN == other || this.equals(other);
+		return UNKNOWN == this || UNKNOWN == other || this.descriptor.equals(other.descriptor);
 	}
 }
