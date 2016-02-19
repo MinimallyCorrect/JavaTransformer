@@ -3,27 +3,27 @@ package me.nallar.javatransformer.internal;
 import lombok.Data;
 import me.nallar.javatransformer.api.*;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 @Data
 public class SimpleMethodInfo implements MethodInfo {
 	public AccessFlags accessFlags;
-	public String name;
+	public List<TypeVariable> typeVariables;
 	public Type returnType;
+	public String name;
 	public List<Parameter> parameters;
 	public List<Annotation> annotations;
 
-	private SimpleMethodInfo(AccessFlags accessFlags, String name, Type returnType, List<Parameter> parameters) {
+	private SimpleMethodInfo(AccessFlags accessFlags, List<TypeVariable> typeVariables, Type returnType, String name, List<Parameter> parameters) {
 		this.accessFlags = accessFlags;
-		this.name = name;
+		this.typeVariables = typeVariables;
 		this.returnType = returnType;
+		this.name = name;
 		this.parameters = new ArrayList<>(parameters);
 	}
 
-	public static MethodInfo of(AccessFlags accessFlags, String name, Type returnType, List<Parameter> parameters) {
-		return new SimpleMethodInfo(accessFlags, name, returnType, parameters);
+	public static MethodInfo of(AccessFlags accessFlags, List<TypeVariable> typeVariables, Type returnType, String name, List<Parameter> parameters) {
+		return new SimpleMethodInfo(accessFlags, typeVariables, returnType, name, parameters);
 	}
 
 	public static String toString(MethodInfo info) {

@@ -362,6 +362,16 @@ public class SourceInfo implements ClassInfoStreams {
 		public String toString() {
 			return SimpleMethodInfo.toString(this);
 		}
+
+		@Override
+		public List<TypeVariable> getTypeVariables() {
+			return declaration.getTypeParameters().stream().map(getContext()::resolveTypeVariable).collect(Collectors.toList());
+		}
+
+		@Override
+		public void setTypeVariables(List<TypeVariable> typeVariables) {
+			declaration.setTypeParameters(typeVariables.stream().map(getContext()::unresolveTypeVariable).collect(Collectors.toList()));
+		}
 	}
 
 	class ConstructorDeclarationWrapper implements MethodInfo {
@@ -432,6 +442,16 @@ public class SourceInfo implements ClassInfoStreams {
 		@Override
 		public String toString() {
 			return SimpleMethodInfo.toString(this);
+		}
+
+		@Override
+		public List<TypeVariable> getTypeVariables() {
+			return Collections.emptyList();
+		}
+
+		@Override
+		public void setTypeVariables(List<TypeVariable> typeVariables) {
+			throw new UnsupportedOperationException("Can't set type variables on a constructor");
 		}
 	}
 }

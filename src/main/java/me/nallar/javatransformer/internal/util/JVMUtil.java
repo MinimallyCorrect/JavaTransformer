@@ -109,7 +109,7 @@ public class JVMUtil {
 
 	public static int accessStringToInt(String access) {
 		int a = 0;
-		for (String accessPart : Splitter.on(' ').split(access)) {
+		for (String accessPart : Splitter.on(' ').splitIterable(access)) {
 			switch (accessPart) {
 				case "public":
 					a |= AccessFlags.ACC_PUBLIC;
@@ -179,7 +179,7 @@ public class JVMUtil {
 
 	public static String classNameToJLSName(String className) {
 		List<String> parts = new ArrayList<>();
-		dotSplitter.split(className).forEach(parts::add);
+		dotSplitter.splitIterable(className).forEach(parts::add);
 
 		boolean possibleClass = true;
 		for (int i = parts.size() - 1, size = i; i >= 0; i--) {

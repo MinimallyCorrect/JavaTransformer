@@ -1,19 +1,21 @@
 package me.nallar.javatransformer.internal.util;
 
 import java.util.*;
+import java.util.stream.*;
 
 public interface Joiner {
+	Joiner empty = parts -> {
+		StringBuilder sb = new StringBuilder();
+
+		for (Object part : parts) {
+			sb.append(part.toString());
+		}
+
+		return sb.toString();
+	};
+
 	static Joiner on() {
-		return parts -> {
-			@SuppressWarnings("unchecked")
-			StringBuilder sb = new StringBuilder();
-
-			for (Object part : parts) {
-				sb.append(part.toString());
-			}
-
-			return sb.toString();
-		};
+		return empty;
 	}
 
 	static Joiner on(String join) {
@@ -34,4 +36,8 @@ public interface Joiner {
 	}
 
 	String join(Iterable<?> s);
+
+	default <T> String join(Stream<T> s) {
+		return join((Iterable<T>) s::iterator);
+	}
 }

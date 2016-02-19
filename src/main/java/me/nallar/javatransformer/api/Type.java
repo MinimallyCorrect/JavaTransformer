@@ -4,11 +4,12 @@ import lombok.Data;
 import lombok.NonNull;
 import lombok.val;
 import me.nallar.javatransformer.internal.ResolutionContext;
-import me.nallar.javatransformer.internal.util.JVMUtil;
+import me.nallar.javatransformer.internal.util.*;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.*;
+import java.util.stream.*;
 
 /**
  * <pre><code>
@@ -36,6 +37,7 @@ import java.util.function.*;
 @Data
 public class Type {
 	public static final Type UNKNOWN = new Type("Ljava/lang/Object;", "Tunknown;");
+	public static final Type OBJECT = Type.of("java.lang.Object");
 
 	/**
 	 * A descriptor represents the real part of a type
@@ -94,12 +96,12 @@ public class Type {
 		if (genericType == null)
 			return type;
 
-		return type.withTypeArgument(Type.of(genericType));
+		return type.withTypeArguments(CollectionUtil.stream(Splitter.commaSplitter.splitIterable(genericType)).map(Type::of).collect(Collectors.toList()));
 	}
 
 	public static List<Type> listOf(String desc, String signature) {
-		val parsedDesc = splitTypes(desc);
-		val parsedSignature = splitTypes(signature);
+		val parsedDesc = TypeUtil.splitTypes(desc, false);
+		val parsedSignature = TypeUtil.splitTypes(signature, true);
 
 		if (parsedSignature != null && parsedSignature.size() != parsedDesc.size()) {
 			throw new TransformationException("Failed to parse type lists." +
@@ -120,67 +122,11 @@ public class Type {
 		return types;
 	}
 
-	public static List<String> splitTypes(final String signature) {
-		if (signature == null)
-			return null;
+	public static Type ofSignature(String signature) {
+		if (signature.charAt(0) == 'T')
+			return new Type("Ljava/lang/Object;", signature);
 
-		val types = new ArrayList<String>();
-		int pos = 0;
-		char c;
-		String current = "";
-		String name;
-
-		while (pos < signature.length())
-			switch (c = signature.charAt(pos++)) {
-				case 'Z':
-				case 'C':
-				case 'B':
-				case 'S':
-				case 'I':
-				case 'F':
-				case 'J':
-				case 'D':
-				case 'V':
-					types.add(current + c + "");
-					current = "";
-					break;
-
-				case '[':
-					current += '[';
-					break;
-
-				case 'T':
-					int end = signature.indexOf(';', pos);
-					name = signature.substring(pos, end);
-					pos = end + 1;
-					types.add(current + 'T' + name + ';');
-					current = "";
-					break;
-				case 'L':
-					int start = pos;
-					int genericCount = 0;
-					innerLoop:
-					while (pos < signature.length())
-						switch (signature.charAt(pos++)) {
-							case ';':
-								if (genericCount > 0)
-									break;
-								name = signature.substring(start, pos - 1);
-								types.add(current + 'L' + name + ';');
-								current = "";
-								break innerLoop;
-							case '<':
-								genericCount++;
-								break;
-							case '>':
-								genericCount--;
-								break;
-						}
-					break;
-				default:
-					throw new TransformationException("Unexpected character '" + c + "' in signature: " + signature);
-			}
-		return types;
+		return new Type(ResolutionContext.extractReal(signature), signature);
 	}
 
 	public boolean isPrimitiveType() {
@@ -205,7 +151,7 @@ public class Type {
 		else if (isPrimitiveType())
 			return getPrimitiveTypeName();
 		else if (isClassType())
-			return getClassName();
+			return getClassName() + (hasTypeArguments() ? "<" + Joiner.on(",").join(getTypeArguments().stream().map(Type::getSimpleName)) + ">" : "");
 
 		throw new IllegalStateException("Unknown type for type: " + this);
 	}
@@ -236,50 +182,59 @@ public class Type {
 		if (isTypeParameter())
 			mappedType = new Type(mappedType.descriptor, signature);
 
-		if (hasTypeArgument())
-			mappedType = mappedType.withTypeArgument(getTypeArgument());
+		if (hasTypeArguments())
+			mappedType = mappedType.withTypeArguments(getTypeArguments().stream().map(it -> it.remapClassNames(mapper)).collect(Collectors.toList()));
 
 		return mappedType;
 	}
 
-	public boolean hasTypeArgument() {
+	public boolean hasTypeArguments() {
 		return signature != null && signature.indexOf('<') != -1;
 	}
 
-	public Type getTypeArgument() {
-		if (signature == null || !hasTypeArgument())
+	public List<Type> getTypeArguments() {
+		if (signature == null || !hasTypeArguments())
 			throw new UnsupportedOperationException("Can't get type argument for type: " + this);
 
-		val start = signature.indexOf('<');
-		val end = signature.lastIndexOf('>');
+		val arguments = ResolutionContext.extractGeneric(signature);
+		val argumentList = new ArrayList<Type>();
 
-		val argument = signature.substring(start + 1, end);
+		for (String argument : CollectionUtil.iterable(TypeUtil.readTypes(arguments, true))) {
+			argumentList.add(Type.ofSignature(argument));
+		}
 
-		if (argument.charAt(0) == 'T')
-			return new Type("Ljava/lang/Object;", argument);
+		assert !argumentList.isEmpty();
 
-		return new Type(argument);
+		return argumentList;
 	}
 
-	public String signatureIfExists() {
+	public String signatureElseDescriptor() {
 		return signature == null ? descriptor : signature;
 	}
 
-	public Type withTypeArgument(Type genericType) {
+	public Type withTypeArgument(Type of) {
+		return withTypeArguments(Collections.singletonList(of));
+	}
+
+	public Type withTypeArguments(Iterable<Type> genericType) {
 		if (this.isPrimitiveType())
 			throw new UnsupportedOperationException("Can not add type argument to primitive type");
 
-		String signature = signatureIfExists();
+		String signature = signatureElseDescriptor();
 		int semicolon = signature.lastIndexOf(';');
 		if (semicolon == -1)
 			throw new IllegalStateException("Couldn't find ';' in: " + this);
 
 		StringBuilder sb = new StringBuilder(signature);
-		sb.insert(semicolon, '<' + genericType.signatureIfExists() + '>');
+		sb.insert(semicolon, '<' + Joiner.on().join(CollectionUtil.stream(genericType).map(Type::signatureElseDescriptor)) + '>');
 		return new Type(descriptor, sb.toString());
 	}
 
 	public boolean similar(@NonNull Type other) {
 		return UNKNOWN == this || UNKNOWN == other || this.descriptor.equals(other.descriptor);
+	}
+
+	public String toString() {
+		return "Type(descriptor=" + this.descriptor + ", signature=" + this.signature + ", simpleName=" + getSimpleName() + ")";
 	}
 }

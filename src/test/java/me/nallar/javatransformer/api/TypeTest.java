@@ -52,7 +52,7 @@ public class TypeTest {
 	public void testWithGenericType() {
 		val arrayDequeCallable = Type.of("java.util.ArrayDeque").withTypeArgument(Type.of("java.util.Callable"));
 		assertEquals("java.util.ArrayDeque", arrayDequeCallable.getClassName());
-		assertEquals("java.util.Callable", arrayDequeCallable.getTypeArgument().getClassName());
+		assertEquals("java.util.Callable", arrayDequeCallable.getTypeArguments().get(0).getClassName());
 	}
 
 	private void testOf(String in, String expected) {

@@ -6,6 +6,8 @@ import lombok.val;
 import me.nallar.javatransformer.api.Parameter;
 import me.nallar.javatransformer.api.TransformationException;
 import me.nallar.javatransformer.api.Type;
+import me.nallar.javatransformer.api.TypeVariable;
+import me.nallar.javatransformer.internal.util.TypeUtil;
 import org.objectweb.asm.tree.MethodNode;
 
 import java.util.*;
@@ -13,10 +15,12 @@ import java.util.*;
 @Getter
 @ToString
 public class MethodDescriptor {
+	private final List<TypeVariable> typeVariables;
 	private final List<Parameter> parameters;
 	private final Type returnType;
 
-	public MethodDescriptor(List<Parameter> parameters, Type returnType) {
+	public MethodDescriptor(List<TypeVariable> typeVariables, List<Parameter> parameters, Type returnType) {
+		this.typeVariables = typeVariables;
 		this.parameters = parameters;
 		this.returnType = returnType;
 	}
@@ -26,7 +30,34 @@ public class MethodDescriptor {
 	}
 
 	public MethodDescriptor(String descriptor, String signature, List<String> parameterNames) {
-		this(getParameters(descriptor, signature, parameterNames), getReturnType(descriptor, signature));
+		this(getTypeVariables(signature), getParameters(descriptor, signature, parameterNames), getReturnType(descriptor, signature));
+	}
+
+	private static List<TypeVariable> getTypeVariables(String signature) {
+		if (signature == null)
+			return Collections.emptyList();
+
+		String before = before('(', signature);
+		String typeArguments = ResolutionContext.extractGeneric(before);
+
+		if (typeArguments == null)
+			return Collections.emptyList();
+
+		val list = new ArrayList<TypeVariable>();
+		int pos = 0;
+		int start = 0;
+		while (pos < typeArguments.length()) {
+			char c = typeArguments.charAt(pos++);
+			switch (c) {
+				case ':':
+					String name = typeArguments.substring(start, pos);
+					String bounds = TypeUtil.readType(signature, pos, true);
+					pos += bounds.length();
+					list.add(new TypeVariable(name, Type.ofSignature(bounds)));
+			}
+		}
+
+		return list;
 	}
 
 	private static Type getReturnType(String descriptor, String signature) {
@@ -76,12 +107,16 @@ public class MethodDescriptor {
 		return in.substring(index + 1, in.length());
 	}
 
+	public MethodDescriptor withTypeVariables(List<TypeVariable> typeVariables) {
+		return new MethodDescriptor(typeVariables, parameters, returnType);
+	}
+
 	public MethodDescriptor withParameters(List<Parameter> parameters) {
-		return new MethodDescriptor(parameters, returnType);
+		return new MethodDescriptor(typeVariables, parameters, returnType);
 	}
 
 	public MethodDescriptor withReturnType(Type returnType) {
-		return new MethodDescriptor(parameters, returnType);
+		return new MethodDescriptor(typeVariables, parameters, returnType);
 	}
 
 	public void saveTo(MethodNode node) {

@@ -4,13 +4,13 @@ import me.nallar.javatransformer.internal.SimpleMethodInfo;
 
 import java.util.*;
 
-public interface MethodInfo extends ClassMember {
-	static MethodInfo of(AccessFlags accessFlags, String name, Type returnType, Parameter... parameters) {
-		return of(accessFlags, name, returnType, Arrays.asList(parameters));
+public interface MethodInfo extends ClassMember, HasTypeVariable {
+	static MethodInfo of(AccessFlags accessFlags, List<TypeVariable> typeVariables, Type returnType, String name, Parameter... parameters) {
+		return of(accessFlags, typeVariables, returnType, name, Arrays.asList(parameters));
 	}
 
-	static MethodInfo of(AccessFlags accessFlags, String name, Type returnType, List<Parameter> parameters) {
-		return SimpleMethodInfo.of(accessFlags, name, returnType, parameters);
+	static MethodInfo of(AccessFlags accessFlags, List<TypeVariable> typeVariables, Type returnType, String name, List<Parameter> parameters) {
+		return SimpleMethodInfo.of(accessFlags, typeVariables, returnType, name, parameters);
 	}
 
 	Type getReturnType();
@@ -26,6 +26,7 @@ public interface MethodInfo extends ClassMember {
 		this.setAccessFlags(info.getAccessFlags());
 		this.setReturnType(info.getReturnType());
 		this.setParameters(info.getParameters());
+		this.setTypeVariables(info.getTypeVariables());
 	}
 
 	default boolean similar(MethodInfo other) {

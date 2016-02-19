@@ -11,8 +11,11 @@ import lombok.NonNull;
 import lombok.val;
 import me.nallar.javatransformer.api.TransformationException;
 import me.nallar.javatransformer.api.Type;
+import me.nallar.javatransformer.api.TypeVariable;
 import me.nallar.javatransformer.internal.util.JVMUtil;
+import me.nallar.javatransformer.internal.util.Joiner;
 import me.nallar.javatransformer.internal.util.NodeUtil;
+import me.nallar.javatransformer.internal.util.Splitter;
 
 import java.util.*;
 import java.util.stream.*;
@@ -55,7 +58,7 @@ public class ResolutionContext {
 		if (leftBracket == -1 && rightBracket == -1)
 			return null;
 
-		if (rightBracket == name.length() - 1 && leftBracket != -1 && leftBracket < rightBracket)
+		if (leftBracket != -1 && leftBracket < rightBracket)
 			return name.substring(leftBracket + 1, rightBracket);
 
 		throw new TransformationException("Mismatched angled brackets in: " + name);
@@ -91,8 +94,8 @@ public class ResolutionContext {
 
 		val type = new ClassOrInterfaceType(t.getClassName());
 
-		if (t.hasTypeArgument())
-			type.setTypeArgs(Collections.singletonList(typeToJavaParserType(t.getTypeArgument())));
+		if (t.hasTypeArguments())
+			type.setTypeArgs(t.getTypeArguments().stream().map(ResolutionContext::typeToJavaParserType).collect(Collectors.toList()));
 
 		return type;
 	}
@@ -127,20 +130,24 @@ public class ResolutionContext {
 		Type type = resolveReal(real);
 
 		String generic = extractGeneric(name);
-		Type genericType = resolve(generic);
+		List<Type> genericTypes = null;
 
-		if (type == null || (generic != null && genericType == null))
+		if (generic != null) {
+			genericTypes = Splitter.commaSplitter.split(generic).map(this::resolve).collect(Collectors.toList());
+		}
+
+		if (type == null || (generic != null && (genericTypes.isEmpty() || genericTypes.stream().anyMatch(it -> it == null))))
 			throw new TransformationException("Couldn't resolve name: " + name +
 				"\nFound real type: " + type +
-				"\nGeneric type: " + genericType +
+				"\nGeneric types: " + genericTypes +
 				"\nImports:" + imports.stream().map(ResolutionContext::toString).collect(Collectors.toList())
 			);
 
-		if (generic == null) {
-			return sanityCheck(type);
+		if (generic != null) {
+			type = type.withTypeArguments(genericTypes);
 		}
 
-		return sanityCheck(type.withTypeArgument(genericType));
+		return sanityCheck(type);
 	}
 
 	private Type resolveReal(String name) {
@@ -253,8 +260,8 @@ public class ResolutionContext {
 		if (unresolve)
 			className = typeToJavaParserType(className);
 
-		if (t.hasTypeArgument())
-			className += '<' + typeToString(t.getTypeArgument()) + '>';
+		if (t.hasTypeArguments())
+			className += '<' + Joiner.on(", ").join(t.getTypeArguments().stream().map(this::typeToString)) + '>';
 
 		return className;
 	}
@@ -271,5 +278,24 @@ public class ResolutionContext {
 		}
 
 		return className;
+	}
+
+	public TypeVariable resolveTypeVariable(TypeParameter typeParameter) {
+		Type bound;
+		if (typeParameter.getTypeBound().size() == 1)
+			bound = resolve(typeParameter.getTypeBound().get(1));
+		else if (typeParameter.getTypeBound().isEmpty())
+			bound = Type.OBJECT;
+		else
+			throw new IllegalArgumentException("Can't resolve type variable from " + typeParameter + " with multiple bounds");
+
+		return new TypeVariable(typeParameter.getName(), bound);
+	}
+
+	public TypeParameter unresolveTypeVariable(TypeVariable typeVariable) {
+		if (typeVariable.getBounds().equals(Type.OBJECT))
+			return new TypeParameter(typeVariable.getName(), Collections.emptyList());
+
+		return new TypeParameter(typeVariable.getName(), Collections.singletonList((ClassOrInterfaceType) typeToJavaParserType(typeVariable.getBounds())));
 	}
 }
