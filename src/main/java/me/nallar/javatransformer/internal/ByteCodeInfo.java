@@ -12,11 +12,9 @@ import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.*;
+import java.util.function.*;
+import java.util.stream.*;
 
 @Data
 @AllArgsConstructor
@@ -282,6 +280,17 @@ public class ByteCodeInfo implements ClassInfoStreams {
 		@Override
 		public String toString() {
 			return SimpleMethodInfo.toString(this);
+		}
+
+		@Override
+		public List<TypeVariable> getTypeVariables() {
+			return descriptor.get().getTypeVariables();
+		}
+
+		@Override
+		public void setTypeVariables(List<TypeVariable> typeVariables) {
+			descriptor.set(descriptor.get().withTypeVariables(typeVariables));
+			descriptor.get().saveTo(node);
 		}
 	}
 }

@@ -18,7 +18,7 @@ public class SplitterTest {
 	}
 
 	private void testSplitter(char on, String input, String... expected) {
-		assertArrayEquals(expected, toArray(Splitter.on(on).split(input)));
+		assertArrayEquals(expected, toArray(Splitter.on(on).splitIterable(input)));
 	}
 
 	private String[] toArray(Iterable<String> split) {
