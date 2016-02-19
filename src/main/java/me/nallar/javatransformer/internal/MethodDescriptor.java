@@ -51,7 +51,7 @@ public class MethodDescriptor {
 			switch (c) {
 				case ':':
 					String name = typeArguments.substring(start, pos);
-					String bounds = TypeUtil.readType(signature, pos, true);
+					String bounds = TypeUtil.readType(typeArguments, pos, true);
 					pos += bounds.length();
 					list.add(new TypeVariable(name, Type.ofSignature(bounds)));
 			}
