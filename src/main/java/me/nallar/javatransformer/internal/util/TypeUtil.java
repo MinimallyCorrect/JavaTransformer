@@ -42,6 +42,7 @@ public class TypeUtil {
 	}
 
 	public static String readType(String in, int pos, boolean isSignature) {
+		int startPos = pos;
 		char c;
 		String current = "";
 		String name;
@@ -74,8 +75,8 @@ public class TypeUtil {
 							case ';':
 								if (genericCount > 0)
 									break;
-								name = in.substring(start, pos - 1);
-								return current + 'L' + name + ';';
+								name = in.substring(start, pos);
+								return current + 'L' + name;
 							case '<':
 								if (!isSignature)
 									throw new TransformationException("Illegal character '<' in descriptor: " + in);
@@ -87,7 +88,7 @@ public class TypeUtil {
 						}
 					break;
 				default:
-					throw new TransformationException("Unexpected character '" + c + "' in signature/descriptor: " + in);
+					throw new TransformationException("Unexpected character '" + c + "' in signature/descriptor: " + in + " Searched section: " + in.substring(startPos, pos));
 			}
 
 		throw new StringIndexOutOfBoundsException(pos);
