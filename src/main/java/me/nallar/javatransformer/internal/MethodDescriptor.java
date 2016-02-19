@@ -138,7 +138,17 @@ public class MethodDescriptor {
 
 	private String getSignature() {
 		boolean any = false;
-		StringBuilder signature = new StringBuilder("(");
+		StringBuilder signature = new StringBuilder();
+
+		val typeVariables = getTypeVariables();
+
+		if (!typeVariables.isEmpty()) {
+			signature.append('<');
+			typeVariables.forEach(signature::append);
+			signature.append('>');
+		}
+
+		signature.append("(");
 
 		for (Parameter parameter : parameters) {
 			String generic = parameter.signature;
