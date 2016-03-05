@@ -77,8 +77,11 @@ public class JavaTransformer {
 			throw new TransformationException(e);
 		}
 		try {
-			if (location.getProtocol().equals("jar"))
-				location = new URL(location.getPath());
+			if (location.getProtocol().equals("jar")) {
+				String path = location.getPath();
+				int bang = path.lastIndexOf('!');
+				location = new URL(bang == -1 ? path : path.substring(0, bang));
+			}
 
 			return Paths.get(location.toURI());
 		} catch (Exception e) {
