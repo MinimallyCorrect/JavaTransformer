@@ -16,6 +16,7 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
 
 import java.io.*;
+import java.net.*;
 import java.nio.charset.*;
 import java.nio.file.*;
 import java.nio.file.attribute.*;
@@ -69,8 +70,16 @@ public class JavaTransformer {
 	 * @return Path to class
 	 */
 	public static Path pathFromClass(Class<?> clazz) {
-		val location = clazz.getProtectionDomain().getCodeSource().getLocation();
+		URL location;
 		try {
+			location = clazz.getProtectionDomain().getCodeSource().getLocation().toURI().toURL();
+		} catch (MalformedURLException | URISyntaxException e) {
+			throw new TransformationException(e);
+		}
+		try {
+			if (location.getProtocol().equals("jar"))
+				location = new URL(location.getPath());
+
 			return Paths.get(location.toURI());
 		} catch (Exception e) {
 			throw new TransformationException("Failed to get pathFromClass, location: " + location, e);
