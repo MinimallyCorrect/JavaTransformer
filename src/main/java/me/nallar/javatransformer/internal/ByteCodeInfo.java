@@ -7,6 +7,7 @@ import lombok.val;
 import me.nallar.javatransformer.api.*;
 import me.nallar.javatransformer.internal.util.AnnotationParser;
 import me.nallar.javatransformer.internal.util.CachingSupplier;
+import me.nallar.javatransformer.internal.util.Cloner;
 import me.nallar.javatransformer.internal.util.CollectionUtil;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
@@ -47,28 +48,11 @@ public class ByteCodeInfo implements ClassInfoStreams {
 	}
 
 	public void add(MethodInfo method) {
-		MethodNode node = new MethodNode();
+		MethodNode node;
 		if (method instanceof MethodNodeInfo) {
-			val other = ((MethodNodeInfo) method).node;
-			node.desc = other.desc;
-			node.signature = other.signature;
-			node.access = other.access;
-			node.name = other.name;
-			node.attrs = other.attrs;
-			node.annotationDefault = other.annotationDefault;
-			node.exceptions = other.exceptions;
-			node.instructions = other.instructions;
-			node.invisibleAnnotations = other.invisibleAnnotations;
-			node.invisibleLocalVariableAnnotations = other.invisibleLocalVariableAnnotations;
-			node.invisibleParameterAnnotations = other.invisibleParameterAnnotations;
-			node.invisibleTypeAnnotations = other.invisibleTypeAnnotations;
-			node.visibleAnnotations = other.visibleAnnotations;
-			node.visibleLocalVariableAnnotations = other.visibleLocalVariableAnnotations;
-			node.visibleParameterAnnotations = other.visibleParameterAnnotations;
-			node.visibleTypeAnnotations = other.visibleTypeAnnotations;
-			node.localVariables = other.localVariables;
-			node.tryCatchBlocks = other.tryCatchBlocks;
+			node = Cloner.clone(((MethodNodeInfo) method).node);
 		} else {
+			node = new MethodNode();
 			node.desc = "()V";
 			node.exceptions = new ArrayList<>();
 			MethodInfo info = new MethodNodeInfo(node);
@@ -80,13 +64,7 @@ public class ByteCodeInfo implements ClassInfoStreams {
 	public void add(FieldInfo field) {
 		FieldNode node;
 		if (field instanceof FieldNodeInfo) {
-			val other = ((FieldNodeInfo) field).node;
-			node = new FieldNode(other.access, other.name, other.desc, other.signature, other.value);
-			node.attrs = other.attrs;
-			node.invisibleAnnotations = other.invisibleAnnotations;
-			node.invisibleTypeAnnotations = other.invisibleTypeAnnotations;
-			node.visibleAnnotations = other.visibleAnnotations;
-			node.visibleTypeAnnotations = other.visibleTypeAnnotations;
+			node = Cloner.clone(((FieldNodeInfo) field).node);
 		} else {
 			node = new FieldNode(0, null, "V", null, null);
 			val nodeInfo = new FieldNodeInfo(node);
@@ -201,6 +179,12 @@ public class ByteCodeInfo implements ClassInfoStreams {
 		public String toString() {
 			return SimpleFieldInfo.toString(this);
 		}
+
+		@Override
+		@SuppressWarnings("MethodDoesntCallSuperMethod")
+		public FieldInfo clone() {
+			return new FieldNodeInfo(Cloner.clone(node));
+		}
 	}
 
 	class MethodNodeInfo implements MethodInfo {
@@ -291,6 +275,12 @@ public class ByteCodeInfo implements ClassInfoStreams {
 		public void setTypeVariables(List<TypeVariable> typeVariables) {
 			descriptor.set(descriptor.get().withTypeVariables(typeVariables));
 			descriptor.get().saveTo(node);
+		}
+
+		@Override
+		@SuppressWarnings("MethodDoesntCallSuperMethod")
+		public MethodInfo clone() {
+			return new MethodNodeInfo(Cloner.clone(node));
 		}
 	}
 }
