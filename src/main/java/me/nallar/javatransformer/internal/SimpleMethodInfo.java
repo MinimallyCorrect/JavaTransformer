@@ -16,7 +16,7 @@ public class SimpleMethodInfo implements MethodInfo {
 
 	private SimpleMethodInfo(AccessFlags accessFlags, List<TypeVariable> typeVariables, Type returnType, String name, List<Parameter> parameters) {
 		this.accessFlags = accessFlags;
-		this.typeVariables = typeVariables;
+		this.typeVariables = new ArrayList<>(typeVariables);
 		this.returnType = returnType;
 		this.name = name;
 		this.parameters = new ArrayList<>(parameters);
@@ -42,5 +42,11 @@ public class SimpleMethodInfo implements MethodInfo {
 	@Override
 	public String toString() {
 		return toString(this);
+	}
+
+	@Override
+	@SuppressWarnings("MethodDoesntCallSuperMethod")
+	public MethodInfo clone() {
+		return of(accessFlags, typeVariables, returnType, name, parameters);
 	}
 }

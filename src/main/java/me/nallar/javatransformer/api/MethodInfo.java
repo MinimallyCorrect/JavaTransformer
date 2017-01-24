@@ -4,7 +4,7 @@ import me.nallar.javatransformer.internal.SimpleMethodInfo;
 
 import java.util.*;
 
-public interface MethodInfo extends ClassMember, HasTypeVariable {
+public interface MethodInfo extends ClassMember, HasTypeVariable, Cloneable {
 	static MethodInfo of(AccessFlags accessFlags, List<TypeVariable> typeVariables, Type returnType, String name, Parameter... parameters) {
 		return of(accessFlags, typeVariables, returnType, name, Arrays.asList(parameters));
 	}
@@ -33,5 +33,10 @@ public interface MethodInfo extends ClassMember, HasTypeVariable {
 		return other.getName().equals(this.getName()) &&
 			other.getReturnType().similar(this.getReturnType()) &&
 			(other.getParameters() == null || this.getParameters() == null || other.getParameters().equals(this.getParameters()));
+	}
+
+	@SuppressWarnings("MethodDoesntCallSuperMethod")
+	default MethodInfo clone() {
+		throw new UnsupportedOperationException();
 	}
 }

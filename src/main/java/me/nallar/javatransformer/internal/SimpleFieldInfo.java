@@ -3,7 +3,7 @@ package me.nallar.javatransformer.internal;
 import lombok.Data;
 import me.nallar.javatransformer.api.*;
 
-import java.util.List;
+import java.util.*;
 
 @Data
 public class SimpleFieldInfo implements FieldInfo {
@@ -34,5 +34,11 @@ public class SimpleFieldInfo implements FieldInfo {
 	@Override
 	public ClassInfo getClassInfo() {
 		return null;
+	}
+
+	@Override
+	@SuppressWarnings("MethodDoesntCallSuperMethod")
+	public FieldInfo clone() {
+		return of(accessFlags, type, name);
 	}
 }

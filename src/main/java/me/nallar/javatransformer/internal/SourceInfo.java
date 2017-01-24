@@ -291,6 +291,12 @@ public class SourceInfo implements ClassInfoStreams {
 		public String toString() {
 			return SimpleFieldInfo.toString(this);
 		}
+
+		@Override
+		@SuppressWarnings("MethodDoesntCallSuperMethod")
+		public FieldDeclarationWrapper clone() {
+			return new FieldDeclarationWrapper((FieldDeclaration) declaration.clone());
+		}
 	}
 
 	class MethodDeclarationWrapper implements MethodInfo {
@@ -372,6 +378,12 @@ public class SourceInfo implements ClassInfoStreams {
 		public void setTypeVariables(List<TypeVariable> typeVariables) {
 			declaration.setTypeParameters(typeVariables.stream().map(getContext()::unresolveTypeVariable).collect(Collectors.toList()));
 		}
+
+		@Override
+		@SuppressWarnings("MethodDoesntCallSuperMethod")
+		public MethodDeclarationWrapper clone() {
+			return new MethodDeclarationWrapper((MethodDeclaration) declaration.clone());
+		}
 	}
 
 	class ConstructorDeclarationWrapper implements MethodInfo {
@@ -452,6 +464,12 @@ public class SourceInfo implements ClassInfoStreams {
 		@Override
 		public void setTypeVariables(List<TypeVariable> typeVariables) {
 			throw new UnsupportedOperationException("Can't set type variables on a constructor");
+		}
+
+		@Override
+		@SuppressWarnings("MethodDoesntCallSuperMethod")
+		public ConstructorDeclarationWrapper clone() {
+			return new ConstructorDeclarationWrapper((ConstructorDeclaration) declaration.clone());
 		}
 	}
 }

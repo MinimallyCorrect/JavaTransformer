@@ -21,4 +21,9 @@ public interface FieldInfo extends ClassMember {
 		return other.getName().equals(this.getName()) &&
 			other.getType().similar(this.getType());
 	}
+
+	@SuppressWarnings("MethodDoesntCallSuperMethod")
+	default FieldInfo clone() {
+		throw new UnsupportedOperationException();
+	}
 }
