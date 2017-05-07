@@ -44,6 +44,10 @@ public class JVMUtil {
 	}
 
 	public static String primitiveTypeToDescriptor(String primitive) {
+		return primitiveTypeToDescriptor(primitive, false);
+	}
+
+	public static String primitiveTypeToDescriptor(String primitive, boolean allowMissing) {
 		switch (primitive) {
 			case "byte":
 				return "B";
@@ -64,6 +68,9 @@ public class JVMUtil {
 			case "boolean":
 				return "Z";
 		}
+
+		if (allowMissing)
+			return null;
 
 		throw new TransformationException("Invalid primitive type: " + primitive);
 	}

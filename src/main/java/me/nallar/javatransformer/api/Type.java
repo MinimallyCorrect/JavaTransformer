@@ -237,4 +237,13 @@ public class Type {
 	public String toString() {
 		return "Type(descriptor=" + this.descriptor + ", signature=" + this.signature + ", simpleName=" + getSimpleName() + ")";
 	}
+
+	public Type withArrayCount(int arrayCount) {
+		if (arrayCount == 0)
+			return this;
+
+		val brackets = new char[arrayCount];
+		Arrays.fill(brackets, '[');
+		return new Type(new String(brackets) + descriptor, signature);
+	}
 }
