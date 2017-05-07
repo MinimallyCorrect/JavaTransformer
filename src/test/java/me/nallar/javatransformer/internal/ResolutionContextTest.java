@@ -5,6 +5,8 @@ import me.nallar.javatransformer.api.Type;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.*;
+
 public class ResolutionContextTest {
 	@Test
 	public void testExtractReal() throws Exception {
@@ -22,6 +24,26 @@ public class ResolutionContextTest {
 		ResolutionContext.extractGeneric("te>st<");
 		ResolutionContext.extractGeneric("test<");
 		ResolutionContext.extractGeneric("te>st");
+	}
+
+	@Test
+	public void testExtractPrimitive() {
+		Type t = ResolutionContext.of("org.example", Collections.emptyList(), Collections.emptyList()).resolve("int");
+		Assert.assertEquals(t.descriptor, "I");
+		t = ResolutionContext.of("org.example", Collections.emptyList(), Collections.emptyList()).resolve("boolean");
+		Assert.assertEquals(t.descriptor, "Z");
+	}
+
+	@Test
+	public void testExtractPrimitiveArray() {
+		Type t = ResolutionContext.of("org.example", Collections.emptyList(), Collections.emptyList()).resolve("int[]");
+		Assert.assertEquals(t.descriptor, "[I");
+		t = ResolutionContext.of("org.example", Collections.emptyList(), Collections.emptyList()).resolve("int[][]");
+		Assert.assertEquals(t.descriptor, "[[I");
+		t = ResolutionContext.of("org.example", Collections.emptyList(), Collections.emptyList()).resolve("boolean[]");
+		Assert.assertEquals(t.descriptor, "[Z");
+		t = ResolutionContext.of("org.example", Collections.emptyList(), Collections.emptyList()).resolve("boolean[][]");
+		Assert.assertEquals(t.descriptor, "[[Z");
 	}
 
 	@Test(expected = TransformationException.class)

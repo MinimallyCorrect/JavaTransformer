@@ -126,6 +126,12 @@ public class ResolutionContext {
 		if (name == null)
 			return null;
 
+		int arrayCount = 0;
+		while (name.lastIndexOf("[]") != -1) {
+			arrayCount++;
+			name = name.substring(0, name.length() - 2);
+		}
+
 		String real = extractReal(name);
 		Type type = resolveReal(real);
 
@@ -147,10 +153,18 @@ public class ResolutionContext {
 			type = type.withTypeArguments(genericTypes);
 		}
 
+		if (arrayCount != 0) {
+			type = type.withArrayCount(arrayCount);
+		}
+
 		return sanityCheck(type);
 	}
 
 	private Type resolveReal(String name) {
+		String primitive = JVMUtil.primitiveTypeToDescriptor(name, true);
+		if (primitive != null)
+			return new Type(primitive, null);
+
 		Type result = resolveTypeParameterType(name);
 		if (result != null)
 			return result;
