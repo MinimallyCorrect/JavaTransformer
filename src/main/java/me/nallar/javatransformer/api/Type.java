@@ -165,7 +165,7 @@ public class Type {
 	public String getClassName() {
 		if (!isClassType())
 			throw new UnsupportedOperationException("Can't get classname for type: " + this);
-		return descriptor.substring(1, descriptor.length() - 1).replace('/', '.');
+		return descriptorWithoutArray().substring(1, descriptor.length() - 1).replace('/', '.');
 	}
 
 	public String getTypeParameterName() {
