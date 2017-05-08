@@ -299,7 +299,7 @@ public class JavaTransformer {
 		return () -> {
 			if (readerHolder.value == null)
 				throw new IllegalStateException();
-			ClassWriter classWriter = new ClassWriter(readerHolder.value, ClassWriter.COMPUTE_MAXS);
+			ClassWriter classWriter = new ClassWriter(readerHolder.value, ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
 			supplier.get().accept(classWriter);
 			return classWriter.toByteArray();
 		};
