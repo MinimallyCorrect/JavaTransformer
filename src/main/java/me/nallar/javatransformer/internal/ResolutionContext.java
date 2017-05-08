@@ -127,7 +127,7 @@ public class ResolutionContext {
 			return null;
 
 		int arrayCount = 0;
-		while (name.lastIndexOf("[]") != -1) {
+		while (name.lastIndexOf("[]") == name.length() - 2) {
 			arrayCount++;
 			name = name.substring(0, name.length() - 2);
 		}

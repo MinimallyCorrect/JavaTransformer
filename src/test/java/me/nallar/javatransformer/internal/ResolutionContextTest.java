@@ -8,6 +8,10 @@ import org.junit.Test;
 import java.util.*;
 
 public class ResolutionContextTest {
+	private ResolutionContext context() {
+		return ResolutionContext.of("org.example", Collections.emptyList(), Collections.emptyList());
+	}
+
 	@Test
 	public void testExtractReal() throws Exception {
 		Assert.assertEquals("ab", ResolutionContext.extractReal("ab<bc>"));
@@ -28,21 +32,21 @@ public class ResolutionContextTest {
 
 	@Test
 	public void testExtractPrimitive() {
-		Type t = ResolutionContext.of("org.example", Collections.emptyList(), Collections.emptyList()).resolve("int");
+		Type t = context().resolve("int");
 		Assert.assertEquals(t.descriptor, "I");
-		t = ResolutionContext.of("org.example", Collections.emptyList(), Collections.emptyList()).resolve("boolean");
+		t = context().resolve("boolean");
 		Assert.assertEquals(t.descriptor, "Z");
 	}
 
 	@Test
 	public void testExtractPrimitiveArray() {
-		Type t = ResolutionContext.of("org.example", Collections.emptyList(), Collections.emptyList()).resolve("int[]");
+		Type t = context().resolve("int[]");
 		Assert.assertEquals(t.descriptor, "[I");
-		t = ResolutionContext.of("org.example", Collections.emptyList(), Collections.emptyList()).resolve("int[][]");
+		t = context().resolve("int[][]");
 		Assert.assertEquals(t.descriptor, "[[I");
-		t = ResolutionContext.of("org.example", Collections.emptyList(), Collections.emptyList()).resolve("boolean[]");
+		t = context().resolve("boolean[]");
 		Assert.assertEquals(t.descriptor, "[Z");
-		t = ResolutionContext.of("org.example", Collections.emptyList(), Collections.emptyList()).resolve("boolean[][]");
+		t = context().resolve("boolean[][]");
 		Assert.assertEquals(t.descriptor, "[[Z");
 	}
 
@@ -55,5 +59,13 @@ public class ResolutionContextTest {
 	public void testSanityCheckExpectedSuccess() {
 		ResolutionContext.sanityCheck(new Type("Z"));
 		ResolutionContext.sanityCheck(new Type("Ljava/lang/Object;", "TT;"));
+	}
+
+	@Test
+	public void testMapWithArrayValue() {
+		Type t = context().resolve("java.util.Hashtable<Integer, long[]>");
+		Assert.assertEquals("java.util.Hashtable", t.getClassName());
+		Assert.assertEquals("java.lang.Integer", t.getTypeArguments().get(0).getClassName());
+		Assert.assertEquals("long", t.getTypeArguments().get(1).getPrimitiveTypeName());
 	}
 }
