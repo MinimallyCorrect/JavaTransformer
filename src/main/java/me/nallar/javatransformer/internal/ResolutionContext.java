@@ -127,7 +127,7 @@ public class ResolutionContext {
 			return null;
 
 		int arrayCount = 0;
-		while (name.lastIndexOf("[]") == name.length() - 2) {
+		while (name.length() > 1 && name.lastIndexOf("[]") == name.length() - 2) {
 			arrayCount++;
 			name = name.substring(0, name.length() - 2);
 		}
@@ -142,7 +142,7 @@ public class ResolutionContext {
 			genericTypes = Splitter.commaSplitter.split(generic).map(this::resolve).collect(Collectors.toList());
 		}
 
-		if (type == null || (generic != null && (genericTypes.isEmpty() || genericTypes.stream().anyMatch(it -> it == null))))
+		if (type == null || (generic != null && (genericTypes.isEmpty() || genericTypes.stream().anyMatch(Objects::isNull))))
 			throw new TransformationException("Couldn't resolve name: " + name +
 				"\nFound real type: " + type +
 				"\nGeneric types: " + genericTypes +

@@ -1,5 +1,6 @@
 package me.nallar.javatransformer.internal;
 
+import com.github.javaparser.ast.TypeParameter;
 import me.nallar.javatransformer.api.TransformationException;
 import me.nallar.javatransformer.api.Type;
 import org.junit.Assert;
@@ -9,7 +10,7 @@ import java.util.*;
 
 public class ResolutionContextTest {
 	private ResolutionContext context() {
-		return ResolutionContext.of("org.example", Collections.emptyList(), Collections.emptyList());
+		return ResolutionContext.of("org.example", Collections.emptyList(), Arrays.asList(new TypeParameter("A", null), new TypeParameter("B", null)));
 	}
 
 	@Test
@@ -67,5 +68,12 @@ public class ResolutionContextTest {
 		Assert.assertEquals("java.util.Hashtable", t.getClassName());
 		Assert.assertEquals("java.lang.Integer", t.getTypeArguments().get(0).getClassName());
 		Assert.assertEquals("long", t.getTypeArguments().get(1).getPrimitiveTypeName());
+	}
+
+	@Test
+	public void testSingleLengthTypeArgument() {
+		Type t = context().resolve("java.util.Hashtable<A, B[]>");
+		Assert.assertEquals("A", t.getTypeArguments().get(0).getTypeParameterName());
+		Assert.assertEquals("B", t.getTypeArguments().get(1).getTypeParameterName());
 	}
 }
