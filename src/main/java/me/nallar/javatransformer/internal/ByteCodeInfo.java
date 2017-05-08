@@ -50,7 +50,7 @@ public class ByteCodeInfo implements ClassInfoStreams {
 		if (method instanceof MethodNodeInfo) {
 			val orig = ((MethodNodeInfo) method);
 			node = Cloner.clone(orig.node);
-			FilteringClassWriter.addFilter(filters, orig.getName(), getName());
+			FilteringClassWriter.addFilter(filters, orig.getClassInfo().getName(), getName());
 		} else {
 			node = new MethodNode();
 			node.desc = "()V";
