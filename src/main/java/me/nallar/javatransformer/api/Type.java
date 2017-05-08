@@ -159,7 +159,7 @@ public class Type {
 	public String getPrimitiveTypeName() {
 		if (!isPrimitiveType())
 			throw new UnsupportedOperationException("Can't get classname for type: " + this);
-		return JVMUtil.descriptorToPrimitiveType(descriptor);
+		return JVMUtil.descriptorToPrimitiveType(descriptorWithoutArray());
 	}
 
 	public String getClassName() {
@@ -210,6 +210,10 @@ public class Type {
 
 	public String signatureElseDescriptor() {
 		return signature == null ? descriptor : signature;
+	}
+
+	public String descriptorWithoutArray() {
+		return descriptor.substring(descriptor.lastIndexOf('[') + 1);
 	}
 
 	public Type withTypeArgument(Type of) {
