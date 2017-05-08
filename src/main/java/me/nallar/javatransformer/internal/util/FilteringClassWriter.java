@@ -7,7 +7,7 @@ import org.objectweb.asm.ClassWriter;
 import java.util.*;
 
 public class FilteringClassWriter extends ClassWriter {
-	public final Map<String, String> filters = new HashMap<String, String>();
+	public final Map<String, String> filters = new HashMap<>();
 
 	public FilteringClassWriter(int flags) {
 		super(flags);
@@ -27,30 +27,48 @@ public class FilteringClassWriter extends ClassWriter {
 
 	@Override
 	public int newClass(String value) {
-		val replace = filters.get(value);
-		if (replace != null)
-			value = replace;
-
-		return super.newClass(value);
+		return super.newClass(replace(value));
 	}
 
 	@Override
 	public int newConst(Object value) {
 		if (value instanceof String) {
-			val replace = filters.get(value);
-			if (replace != null)
-				value = replace;
+			value = replace((String) value);
 		}
 
 		return super.newConst(value);
 	}
 
 	@Override
-	public int newUTF8(String value) {
-		val replace = filters.get(value);
-		if (replace != null)
-			throw new IllegalStateException("Should have already replaced " + value + " earlier with " + replace);
+	public int newNameType(final String name, final String desc) {
+		return super.newNameType(name, replace(desc));
+	}
 
-		return super.newUTF8(value);
+	@Override
+	public int newHandle(int tag, String owner, String name, String desc) {
+		return super.newHandle(tag, replace(owner), name, desc);
+	}
+
+	@Override
+	public int newField(String owner, String name, String desc) {
+		return super.newField(replace(owner), name, desc);
+	}
+
+	private String replace(String s) {
+		val replaced = filters.get(s);
+		return replaced == null ? s : replaced;
+	}
+
+	@Override
+	public int newUTF8(String value) {
+		return super.newUTF8(replace(value));
+	}
+
+	@Override
+	protected String getCommonSuperClass(final String a, final String b) {
+		if ((a.indexOf('.') != -1 && !a.startsWith("java.")) || (b.indexOf('.') != -1 && !b.startsWith("java.")))
+			throw new UnsupportedOperationException();
+
+		return super.getCommonSuperClass(a, b);
 	}
 }
