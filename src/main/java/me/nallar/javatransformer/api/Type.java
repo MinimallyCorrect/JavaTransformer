@@ -246,4 +246,14 @@ public class Type {
 		Arrays.fill(brackets, '[');
 		return new Type(new String(brackets) + descriptor, signature);
 	}
+
+	public Type withClassName(String name) {
+		val descriptor = "L" + name.replace('.', '/') + ";";
+		String signature = this.signature;
+
+		if (signature != null)
+			signature = descriptor + signature.substring(signature.indexOf(';') + 1);
+
+		return new Type(descriptor, signature);
+	}
 }

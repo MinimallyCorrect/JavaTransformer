@@ -11,6 +11,7 @@ import me.nallar.javatransformer.internal.util.Cloner;
 import me.nallar.javatransformer.internal.util.CollectionUtil;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
+import org.objectweb.asm.tree.LocalVariableNode;
 import org.objectweb.asm.tree.MethodNode;
 
 import java.util.*;
@@ -25,6 +26,18 @@ public class ByteCodeInfo implements ClassInfoStreams {
 	@Getter(lazy = true)
 	private final List<Annotation> annotations = getAnnotationsInternal();
 	private String className;
+
+	static List<LocalVariableNode> filter(String fromClass, String toClass, List<LocalVariableNode> localVariables) {
+		val list = new ArrayList<LocalVariableNode>();
+		for (val node : localVariables) {
+			Type type = new Type(node.desc, node.signature);
+			if (type.isClassType() && type.getClassName().equals(fromClass)) {
+				type = type.withClassName(toClass);
+			}
+			list.add(new LocalVariableNode(node.name, type.descriptor, type.signature, node.start, node.end, node.index));
+		}
+		return list;
+	}
 
 	@Override
 	public String getName() {
@@ -50,7 +63,9 @@ public class ByteCodeInfo implements ClassInfoStreams {
 	public void add(MethodInfo method) {
 		MethodNode node;
 		if (method instanceof MethodNodeInfo) {
-			node = Cloner.clone(((MethodNodeInfo) method).node);
+			val orig = ((MethodNodeInfo) method);
+			node = Cloner.clone(orig.node);
+			node.localVariables = filter(orig.getClassInfo().getName(), getName(), node.localVariables);
 		} else {
 			node = new MethodNode();
 			node.desc = "()V";
