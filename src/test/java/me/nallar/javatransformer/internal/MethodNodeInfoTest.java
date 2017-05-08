@@ -9,6 +9,8 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.objectweb.asm.tree.MethodNode;
 
+import java.util.*;
+
 public class MethodNodeInfoTest {
 	@Test
 	public void testWrap() throws Exception {
@@ -17,7 +19,7 @@ public class MethodNodeInfoTest {
 		node.name = "test";
 		node.desc = "()Ljava/lang/String;";
 
-		ByteCodeInfo b = new ByteCodeInfo(null, "java.lang.String");
+		ByteCodeInfo b = new ByteCodeInfo(null, "java.lang.String", new HashMap<>());
 		MethodInfo info = b.wrap(node);
 
 		Assert.assertEquals("test", info.getName());

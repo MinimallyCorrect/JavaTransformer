@@ -9,6 +9,7 @@ import lombok.*;
 import me.nallar.javatransformer.internal.ByteCodeInfo;
 import me.nallar.javatransformer.internal.SourceInfo;
 import me.nallar.javatransformer.internal.util.CachingSupplier;
+import me.nallar.javatransformer.internal.util.FilteringClassWriter;
 import me.nallar.javatransformer.internal.util.JVMUtil;
 import me.nallar.javatransformer.internal.util.NodeUtil;
 import org.objectweb.asm.ClassReader;
@@ -291,7 +292,8 @@ public class JavaTransformer {
 			return node;
 		});
 
-		transformClassInfo(new ByteCodeInfo(supplier, name));
+		val filters = new HashMap<String, String>();
+		transformClassInfo(new ByteCodeInfo(supplier, name, filters));
 
 		if (!supplier.isCached())
 			return data;
@@ -299,7 +301,8 @@ public class JavaTransformer {
 		return () -> {
 			if (readerHolder.value == null)
 				throw new IllegalStateException();
-			ClassWriter classWriter = new ClassWriter(readerHolder.value, ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
+			FilteringClassWriter classWriter = new FilteringClassWriter(readerHolder.value, ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
+			classWriter.filters.putAll(filters);
 			supplier.get().accept(classWriter);
 			return classWriter.toByteArray();
 		};

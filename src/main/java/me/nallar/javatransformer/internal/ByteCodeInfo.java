@@ -5,13 +5,9 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.val;
 import me.nallar.javatransformer.api.*;
-import me.nallar.javatransformer.internal.util.AnnotationParser;
-import me.nallar.javatransformer.internal.util.CachingSupplier;
-import me.nallar.javatransformer.internal.util.Cloner;
-import me.nallar.javatransformer.internal.util.CollectionUtil;
+import me.nallar.javatransformer.internal.util.*;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
-import org.objectweb.asm.tree.LocalVariableNode;
 import org.objectweb.asm.tree.MethodNode;
 
 import java.util.*;
@@ -26,18 +22,7 @@ public class ByteCodeInfo implements ClassInfoStreams {
 	@Getter(lazy = true)
 	private final List<Annotation> annotations = getAnnotationsInternal();
 	private String className;
-
-	static List<LocalVariableNode> filter(String fromClass, String toClass, List<LocalVariableNode> localVariables) {
-		val list = new ArrayList<LocalVariableNode>();
-		for (val node : localVariables) {
-			Type type = new Type(node.desc, node.signature);
-			if (type.isClassType() && type.getClassName().equals(fromClass)) {
-				type = type.withClassName(toClass);
-			}
-			list.add(new LocalVariableNode(node.name, type.descriptor, type.signature, node.start, node.end, node.index));
-		}
-		return list;
-	}
+	private Map<String, String> filters;
 
 	@Override
 	public String getName() {
@@ -65,7 +50,7 @@ public class ByteCodeInfo implements ClassInfoStreams {
 		if (method instanceof MethodNodeInfo) {
 			val orig = ((MethodNodeInfo) method);
 			node = Cloner.clone(orig.node);
-			node.localVariables = filter(orig.getClassInfo().getName(), getName(), node.localVariables);
+			FilteringClassWriter.addFilter(filters, orig.getName(), getName());
 		} else {
 			node = new MethodNode();
 			node.desc = "()V";
