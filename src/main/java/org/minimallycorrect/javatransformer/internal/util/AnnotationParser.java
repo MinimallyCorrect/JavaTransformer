@@ -47,7 +47,7 @@ public class AnnotationParser {
 		} else if (annotationExpr instanceof NormalAnnotationExpr) {
 			val map = new HashMap<String, Object>();
 			for (MemberValuePair memberValuePair : ((NormalAnnotationExpr) annotationExpr).getPairs()) {
-				map.put(memberValuePair.getName(), expressionToValue(memberValuePair.getValue()));
+				map.put(memberValuePair.getName().asString(), expressionToValue(memberValuePair.getValue()));
 			}
 			return Annotation.of(t, map);
 		} else if (annotationExpr instanceof MarkerAnnotationExpr) {

@@ -1,5 +1,6 @@
 package org.minimallycorrect.javatransformer.api;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.val;
@@ -130,13 +131,19 @@ public class Type {
 	}
 
 	public boolean isPrimitiveType() {
-		val first = descriptor.charAt(0);
-		return first != 'L' && first != 'T';
+		return getDescriptorType().primitiveName != null;
 	}
 
 	public boolean isClassType() {
-		val first = descriptor.charAt(0);
-		return first == 'L';
+		return getDescriptorType() == DescriptorType.CLASS;
+	}
+
+	public boolean isArrayType() {
+		return getDescriptorType() == DescriptorType.ARRAY;
+	}
+
+	public DescriptorType getDescriptorType() {
+		return DescriptorType.of(descriptor.charAt(0));
 	}
 
 	public boolean isTypeParameter() {
@@ -145,26 +152,31 @@ public class Type {
 		return signature != null && signature.charAt(0) == 'T';
 	}
 
-	public String getSimpleName() {
+	public String getJavaName() {
 		if (isTypeParameter())
 			return getTypeParameterName();
-		else if (isPrimitiveType())
-			return getPrimitiveTypeName();
-		else if (isClassType())
-			return getClassName() + (hasTypeArguments() ? "<" + Joiner.on(",").join(getTypeArguments().stream().map(Type::getSimpleName)) + ">" : "");
+		val type = getDescriptorType();
+		if (type.primitiveName != null)
+			return type.primitiveName;
+		else if (type == DescriptorType.CLASS)
+			return getClassName() + (hasTypeArguments() ? "<" + Joiner.on(",").join(getTypeArguments().stream().map(Type::getJavaName)) + ">" : "");
+		else if (type == DescriptorType.ARRAY)
+			return getArrayContainedType().getJavaName() + "[]";
 
-		throw new IllegalStateException("Unknown type for type: " + this);
+		throw new IllegalStateException("Unhandled descriptor type for type: " + this);
 	}
 
 	public String getPrimitiveTypeName() {
-		if (!isPrimitiveType())
-			throw new UnsupportedOperationException("Can't get classname for type: " + this);
-		return JVMUtil.descriptorToPrimitiveType(descriptorWithoutArray());
+		val type = getDescriptorType();
+		if (type.primitiveName == null)
+			throw new UnsupportedOperationException("Can't get primitive type for: " + this);
+		return type.primitiveName;
 	}
 
 	public String getClassName() {
-		if (!isClassType())
-			throw new UnsupportedOperationException("Can't get classname for type: " + this);
+		val type = getDescriptorType();
+		if (type != DescriptorType.CLASS)
+			throw new UnsupportedOperationException("Can't get class name for: " + this);
 		return descriptorWithoutArray().substring(1, descriptor.length() - 1).replace('/', '.');
 	}
 
@@ -175,7 +187,11 @@ public class Type {
 	}
 
 	public Type remapClassNames(Function<String, String> mapper) {
-		if (!this.isClassType())
+		val type = getDescriptorType();
+		if (type == DescriptorType.ARRAY)
+			return getArrayContainedType().remapClassNames(mapper).withArrayCount(1);
+
+		if (type != DescriptorType.CLASS)
 			return new Type(descriptor, signature);
 
 		Type mappedType = Type.of(mapper.apply(getClassName()));
@@ -186,6 +202,13 @@ public class Type {
 			mappedType = mappedType.withTypeArguments(getTypeArguments().stream().map(it -> it.remapClassNames(mapper)).collect(Collectors.toList()));
 
 		return mappedType;
+	}
+
+	public Type getArrayContainedType() {
+		val type = getDescriptorType();
+		if (type != DescriptorType.ARRAY)
+			throw new UnsupportedOperationException("Can't get array contained type for: " + this);
+		return new Type(descriptor.substring(1), signatureElseDescriptor().substring(1));
 	}
 
 	public boolean hasTypeArguments() {
@@ -221,7 +244,7 @@ public class Type {
 	}
 
 	public Type withTypeArguments(Iterable<Type> genericType) {
-		if (this.isPrimitiveType())
+		if (getDescriptorType().primitiveName != null)
 			throw new UnsupportedOperationException("Can not add type argument to primitive type");
 
 		String signature = signatureElseDescriptor();
@@ -239,7 +262,7 @@ public class Type {
 	}
 
 	public String toString() {
-		return "Type(descriptor=" + this.descriptor + ", signature=" + this.signature + ", simpleName=" + getSimpleName() + ")";
+		return "Type(descriptor=" + this.descriptor + ", signature=" + this.signature + ", simpleName=" + getJavaName() + ")";
 	}
 
 	public Type withArrayCount(int arrayCount) {
@@ -259,5 +282,65 @@ public class Type {
 			signature = descriptor + signature.substring(signature.indexOf(';') + 1);
 
 		return new Type(descriptor, signature);
+	}
+
+	@AllArgsConstructor
+	public enum DescriptorType {
+		BYTE("byte"),
+		CHAR("char"),
+		DOUBLE("double"),
+		FLOAT("float"),
+		INT("int"),
+		LONG("long"),
+		SHORT("short"),
+		VOID("void"),
+		BOOLEAN("boolean"),
+		ARRAY(null),
+		CLASS(null),
+		// Project Valhalla, currently unused
+		VALUE(null),
+		UNION(null);
+
+		final String primitiveName;
+
+		public static DescriptorType of(char c) {
+			switch (c) {
+				case '[':
+					return ARRAY;
+				case 'L':
+					return CLASS;
+				case 'Q':
+					return VALUE;
+				case 'U':
+					return UNION;
+				case 'B':
+					return BYTE;
+				case 'C':
+					return CHAR;
+				case 'D':
+					return DOUBLE;
+				case 'F':
+					return FLOAT;
+				case 'I':
+					return INT;
+				case 'J':
+					return LONG;
+				case 'S':
+					return SHORT;
+				case 'V':
+					return VOID;
+				case 'Z':
+					return BOOLEAN;
+			}
+			throw new UnknownDescriptorTypeException("Unknnown descriptor type '" + c + "'");
+		}
+
+		private static class UnknownDescriptorTypeException extends RuntimeException {
+			private static final long serialVersionUID = 0;
+
+			public UnknownDescriptorTypeException(String s) {
+				super(s);
+			}
+		}
 	}
 }

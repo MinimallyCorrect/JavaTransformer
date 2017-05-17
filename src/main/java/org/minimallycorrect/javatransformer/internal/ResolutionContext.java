@@ -3,10 +3,8 @@ package org.minimallycorrect.javatransformer.internal;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.Node;
-import com.github.javaparser.ast.TypeParameter;
-import com.github.javaparser.ast.type.ClassOrInterfaceType;
-import com.github.javaparser.ast.type.PrimitiveType;
-import com.github.javaparser.ast.type.VoidType;
+import com.github.javaparser.ast.NodeList;
+import com.github.javaparser.ast.type.*;
 import lombok.NonNull;
 import lombok.val;
 import org.minimallycorrect.javatransformer.api.TransformationException;
@@ -40,7 +38,7 @@ public class ResolutionContext {
 
 	public static ResolutionContext of(Node node) {
 		CompilationUnit cu = NodeUtil.getParentNode(node, CompilationUnit.class);
-		String packageName = NodeUtil.qualifiedName(cu.getPackage().getName());
+		String packageName = NodeUtil.qualifiedName(cu.getPackageDeclaration().get().getName());
 		List<TypeParameter> typeParameters = NodeUtil.getTypeParameters(node);
 
 		return new ResolutionContext(packageName, cu.getImports(), typeParameters);
@@ -86,6 +84,15 @@ public class ResolutionContext {
 	}
 
 	public static com.github.javaparser.ast.type.Type typeToJavaParserType(Type t) {
+		if (t.isPrimitiveType())
+			return new PrimitiveType(JVMUtil.searchEnum(PrimitiveType.Primitive.class, t.getPrimitiveTypeName()));
+
+		if (t.isArrayType())
+			return new ArrayType(typeToJavaParserType(t.getArrayContainedType()));
+
+		if (t.isPrimitiveType())
+			return new PrimitiveType();
+
 		if (!t.isClassType())
 			throw new UnsupportedOperationException(t + " is not a class type");
 
@@ -95,7 +102,7 @@ public class ResolutionContext {
 		val type = new ClassOrInterfaceType(t.getClassName());
 
 		if (t.hasTypeArguments())
-			type.setTypeArgs(t.getTypeArguments().stream().map(ResolutionContext::typeToJavaParserType).collect(Collectors.toList()));
+			type.setTypeArguments(NodeList.nodeList(t.getTypeArguments().stream().map(ResolutionContext::typeToJavaParserType).collect(Collectors.toList())));
 
 		return type;
 	}
@@ -107,7 +114,7 @@ public class ResolutionContext {
 			return new Type("V");
 		} else {
 			// TODO: 23/01/2016 Is this behaviour correct?
-			return resolve(type.toStringWithoutComments());
+			return resolve(type.asString());
 		}
 	}
 
@@ -235,16 +242,16 @@ public class ResolutionContext {
 	 */
 	private Type resolveTypeParameterType(String name) {
 		for (TypeParameter typeParameter : typeParameters) {
-			String typeName = typeParameter.getName();
+			String typeName = typeParameter.getName().asString();
 			if (typeName.equals(name)) {
 				val bounds = typeParameter.getTypeBound();
 				String extends_ = "Ljava/lang/Object;";
 
 				if (bounds != null && !bounds.isEmpty()) {
 					if (bounds.size() == 1) {
-						ClassOrInterfaceType scope = bounds.get(0).getScope();
+						ClassOrInterfaceType scope = bounds.get(0).getScope().orElse(null);
 						if (scope != null) {
-							extends_ = resolve(scope.getName()).descriptor;
+							extends_ = resolve(scope.getName().asString()).descriptor;
 						}
 					} else {
 						throw new TransformationException("Bounds must have one object, found: " + bounds);
@@ -303,13 +310,13 @@ public class ResolutionContext {
 		else
 			throw new IllegalArgumentException("Can't resolve type variable from " + typeParameter + " with multiple bounds");
 
-		return new TypeVariable(typeParameter.getName(), bound);
+		return new TypeVariable(typeParameter.getName().asString(), bound);
 	}
 
 	public TypeParameter unresolveTypeVariable(TypeVariable typeVariable) {
 		if (typeVariable.getBounds().equals(Type.OBJECT))
-			return new TypeParameter(typeVariable.getName(), Collections.emptyList());
+			return new TypeParameter(typeVariable.getName(), NodeList.nodeList());
 
-		return new TypeParameter(typeVariable.getName(), Collections.singletonList((ClassOrInterfaceType) typeToJavaParserType(typeVariable.getBounds())));
+		return new TypeParameter(typeVariable.getName(), NodeList.nodeList((ClassOrInterfaceType) typeToJavaParserType(typeVariable.getBounds())));
 	}
 }
