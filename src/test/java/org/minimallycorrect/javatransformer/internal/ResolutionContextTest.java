@@ -11,7 +11,7 @@ import java.util.*;
 
 public class ResolutionContextTest {
 	private ResolutionContext context() {
-		return ResolutionContext.of("org.example", Collections.emptyList(), Arrays.asList(new TypeParameter("A"), new TypeParameter("B")));
+		return ResolutionContext.of("org.example", Collections.emptyList(), Arrays.asList(new TypeParameter("A"), new TypeParameter("B")), new SearchPath(Collections.emptyList()));
 	}
 
 	@Test

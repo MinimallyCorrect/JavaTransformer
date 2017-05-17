@@ -25,23 +25,26 @@ public class ResolutionContext {
 	private final List<ImportDeclaration> imports;
 	@NonNull
 	private final Iterable<TypeParameter> typeParameters;
+	@NonNull
+	private final SearchPath searchPath;
 
-	private ResolutionContext(String packageName, List<ImportDeclaration> imports, Iterable<TypeParameter> typeParameters) {
+	private ResolutionContext(String packageName, List<ImportDeclaration> imports, Iterable<TypeParameter> typeParameters, SearchPath searchPath) {
 		this.packageName = packageName;
 		this.imports = imports;
 		this.typeParameters = typeParameters;
+		this.searchPath = searchPath;
 	}
 
-	public static ResolutionContext of(String packageName, List<ImportDeclaration> imports, Iterable<TypeParameter> typeParameters) {
-		return new ResolutionContext(packageName, imports, typeParameters);
+	public static ResolutionContext of(String packageName, List<ImportDeclaration> imports, Iterable<TypeParameter> typeParameters, SearchPath searchPath) {
+		return new ResolutionContext(packageName, imports, typeParameters, searchPath);
 	}
 
-	public static ResolutionContext of(Node node) {
+	public static ResolutionContext of(Node node, SearchPath searchPath) {
 		CompilationUnit cu = NodeUtil.getParentNode(node, CompilationUnit.class);
 		String packageName = NodeUtil.qualifiedName(cu.getPackageDeclaration().get().getName());
 		List<TypeParameter> typeParameters = NodeUtil.getTypeParameters(node);
 
-		return new ResolutionContext(packageName, cu.getImports(), typeParameters);
+		return new ResolutionContext(packageName, cu.getImports(), typeParameters, searchPath);
 	}
 
 	static boolean hasPackages(String name) {
@@ -230,7 +233,8 @@ public class ResolutionContext {
 			} catch (ClassNotFoundException ignored) {
 			}
 		}
-		// TODO: 23/01/2016 Move to separate class, do actual searching for files
+		if (searchPath.exists(s))
+			return Type.of(s);
 		return null;
 	}
 

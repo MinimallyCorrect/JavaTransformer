@@ -28,10 +28,11 @@ public class SourceInfo implements ClassInfoStreams {
 	@Getter(lazy = true)
 	private final String packageName = getPackageNameInternal();
 	@Getter(lazy = true)
-	private final ResolutionContext context = getContextInternal();
-	@Getter(lazy = true)
 	private final List<Annotation> annotations = getAnnotationsInternal();
 	private String className;
+	private SearchPath searchPath;
+	@Getter(lazy = true)
+	private final ResolutionContext context = getContextInternal();
 
 	static void changeTypeContext(ResolutionContext old, ResolutionContext new_, FieldDeclaration f) {
 		f.getVariable(0).setType(changeTypeContext(old, new_, f.getCommonType()));
@@ -50,7 +51,7 @@ public class SourceInfo implements ClassInfoStreams {
 	}
 
 	private ResolutionContext getContextInternal() {
-		return ResolutionContext.of(type.get());
+		return ResolutionContext.of(type.get(), searchPath);
 	}
 
 	@Override
@@ -243,7 +244,7 @@ public class SourceInfo implements ClassInfoStreams {
 
 		private ResolutionContext getContext() {
 			if (context != null) return context;
-			return context = ResolutionContext.of(declaration);
+			return context = ResolutionContext.of(declaration, searchPath);
 		}
 
 		@Override
@@ -308,7 +309,7 @@ public class SourceInfo implements ClassInfoStreams {
 
 		private ResolutionContext getContext() {
 			if (context != null) return context;
-			return context = ResolutionContext.of(declaration);
+			return context = ResolutionContext.of(declaration, searchPath);
 		}
 
 		@Override
@@ -395,7 +396,7 @@ public class SourceInfo implements ClassInfoStreams {
 
 		private ResolutionContext getContext() {
 			if (context != null) return context;
-			return context = ResolutionContext.of(declaration);
+			return context = ResolutionContext.of(declaration, searchPath);
 		}
 
 		@Override
