@@ -156,7 +156,8 @@ public class ResolutionContext {
 			throw new TransformationException("Couldn't resolve name: " + name +
 				"\nFound real type: " + type +
 				"\nGeneric types: " + genericTypes +
-				"\nImports:" + imports.stream().map(ResolutionContext::toString).collect(Collectors.toList())
+				"\nImports:" + imports.stream().map(ResolutionContext::toString).collect(Collectors.toList()) +
+				"\nSearchPath: " + searchPath
 			);
 
 		if (generic != null) {
