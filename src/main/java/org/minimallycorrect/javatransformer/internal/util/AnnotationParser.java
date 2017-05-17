@@ -7,6 +7,7 @@ import org.minimallycorrect.javatransformer.api.Annotation;
 import org.minimallycorrect.javatransformer.api.TransformationException;
 import org.minimallycorrect.javatransformer.api.Type;
 import org.minimallycorrect.javatransformer.internal.ResolutionContext;
+import org.minimallycorrect.javatransformer.internal.SearchPath;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
@@ -40,8 +41,8 @@ public class AnnotationParser {
 		return values;
 	}
 
-	public static Annotation annotationFromAnnotationExpr(AnnotationExpr annotationExpr) {
-		Type t = ResolutionContext.of(annotationExpr, null).resolve(NodeUtil.qualifiedName(annotationExpr.getName()));
+	public static Annotation annotationFromAnnotationExpr(AnnotationExpr annotationExpr, SearchPath path) {
+		Type t = ResolutionContext.of(annotationExpr, path).resolve(NodeUtil.qualifiedName(annotationExpr.getName()));
 		if (annotationExpr instanceof SingleMemberAnnotationExpr) {
 			return Annotation.of(t, expressionToValue(((SingleMemberAnnotationExpr) annotationExpr).getMemberValue()));
 		} else if (annotationExpr instanceof NormalAnnotationExpr) {

@@ -27,10 +27,10 @@ public class SourceInfo implements ClassInfoStreams {
 	private final Supplier<ClassOrInterfaceDeclaration> type;
 	@Getter(lazy = true)
 	private final String packageName = getPackageNameInternal();
-	@Getter(lazy = true)
-	private final List<Annotation> annotations = getAnnotationsInternal();
 	private String className;
 	private SearchPath searchPath;
+	@Getter(lazy = true)
+	private final List<Annotation> annotations = getAnnotationsInternal();
 	@Getter(lazy = true)
 	private final ResolutionContext context = getContextInternal();
 
@@ -223,7 +223,7 @@ public class SourceInfo implements ClassInfoStreams {
 	}
 
 	private List<Annotation> getAnnotationsInternal(List<AnnotationExpr> l) {
-		return l.stream().map(AnnotationParser::annotationFromAnnotationExpr).collect(Collectors.toList());
+		return l.stream().map((it) -> AnnotationParser.annotationFromAnnotationExpr(it, searchPath)).collect(Collectors.toList());
 	}
 
 	@Override
