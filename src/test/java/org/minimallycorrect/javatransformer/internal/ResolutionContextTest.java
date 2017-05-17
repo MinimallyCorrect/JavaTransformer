@@ -1,6 +1,7 @@
 package org.minimallycorrect.javatransformer.internal;
 
-import com.github.javaparser.ast.TypeParameter;
+import com.github.javaparser.ast.type.TypeParameter;
+import lombok.val;
 import org.junit.Assert;
 import org.junit.Test;
 import org.minimallycorrect.javatransformer.api.TransformationException;
@@ -10,7 +11,7 @@ import java.util.*;
 
 public class ResolutionContextTest {
 	private ResolutionContext context() {
-		return ResolutionContext.of("org.example", Collections.emptyList(), Arrays.asList(new TypeParameter("A", null), new TypeParameter("B", null)));
+		return ResolutionContext.of("org.example", Collections.emptyList(), Arrays.asList(new TypeParameter("A"), new TypeParameter("B")));
 	}
 
 	@Test
@@ -67,7 +68,16 @@ public class ResolutionContextTest {
 		Type t = context().resolve("java.util.Hashtable<Integer, long[]>");
 		Assert.assertEquals("java.util.Hashtable", t.getClassName());
 		Assert.assertEquals("java.lang.Integer", t.getTypeArguments().get(0).getClassName());
-		Assert.assertEquals("long", t.getTypeArguments().get(1).getPrimitiveTypeName());
+		Assert.assertEquals("long", t.getTypeArguments().get(1).getArrayContainedType().getPrimitiveTypeName());
+		Assert.assertEquals("long[]", t.getTypeArguments().get(1).getJavaName());
+	}
+
+	@Test
+	public void testTypeToJavaParsetType() {
+		val qualifiedType = "java.util.Hashtable<java.lang.Integer,long[]>";
+		Type t = context().resolve(qualifiedType);
+		val javaParserType = ResolutionContext.typeToJavaParserType(t);
+		Assert.assertEquals(qualifiedType, javaParserType.asString());
 	}
 
 	@Test

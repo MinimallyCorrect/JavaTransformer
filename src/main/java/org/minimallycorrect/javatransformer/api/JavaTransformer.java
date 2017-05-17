@@ -1,7 +1,6 @@
 package org.minimallycorrect.javatransformer.api;
 
 import com.github.javaparser.JavaParser;
-import com.github.javaparser.ParseException;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
@@ -243,22 +242,17 @@ public class JavaTransformer {
 
 		CachingSupplier<ClassOrInterfaceDeclaration> supplier = CachingSupplier.of(() -> {
 			byte[] bytes = data.get();
-			CompilationUnit cu;
-			try {
-				cu = JavaParser.parse(new ByteArrayInputStream(bytes));
-			} catch (ParseException e) {
-				throw new TransformationException(e);
-			}
+			CompilationUnit cu = JavaParser.parse(new ByteArrayInputStream(bytes));
 
 			List<String> tried = new ArrayList<>();
-			String packageName = NodeUtil.qualifiedName(cu.getPackage().getName());
-			for (TypeDeclaration typeDeclaration : cu.getTypes()) {
+			String packageName = NodeUtil.qualifiedName(cu.getPackageDeclaration().get().getName());
+			for (TypeDeclaration<?> typeDeclaration : cu.getTypes()) {
 				if (!(typeDeclaration instanceof ClassOrInterfaceDeclaration)) {
 					continue;
 				}
 				ClassOrInterfaceDeclaration classDeclaration = (ClassOrInterfaceDeclaration) typeDeclaration;
 
-				String shortClassName = classDeclaration.getName();
+				String shortClassName = classDeclaration.getName().asString();
 				String fullName = packageName + '.' + shortClassName;
 				if (fullName.equalsIgnoreCase(name)) {
 					return classDeclaration;

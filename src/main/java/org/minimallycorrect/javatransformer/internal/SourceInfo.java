@@ -1,7 +1,7 @@
 package org.minimallycorrect.javatransformer.internal;
 
-import com.github.javaparser.ASTHelper;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.BlockStmt;
@@ -34,7 +34,7 @@ public class SourceInfo implements ClassInfoStreams {
 	private String className;
 
 	static void changeTypeContext(ResolutionContext old, ResolutionContext new_, FieldDeclaration f) {
-		f.setType(changeTypeContext(old, new_, f.getType()));
+		f.getVariable(0).setType(changeTypeContext(old, new_, f.getCommonType()));
 	}
 
 	static com.github.javaparser.ast.type.Type changeTypeContext(ResolutionContext old, ResolutionContext new_, com.github.javaparser.ast.type.Type t) {
@@ -46,7 +46,7 @@ public class SourceInfo implements ClassInfoStreams {
 	}
 
 	private String getPackageNameInternal() {
-		return NodeUtil.qualifiedName(NodeUtil.getParentNode(type.get(), CompilationUnit.class).getPackage().getName());
+		return NodeUtil.qualifiedName(NodeUtil.getParentNode(type.get(), CompilationUnit.class).getPackageDeclaration().get().getName());
 	}
 
 	private ResolutionContext getContextInternal() {
@@ -75,7 +75,7 @@ public class SourceInfo implements ClassInfoStreams {
 
 	@Override
 	public void setAccessFlags(AccessFlags accessFlags) {
-		type.get().setModifiers(accessFlags.access);
+		type.get().setModifiers(accessFlags.toJavaParserModifierSet());
 	}
 
 	@Override
@@ -84,8 +84,8 @@ public class SourceInfo implements ClassInfoStreams {
 
 		if (method instanceof MethodDeclarationWrapper) {
 			val wrapper = (MethodDeclarationWrapper) method;
-			methodDeclaration = (MethodDeclaration) wrapper.declaration.clone();
-			methodDeclaration.setAnnotations(Collections.emptyList());
+			methodDeclaration = wrapper.declaration.clone();
+			methodDeclaration.setAnnotations(NodeList.nodeList());
 			wrapper.getClassInfo().changeTypeContext(wrapper.getContext(), getContext(), methodDeclaration);
 		} else {
 			methodDeclaration = new MethodDeclaration();
@@ -101,14 +101,12 @@ public class SourceInfo implements ClassInfoStreams {
 
 		if (field instanceof FieldDeclarationWrapper) {
 			val wrapper = (FieldDeclarationWrapper) field;
-			fieldDeclaration = (FieldDeclaration) wrapper.declaration.clone();
-			fieldDeclaration.setAnnotations(Collections.emptyList());
+			fieldDeclaration = wrapper.declaration.clone();
+			fieldDeclaration.setAnnotations(NodeList.nodeList());
 			changeTypeContext(wrapper.getContext(), getContext(), fieldDeclaration);
 		} else {
 			fieldDeclaration = new FieldDeclaration();
-			val vars = new ArrayList<VariableDeclarator>();
-			vars.add(new VariableDeclarator(new VariableDeclaratorId("unknown")));
-			fieldDeclaration.setVariables(vars);
+			fieldDeclaration.setVariables(NodeList.nodeList(new VariableDeclarator()));
 			new FieldDeclarationWrapper(fieldDeclaration).setAll(field);
 		}
 
@@ -119,24 +117,25 @@ public class SourceInfo implements ClassInfoStreams {
 			throw new TransformationException("After adding to class, didn't match. added: " + field + " result: " + result);
 	}
 
-	private void addMember(BodyDeclaration bodyDeclaration) {
+	private void addMember(BodyDeclaration<?> bodyDeclaration) {
 		bodyDeclaration.setParentNode(type.get());
 		type.get().getMembers().add(bodyDeclaration);
 	}
 
 	void changeTypeContext(ResolutionContext old, ResolutionContext new_, MethodDeclaration m) {
 		m.setType(changeTypeContext(old, new_, m.getType()));
-		m.setBody(new BlockStmt(Collections.singletonList(new ThrowStmt(new ObjectCreationExpr(null, new ClassOrInterfaceType("UnsupportedOperationException"), Collections.emptyList())))));
+		m.setBody(new BlockStmt(NodeList.nodeList(new ThrowStmt(new ObjectCreationExpr(null, new ClassOrInterfaceType("UnsupportedOperationException"), NodeList.nodeList())))));
 		NodeUtil.forChildren(m, node -> {
-			Expression scope = node.getScope();
+			Expression scope = node.getScope().orElse(null);
 			// TODO: Currently guesses that it's a type name if first character is uppercase.
 			// Should check for fields/variables which match instead
-			if (scope instanceof NameExpr && Character.isUpperCase(((NameExpr) scope).getName().charAt(0))) {
-				String name = ((NameExpr) scope).getName();
-				node.setScope(ASTHelper.createNameExpr(new_.typeToString(old.resolve(name))));
+			if (scope instanceof NameExpr) {
+				String name = ((NameExpr) scope).getName().asString();
+				if (Character.isUpperCase(name.charAt(0)))
+					node.setScope(new NameExpr(new_.typeToString(old.resolve(name))));
 			}
 		}, MethodCallExpr.class);
-		NodeUtil.forChildren(m, node -> node.setType(changeTypeContext(old, new_, node.getType())), VariableDeclarationExpr.class);
+		NodeUtil.forChildren(m, node -> node.getVariable(0).setType(changeTypeContext(old, new_, node.getCommonType())), VariableDeclarationExpr.class);
 		NodeUtil.forChildren(m, node -> node.setType(changeTypeContext(old, new_, node.getType())), TypeExpr.class);
 		NodeUtil.forChildren(m, node -> node.setType(changeTypeContext(old, new_, node.getType())), com.github.javaparser.ast.body.Parameter.class);
 	}
@@ -163,7 +162,7 @@ public class SourceInfo implements ClassInfoStreams {
 
 	@Override
 	public Type getSuperType() {
-		val extends_ = type.get().getExtends();
+		val extends_ = type.get().getExtendedTypes();
 
 		if (extends_ == null || extends_.isEmpty())
 			return null;
@@ -173,7 +172,7 @@ public class SourceInfo implements ClassInfoStreams {
 
 	@Override
 	public List<Type> getInterfaceTypes() {
-		return type.get().getImplements().stream().map(getContext()::resolve).collect(Collectors.toList());
+		return type.get().getImplementedTypes().stream().map(getContext()::resolve).collect(Collectors.toList());
 	}
 
 	public Stream<MethodInfo> getMethodStream() {
@@ -182,7 +181,7 @@ public class SourceInfo implements ClassInfoStreams {
 			.filter(Objects::nonNull);
 	}
 
-	private MethodInfo getMethodInfoWrapper(BodyDeclaration x) {
+	private MethodInfo getMethodInfoWrapper(BodyDeclaration<?> x) {
 		if (x instanceof MethodDeclaration)
 			return new MethodDeclarationWrapper((MethodDeclaration) x);
 
@@ -249,12 +248,12 @@ public class SourceInfo implements ClassInfoStreams {
 
 		@Override
 		public String getName() {
-			return declaration.getVariables().get(0).getId().getName();
+			return declaration.getVariables().get(0).getName().asString();
 		}
 
 		@Override
 		public void setName(String name) {
-			declaration.getVariables().get(0).getId().setName(name);
+			declaration.getVariables().get(0).setName(name);
 		}
 
 		@Override
@@ -264,17 +263,17 @@ public class SourceInfo implements ClassInfoStreams {
 
 		@Override
 		public void setAccessFlags(AccessFlags accessFlags) {
-			declaration.setModifiers(accessFlags.access);
+			declaration.setModifiers(accessFlags.toJavaParserModifierSet());
 		}
 
 		@Override
 		public Type getType() {
-			return getContext().resolve(declaration.getType());
+			return getContext().resolve(declaration.getCommonType());
 		}
 
 		@Override
 		public void setType(Type type) {
-			declaration.setType(SourceInfo.this.setType(type, declaration.getType()));
+			declaration.getVariable(0).setType(SourceInfo.this.setType(type, declaration.getCommonType()));
 		}
 
 		@Override
@@ -295,7 +294,7 @@ public class SourceInfo implements ClassInfoStreams {
 		@Override
 		@SuppressWarnings("MethodDoesntCallSuperMethod")
 		public FieldDeclarationWrapper clone() {
-			return new FieldDeclarationWrapper((FieldDeclaration) declaration.clone());
+			return new FieldDeclarationWrapper(declaration.clone());
 		}
 	}
 
@@ -325,7 +324,7 @@ public class SourceInfo implements ClassInfoStreams {
 		@Override
 		public List<Parameter> getParameters() {
 			return declaration.getParameters().stream()
-				.map((parameter) -> new Parameter(getContext().resolve(parameter.getType()), parameter.getId().getName()))
+				.map((parameter) -> new Parameter(getContext().resolve(parameter.getType()), parameter.getName().asString()))
 				.collect(Collectors.toList());
 		}
 
@@ -336,7 +335,7 @@ public class SourceInfo implements ClassInfoStreams {
 
 		@Override
 		public String getName() {
-			return declaration.getName();
+			return declaration.getName().asString();
 		}
 
 		@Override
@@ -351,7 +350,7 @@ public class SourceInfo implements ClassInfoStreams {
 
 		@Override
 		public void setAccessFlags(AccessFlags accessFlags) {
-			declaration.setModifiers(accessFlags.access);
+			declaration.setModifiers(accessFlags.toJavaParserModifierSet());
 		}
 
 		@Override
@@ -376,13 +375,13 @@ public class SourceInfo implements ClassInfoStreams {
 
 		@Override
 		public void setTypeVariables(List<TypeVariable> typeVariables) {
-			declaration.setTypeParameters(typeVariables.stream().map(getContext()::unresolveTypeVariable).collect(Collectors.toList()));
+			declaration.setTypeParameters(NodeList.nodeList(typeVariables.stream().map(getContext()::unresolveTypeVariable).collect(Collectors.toList())));
 		}
 
 		@Override
 		@SuppressWarnings("MethodDoesntCallSuperMethod")
 		public MethodDeclarationWrapper clone() {
-			return new MethodDeclarationWrapper((MethodDeclaration) declaration.clone());
+			return new MethodDeclarationWrapper(declaration.clone());
 		}
 	}
 
@@ -412,7 +411,7 @@ public class SourceInfo implements ClassInfoStreams {
 		@Override
 		public List<Parameter> getParameters() {
 			return declaration.getParameters().stream()
-				.map((parameter) -> new Parameter(getContext().resolve(parameter.getType()), parameter.getId().getName()))
+				.map((parameter) -> new Parameter(getContext().resolve(parameter.getType()), parameter.getName().asString()))
 				.collect(Collectors.toList());
 		}
 
@@ -438,7 +437,7 @@ public class SourceInfo implements ClassInfoStreams {
 
 		@Override
 		public void setAccessFlags(AccessFlags accessFlags) {
-			declaration.setModifiers(accessFlags.access);
+			declaration.setModifiers(accessFlags.toJavaParserModifierSet());
 		}
 
 		@Override
@@ -469,7 +468,7 @@ public class SourceInfo implements ClassInfoStreams {
 		@Override
 		@SuppressWarnings("MethodDoesntCallSuperMethod")
 		public ConstructorDeclarationWrapper clone() {
-			return new ConstructorDeclarationWrapper((ConstructorDeclaration) declaration.clone());
+			return new ConstructorDeclarationWrapper(declaration.clone());
 		}
 	}
 }

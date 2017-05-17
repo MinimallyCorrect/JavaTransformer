@@ -1,11 +1,11 @@
 package org.minimallycorrect.javatransformer.internal.util;
 
 import com.github.javaparser.ast.Node;
-import com.github.javaparser.ast.TypeParameter;
+import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.expr.NameExpr;
-import com.github.javaparser.ast.expr.QualifiedNameExpr;
+import com.github.javaparser.ast.expr.Name;
+import com.github.javaparser.ast.type.TypeParameter;
 import lombok.experimental.UtilityClass;
 
 import java.util.*;
@@ -19,7 +19,7 @@ public class NodeUtil {
 
 	@SuppressWarnings("unchecked")
 	public static <T> void forChildren(Node node, Consumer<T> nodeConsumer, Class<T> ofClass) {
-		for (Node child : node.getChildrenNodes()) {
+		for (Node child : node.getChildNodes()) {
 			if (ofClass.isAssignableFrom(child.getClass()))
 				nodeConsumer.accept((T) child);
 
@@ -39,7 +39,7 @@ public class NodeUtil {
 				parameters.addAll(extra);
 			}
 
-			node = node.getParentNode();
+			node = node.getParentNode().orElse(null);
 		}
 	}
 
@@ -59,7 +59,7 @@ public class NodeUtil {
 				parameters.add(extra);
 			}
 
-			node = node.getParentNode();
+			node = node.getParentNode().orElse(null);
 		}
 	}
 
@@ -67,7 +67,7 @@ public class NodeUtil {
 		return getFromList(node, NodeUtil::getTypeParametersOnly);
 	}
 
-	private static List<TypeParameter> getTypeParametersOnly(Node node) {
+	private static NodeList<TypeParameter> getTypeParametersOnly(Node node) {
 		if (node instanceof ClassOrInterfaceDeclaration) {
 			return ((ClassOrInterfaceDeclaration) node).getTypeParameters();
 		}
@@ -82,27 +82,14 @@ public class NodeUtil {
 	@SuppressWarnings("unchecked")
 	public static <T extends Node> T getParentNode(Node node, Class<T> target) {
 		while (true) {
-			node = node.getParentNode();
+			node = node.getParentNode().orElse(null);
 			if (node == null || target.isAssignableFrom(node.getClass())) {
 				return (T) node;
 			}
 		}
 	}
 
-	static void qualifiedName(NameExpr nameExpr, StringBuilder builder) {
-		if (nameExpr instanceof QualifiedNameExpr) {
-			qualifiedName(((QualifiedNameExpr) nameExpr).getQualifier(), builder);
-			builder.append('.');
-		}
-
-		builder.append(nameExpr.getName());
-	}
-
-	public static String qualifiedName(NameExpr nameExpr) {
-		StringBuilder sb = new StringBuilder();
-
-		qualifiedName(nameExpr, sb);
-
-		return sb.toString();
+	public static String qualifiedName(Name name) {
+		return name.asString();
 	}
 }

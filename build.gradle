@@ -34,17 +34,13 @@ repositories {
 	jcenter()
 }
 
-configurations {
-	hidden
-	compile.extendsFrom hidden
-}
-
 dependencies {
 	testCompile "junit:junit:4.12"
 	compile 'org.ow2.asm:asm-debug-all:5.0.4'
-	compile 'com.github.javaparser:javaparser-core:2.3.0'
-	hidden 'org.jetbrains:annotations:15.0'
-	hidden 'org.projectlombok:lombok:1.16.16'
+	compile 'com.github.javaparser:javaparser-core:3.2.4'
+	compileOnly 'org.jetbrains:annotations:15.0'
+	compileOnly 'org.projectlombok:lombok:1.16.16'
+	testCompileOnly 'org.projectlombok:lombok:1.16.16'
 }
 
 jar {
@@ -66,4 +62,8 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 
 artifacts {
 	archives sourcesJar
+}
+
+wrapper {
+	gradleVersion = "3.5"
 }

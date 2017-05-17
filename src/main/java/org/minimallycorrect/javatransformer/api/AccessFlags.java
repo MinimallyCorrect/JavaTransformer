@@ -1,6 +1,10 @@
 package org.minimallycorrect.javatransformer.api;
 
+import com.github.javaparser.ast.Modifier;
+import lombok.val;
 import org.minimallycorrect.javatransformer.internal.util.JVMUtil;
+
+import java.util.*;
 
 public class AccessFlags {
 	public static final int ACC_PUBLIC = 0x0001; // class, field, method
@@ -26,6 +30,66 @@ public class AccessFlags {
 
 	public AccessFlags(int access) {
 		this.access = access;
+	}
+
+	public AccessFlags(EnumSet<Modifier> modifiers) {
+		this(accessFor(modifiers));
+	}
+
+	private static int accessFor(EnumSet<Modifier> modifiers) {
+		int access = 0;
+		if (modifiers.contains(Modifier.PUBLIC))
+			access |= ACC_PUBLIC;
+		if (modifiers.contains(Modifier.PRIVATE))
+			access |= ACC_PRIVATE;
+		if (modifiers.contains(Modifier.PROTECTED))
+			access |= ACC_PROTECTED;
+		if (modifiers.contains(Modifier.STATIC))
+			access |= ACC_STATIC;
+		if (modifiers.contains(Modifier.FINAL))
+			access |= ACC_FINAL;
+		if (modifiers.contains(Modifier.SYNCHRONIZED))
+			access |= ACC_SYNCHRONIZED;
+		if (modifiers.contains(Modifier.VOLATILE))
+			access |= ACC_VOLATILE;
+		if (modifiers.contains(Modifier.TRANSIENT))
+			access |= ACC_TRANSIENT;
+		if (modifiers.contains(Modifier.NATIVE))
+			access |= ACC_NATIVE;
+		if (modifiers.contains(Modifier.ABSTRACT))
+			access |= ACC_ABSTRACT;
+		if (modifiers.contains(Modifier.STRICTFP))
+			access |= ACC_STRICT;
+		return access;
+	}
+
+	public EnumSet<Modifier> toJavaParserModifierSet() {
+		val modifiers = new ArrayList<Modifier>();
+
+		if (has(ACC_PUBLIC))
+			modifiers.add(Modifier.PUBLIC);
+		if (has(ACC_PRIVATE))
+			modifiers.add(Modifier.PRIVATE);
+		if (has(ACC_PROTECTED))
+			modifiers.add(Modifier.PROTECTED);
+		if (has(ACC_STATIC))
+			modifiers.add(Modifier.STATIC);
+		if (has(ACC_FINAL))
+			modifiers.add(Modifier.FINAL);
+		if (has(ACC_SYNCHRONIZED))
+			modifiers.add(Modifier.SYNCHRONIZED);
+		if (has(ACC_VOLATILE))
+			modifiers.add(Modifier.VOLATILE);
+		if (has(ACC_TRANSIENT))
+			modifiers.add(Modifier.TRANSIENT);
+		if (has(ACC_NATIVE))
+			modifiers.add(Modifier.NATIVE);
+		if (has(ACC_ABSTRACT))
+			modifiers.add(Modifier.ABSTRACT);
+		if (has(ACC_STRICT))
+			modifiers.add(Modifier.STRICTFP);
+
+		return EnumSet.copyOf(modifiers);
 	}
 
 	@Override
