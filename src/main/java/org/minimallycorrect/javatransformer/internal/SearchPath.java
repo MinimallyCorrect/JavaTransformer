@@ -1,12 +1,14 @@
 package org.minimallycorrect.javatransformer.internal;
 
 import lombok.SneakyThrows;
+import lombok.ToString;
 import lombok.val;
 
 import java.nio.file.*;
 import java.util.*;
 import java.util.zip.*;
 
+@ToString
 public class SearchPath {
 	final List<Path> directories = new ArrayList<>();
 	final Set<String> paths = new HashSet<>();
@@ -27,10 +29,11 @@ public class SearchPath {
 
 	public boolean exists(String s) {
 		String name = s.replace('.', '/') + ".java";
-		for (Path directory : directories) {
+		if (paths.contains(name))
+			return true;
+		for (Path directory : directories)
 			if (Files.exists(directory.resolve(name)))
 				return true;
-		}
 		return false;
 	}
 }
