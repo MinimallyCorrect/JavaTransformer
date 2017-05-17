@@ -6,6 +6,7 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import lombok.*;
 import org.minimallycorrect.javatransformer.internal.ByteCodeInfo;
+import org.minimallycorrect.javatransformer.internal.SearchPath;
 import org.minimallycorrect.javatransformer.internal.SourceInfo;
 import org.minimallycorrect.javatransformer.internal.util.CachingSupplier;
 import org.minimallycorrect.javatransformer.internal.util.FilteringClassWriter;
@@ -133,6 +134,7 @@ public class JavaTransformer {
 
 	private void loadFolder(Path input, boolean saveTransformedResults) {
 		try {
+			val searchPath = new SearchPath(Collections.singletonList(input));
 			Files.walkFileTree(input, new SimpleFileVisitor<Path>() {
 				@Override
 				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
@@ -144,7 +146,7 @@ public class JavaTransformer {
 						} catch (IOException e) {
 							throw new UncheckedIOException(e);
 						}
-					}, relativeName);
+					}, relativeName, searchPath);
 
 					saveTransformedResult(relativeName, supplier, saveTransformedResults);
 
@@ -159,8 +161,9 @@ public class JavaTransformer {
 	private void loadJar(Path p, boolean saveTransformedResults) {
 		ZipEntry entry;
 		try (ZipInputStream is = new ZipInputStream(new BufferedInputStream(new FileInputStream(p.toFile())))) {
+			val searchPath = new SearchPath(Collections.singletonList(p));
 			while ((entry = is.getNextEntry()) != null) {
-				saveTransformedResult(entry.getName(), transformBytes(() -> readFully(is), entry.getName()), saveTransformedResults);
+				saveTransformedResult(entry.getName(), transformBytes(() -> readFully(is), entry.getName(), searchPath), saveTransformedResults);
 			}
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
@@ -236,7 +239,7 @@ public class JavaTransformer {
 		transformers.add(t);
 	}
 
-	public Supplier<byte[]> transformJava(@NonNull Supplier<byte[]> data, @NonNull String name) {
+	public Supplier<byte[]> transformJava(@NonNull Supplier<byte[]> data, @NonNull String name, SearchPath searchPath) {
 		if (!shouldTransform(name))
 			return data;
 
@@ -266,7 +269,7 @@ public class JavaTransformer {
 				+ "\nClass data: " + new String(bytes, Charset.forName("UTF-8")));
 		});
 
-		transformClassInfo(new SourceInfo(supplier, name));
+		transformClassInfo(new SourceInfo(supplier, name, searchPath));
 
 		return supplier.isCached() ? () -> supplier.get().getParentNode().toString().getBytes(Charset.forName("UTF-8")) : data;
 	}
@@ -311,7 +314,7 @@ public class JavaTransformer {
 		return !transformers.isEmpty() || !classTransformers.get(className).isEmpty();
 	}
 
-	Supplier<byte[]> transformBytes(Supplier<byte[]> dataSupplier, String relativeName) {
+	Supplier<byte[]> transformBytes(Supplier<byte[]> dataSupplier, String relativeName, SearchPath searchPath) {
 		boolean isClass = relativeName.endsWith(".class");
 		boolean isSource = relativeName.endsWith(".java");
 
@@ -325,7 +328,7 @@ public class JavaTransformer {
 			if (isClass)
 				return transformClass(dataSupplier, className);
 
-			return transformJava(dataSupplier, className);
+			return transformJava(dataSupplier, className, searchPath);
 		}
 
 		return dataSupplier;
