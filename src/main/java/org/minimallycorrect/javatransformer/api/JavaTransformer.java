@@ -271,7 +271,7 @@ public class JavaTransformer {
 
 		transformClassInfo(new SourceInfo(supplier, name, searchPath));
 
-		return supplier.isCached() ? () -> supplier.get().getParentNode().toString().getBytes(Charset.forName("UTF-8")) : data;
+		return supplier.isCached() ? () -> supplier.get().getParentNode().get().toString().getBytes(Charset.forName("UTF-8")) : data;
 	}
 
 	public Supplier<byte[]> transformClass(@NonNull Supplier<byte[]> data, @NonNull String name) {
