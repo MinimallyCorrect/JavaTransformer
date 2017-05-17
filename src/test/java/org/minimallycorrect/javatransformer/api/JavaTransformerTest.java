@@ -60,6 +60,7 @@ public class JavaTransformerTest {
 			System.out.println("Transforming class: " + c.getName() + " of type " + c.getClass().getSimpleName());
 			if (c.getName().equals(targetClass)) {
 				holder.value = true;
+				c.accessFlags(it -> it.makeAccessible(true));
 			}
 		});
 
