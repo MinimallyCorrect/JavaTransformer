@@ -4,7 +4,7 @@ plugins {
 }
 
 project.version = '1.8-SNAPSHOT'
-project.group = 'org.minimallycorrect'
+project.group = 'org.minimallycorrect.javatransformer'
 
 // Extended project information
 ext.projectName = 'JavaTransformer'
