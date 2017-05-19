@@ -61,6 +61,10 @@ public class JavaTransformerTest {
 			if (c.getName().equals(targetClass)) {
 				holder.value = true;
 				c.accessFlags(it -> it.makeAccessible(true));
+				c.getAnnotations();
+				c.getFields();
+				c.getInterfaceTypes();
+				c.getMembers();
 			}
 		});
 
