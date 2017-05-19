@@ -112,7 +112,11 @@ public class ByteCodeInfo implements ClassInfoStreams {
 	}
 
 	private List<Annotation> getAnnotationsInternal() {
-		return CollectionUtil.union(node.get().invisibleAnnotations, node.get().visibleAnnotations).map(AnnotationParser::annotationFromAnnotationNode).collect(Collectors.toList());
+		// Was failing at runtime with 'java.lang.BootstrapMethodError: java.lang.IllegalAccessError:' with no message
+		// Split up into multiple lines to try to help diagnose.
+		val allAnnotationNodes = CollectionUtil.union(node.get().invisibleAnnotations, node.get().visibleAnnotations);
+		val stream = allAnnotationNodes.map((it) -> AnnotationParser.annotationFromAnnotationNode(it));
+		return stream.collect(Collectors.toList());
 	}
 
 	@Override
