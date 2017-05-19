@@ -62,8 +62,10 @@ public class AnnotationParser {
 			return ((StringLiteralExpr) e).getValue();
 		} else if (e instanceof BooleanLiteralExpr) {
 			return ((BooleanLiteralExpr) e).getValue();
+		} else if (e instanceof ClassExpr) {
+			return ((ClassExpr) e).getType().asString();
 		}
-		throw new TransformationException("Unknown value: " + e);
+		throw new TransformationException("Unknown value: " + e + "\nClass: " + e.getClass());
 	}
 
 	private static class AnnotationVisitor extends ClassVisitor {
