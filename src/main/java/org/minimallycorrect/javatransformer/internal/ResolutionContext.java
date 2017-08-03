@@ -308,8 +308,9 @@ public class ResolutionContext {
 
 	public TypeVariable resolveTypeVariable(TypeParameter typeParameter) {
 		Type bound;
-		if (typeParameter.getTypeBound().size() == 1)
-			bound = resolve(typeParameter.getTypeBound().get(1));
+		val typeBound = typeParameter.getTypeBound();
+		if (typeBound.size() == 1)
+			bound = resolve(typeBound.get(0));
 		else if (typeParameter.getTypeBound().isEmpty())
 			bound = Type.OBJECT;
 		else
