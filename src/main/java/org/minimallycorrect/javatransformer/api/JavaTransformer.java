@@ -23,6 +23,7 @@ import java.nio.file.*;
 import java.nio.file.attribute.*;
 import java.util.*;
 import java.util.function.*;
+import java.util.stream.Stream;
 import java.util.zip.*;
 
 @Getter
@@ -371,5 +372,9 @@ public class JavaTransformer {
 
 	private static class Holder<T> {
 		public T value;
+	}
+
+	static <T> Iterable<T> iterable(Stream<T> stream) {
+		return stream::iterator;
 	}
 }

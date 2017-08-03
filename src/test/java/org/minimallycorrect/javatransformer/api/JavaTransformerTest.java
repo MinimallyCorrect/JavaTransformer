@@ -65,6 +65,7 @@ public class JavaTransformerTest {
 				c.getFields();
 				c.getInterfaceTypes();
 				c.getMembers();
+				c.getConstructors();
 			}
 		});
 

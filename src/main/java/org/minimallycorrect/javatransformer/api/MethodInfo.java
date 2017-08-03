@@ -39,4 +39,8 @@ public interface MethodInfo extends ClassMember, HasTypeVariable, Cloneable {
 	default MethodInfo clone() {
 		throw new UnsupportedOperationException();
 	}
+
+	default boolean isConstructor() {
+		return getName().equals("<init>");
+	}
 }

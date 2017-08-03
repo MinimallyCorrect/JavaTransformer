@@ -47,7 +47,7 @@ public class ResolutionContext {
 		return new ResolutionContext(packageName, cu.getImports(), typeParameters, searchPath);
 	}
 
-	static boolean hasPackages(String name) {
+	private static boolean hasPackages(String name) {
 		// Guesses whether input name includes packages or is just classes
 		return !Character.isUpperCase(name.charAt(0)) && name.indexOf('.') != -1;
 	}
