@@ -22,7 +22,7 @@ import java.util.stream.*;
 @Data
 @AllArgsConstructor
 @SuppressWarnings("unchecked")
-public class SourceInfo implements ClassInfoStreams {
+public class SourceInfo implements ClassInfo {
 	@Getter(AccessLevel.NONE)
 	private final Supplier<ClassOrInterfaceDeclaration> type;
 	@Getter(lazy = true)
@@ -176,7 +176,7 @@ public class SourceInfo implements ClassInfoStreams {
 		return type.get().getImplementedTypes().stream().map(getContext()::resolve).collect(Collectors.toList());
 	}
 
-	public Stream<MethodInfo> getMethodStream() {
+	public Stream<MethodInfo> getMethods() {
 		return type.get().getMembers().stream()
 			.map(this::getMethodInfoWrapper)
 			.filter(Objects::nonNull);
@@ -192,7 +192,7 @@ public class SourceInfo implements ClassInfoStreams {
 		return null;
 	}
 
-	public Stream<FieldInfo> getFieldStream() {
+	public Stream<FieldInfo> getFields() {
 		return type.get().getMembers().stream()
 			.filter(x -> x instanceof FieldDeclaration)
 			.map(x -> new FieldDeclarationWrapper((FieldDeclaration) x));

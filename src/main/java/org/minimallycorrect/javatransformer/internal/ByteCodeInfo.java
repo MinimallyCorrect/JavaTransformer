@@ -17,7 +17,7 @@ import java.util.stream.*;
 @Data
 @AllArgsConstructor
 @SuppressWarnings("unchecked")
-public class ByteCodeInfo implements ClassInfoStreams {
+public class ByteCodeInfo implements ClassInfo {
 	private final Supplier<ClassNode> node;
 	@Getter(lazy = true)
 	private final List<Annotation> annotations = getAnnotationsInternal();
@@ -103,11 +103,11 @@ public class ByteCodeInfo implements ClassInfoStreams {
 		return node.get().interfaces.stream().map((it) -> new Type("L" + it + ";")).collect(Collectors.toList());
 	}
 
-	public Stream<MethodInfo> getMethodStream() {
+	public Stream<MethodInfo> getMethods() {
 		return node.get().methods.stream().map(MethodNodeInfo::new);
 	}
 
-	public Stream<FieldInfo> getFieldStream() {
+	public Stream<FieldInfo> getFields() {
 		return node.get().fields.stream().map(FieldNodeInfo::new);
 	}
 
@@ -133,7 +133,7 @@ public class ByteCodeInfo implements ClassInfoStreams {
 	}
 
 	class FieldNodeInfo implements FieldInfo {
-		public final FieldNode node;
+		final FieldNode node;
 		private Type type;
 
 		FieldNodeInfo(FieldNode node) {

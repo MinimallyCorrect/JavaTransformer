@@ -2,6 +2,8 @@ package org.minimallycorrect.javatransformer.api;
 
 import java.util.*;
 import java.util.function.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public interface ClassInfo extends ClassMember {
 	default void add(ClassMember member) {
@@ -44,7 +46,7 @@ public interface ClassInfo extends ClassMember {
 	}
 
 	default MethodInfo get(MethodInfo like) {
-		for (MethodInfo methodInfo : getMethods()) {
+		for (MethodInfo methodInfo : JavaTransformer.iterable(getMethods())) {
 			if (like.similar(methodInfo))
 				return methodInfo;
 		}
@@ -53,7 +55,7 @@ public interface ClassInfo extends ClassMember {
 	}
 
 	default FieldInfo get(FieldInfo like) {
-		for (FieldInfo fieldInfo : getFields()) {
+		for (FieldInfo fieldInfo : JavaTransformer.iterable(getFields())) {
 			if (like.similar(fieldInfo))
 				return fieldInfo;
 		}
@@ -65,11 +67,17 @@ public interface ClassInfo extends ClassMember {
 		return Type.of(getName());
 	}
 
-	List<MethodInfo> getMethods();
+	Stream<MethodInfo> getMethods();
 
-	List<FieldInfo> getFields();
+	Stream<FieldInfo> getFields();
 
-	List<ClassMember> getMembers();
+	default Stream<MethodInfo> getConstructors() {
+		return getMethods().filter(MethodInfo::isConstructor);
+	}
+
+	default Stream<ClassMember> getMembers() {
+		return Stream.concat(getFields(), getMethods());
+	}
 
 	default void accessFlags(Function<AccessFlags, AccessFlags> c) {
 		setAccessFlags(c.apply(getAccessFlags()));
