@@ -23,7 +23,7 @@ import java.nio.file.*;
 import java.nio.file.attribute.*;
 import java.util.*;
 import java.util.function.*;
-import java.util.stream.Stream;
+import java.util.stream.*;
 import java.util.zip.*;
 
 @Getter
@@ -198,6 +198,7 @@ public class JavaTransformer {
 				try {
 					os.putNextEntry(new ZipEntry(relativeName));
 					os.write(bytes);
+					os.closeEntry();
 				} catch (IOException e) {
 					throw new UncheckedIOException(e);
 				}
