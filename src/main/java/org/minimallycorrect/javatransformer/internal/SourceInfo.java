@@ -81,19 +81,25 @@ public class SourceInfo implements ClassInfo {
 
 	@Override
 	public void add(MethodInfo method) {
-		MethodDeclaration methodDeclaration;
+		BodyDeclaration<?> declaration;
 
 		if (method instanceof MethodDeclarationWrapper) {
 			val wrapper = (MethodDeclarationWrapper) method;
-			methodDeclaration = wrapper.declaration.clone();
+			val methodDeclaration = wrapper.declaration.clone();
+			declaration = methodDeclaration;
 			methodDeclaration.setAnnotations(NodeList.nodeList());
 			wrapper.getClassInfo().changeTypeContext(wrapper.getContext(), getContext(), methodDeclaration);
+		} else if (method.isConstructor()) {
+			val constructorDeclaration = new ConstructorDeclaration();
+			declaration = constructorDeclaration;
+			new ConstructorDeclarationWrapper(constructorDeclaration).setAll(method);
 		} else {
-			methodDeclaration = new MethodDeclaration();
+			val methodDeclaration = new MethodDeclaration();
+			declaration = methodDeclaration;
 			new MethodDeclarationWrapper(methodDeclaration).setAll(method);
 		}
 
-		addMember(methodDeclaration);
+		addMember(declaration);
 	}
 
 	@Override
@@ -406,7 +412,8 @@ public class SourceInfo implements ClassInfo {
 
 		@Override
 		public void setReturnType(Type type) {
-			throw new UnsupportedOperationException("Can't setReturnType of constructor");
+			if (!type.equals(getReturnType()))
+				throw new UnsupportedOperationException("Can't setReturnType of constructor");
 		}
 
 		@Override
@@ -428,7 +435,8 @@ public class SourceInfo implements ClassInfo {
 
 		@Override
 		public void setName(String name) {
-			throw new UnsupportedOperationException("Can't setName of constructor");
+			if (!name.equals("<init>"))
+				throw new UnsupportedOperationException("Can't setName of constructor");
 		}
 
 		@Override
@@ -463,7 +471,8 @@ public class SourceInfo implements ClassInfo {
 
 		@Override
 		public void setTypeVariables(List<TypeVariable> typeVariables) {
-			throw new UnsupportedOperationException("Can't set type variables on a constructor");
+			if (!typeVariables.isEmpty())
+				throw new UnsupportedOperationException("Can't set type variables on a constructor");
 		}
 
 		@Override
