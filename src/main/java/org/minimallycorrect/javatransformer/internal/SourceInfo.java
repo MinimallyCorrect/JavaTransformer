@@ -425,7 +425,8 @@ public class SourceInfo implements ClassInfo {
 
 		@Override
 		public void setParameters(List<Parameter> parameters) {
-			throw new UnsupportedOperationException();
+			val javaParserParameters = parameters.stream().map(p -> new com.github.javaparser.ast.body.Parameter(ResolutionContext.typeToJavaParserType(new Type(p.descriptor, p.signature)), p.name)).collect(Collectors.toList());
+			declaration.setParameters(NodeList.nodeList(javaParserParameters));
 		}
 
 		@Override
