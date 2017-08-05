@@ -91,6 +91,8 @@ public class SourceInfo implements ClassInfo {
 			wrapper.getClassInfo().changeTypeContext(wrapper.getContext(), getContext(), methodDeclaration);
 		} else if (method.isConstructor()) {
 			val constructorDeclaration = new ConstructorDeclaration();
+			val name = getName();
+			constructorDeclaration.setName(new SimpleName(name.substring(name.lastIndexOf('.') + 1)));
 			declaration = constructorDeclaration;
 			new ConstructorDeclarationWrapper(constructorDeclaration).setAll(method);
 		} else {
