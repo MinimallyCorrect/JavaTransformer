@@ -148,6 +148,10 @@ public class ResolutionContext {
 		String generic = extractGeneric(name);
 		List<Type> genericTypes = null;
 
+		if ("".equals(generic)) {
+			// TODO: properly mark this so we keep <> instead of becoming raw type
+			generic = null;
+		}
 		if (generic != null) {
 			genericTypes = Splitter.commaSplitter.split(generic).map(this::resolve).collect(Collectors.toList());
 		}
