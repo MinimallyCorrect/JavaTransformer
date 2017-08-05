@@ -86,4 +86,10 @@ public class ResolutionContextTest {
 		Assert.assertEquals("A", t.getTypeArguments().get(0).getTypeParameterName());
 		Assert.assertEquals("B", t.getTypeArguments().get(1).getTypeParameterName());
 	}
+
+	@Test
+	public void testAutomaticGenericType() {
+		Type t = context().resolve("java.util.Hashtable<>");
+		Assert.assertEquals("java.util.Hashtable", t.getClassName());
+	}
 }

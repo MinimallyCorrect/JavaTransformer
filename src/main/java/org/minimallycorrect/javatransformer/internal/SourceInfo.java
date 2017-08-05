@@ -35,7 +35,16 @@ public class SourceInfo implements ClassInfo {
 	private final ResolutionContext context = getContextInternal();
 
 	static void changeTypeContext(ResolutionContext old, ResolutionContext new_, FieldDeclaration f) {
-		f.getVariable(0).setType(changeTypeContext(old, new_, f.getCommonType()));
+		val v = f.getVariable(0);
+		v.setType(changeTypeContext(old, new_, f.getCommonType()));
+		val e = v.getInitializer().orElse(null);
+		if (e != null) {
+			NodeUtil.forChildren(e, it -> {
+				val t = (ClassOrInterfaceType) ResolutionContext.typeToJavaParserType(old.resolve(it));
+				it.setName(t.getName());
+				it.setTypeArguments(t.getTypeArguments().orElse(null));
+			}, ClassOrInterfaceType.class);
+		}
 	}
 
 	static com.github.javaparser.ast.type.Type changeTypeContext(ResolutionContext old, ResolutionContext new_, com.github.javaparser.ast.type.Type t) {
@@ -44,6 +53,24 @@ public class SourceInfo implements ClassInfo {
 			return ResolutionContext.typeToJavaParserType(current.remapClassNames(new_::typeToJavaParserType));
 		}
 		return t;
+	}
+
+	static void changeTypeContext(ResolutionContext old, ResolutionContext new_, MethodDeclaration m) {
+		m.setType(changeTypeContext(old, new_, m.getType()));
+		m.setBody(new BlockStmt(NodeList.nodeList(new ThrowStmt(new ObjectCreationExpr(null, new ClassOrInterfaceType("UnsupportedOperationException"), NodeList.nodeList())))));
+		NodeUtil.forChildren(m, node -> {
+			Expression scope = node.getScope().orElse(null);
+			// TODO: Currently guesses that it's a type name if first character is uppercase.
+			// Should check for fields/variables which match instead
+			if (scope instanceof NameExpr) {
+				String name = ((NameExpr) scope).getName().asString();
+				if (Character.isUpperCase(name.charAt(0)))
+					node.setScope(new NameExpr(new_.typeToString(old.resolve(name))));
+			}
+		}, MethodCallExpr.class);
+		NodeUtil.forChildren(m, node -> node.getVariable(0).setType(changeTypeContext(old, new_, node.getCommonType())), VariableDeclarationExpr.class);
+		NodeUtil.forChildren(m, node -> node.setType(changeTypeContext(old, new_, node.getType())), TypeExpr.class);
+		NodeUtil.forChildren(m, node -> node.setType(changeTypeContext(old, new_, node.getType())), com.github.javaparser.ast.body.Parameter.class);
 	}
 
 	private String getPackageNameInternal() {
@@ -129,24 +156,6 @@ public class SourceInfo implements ClassInfo {
 	private void addMember(BodyDeclaration<?> bodyDeclaration) {
 		bodyDeclaration.setParentNode(type.get());
 		type.get().getMembers().add(bodyDeclaration);
-	}
-
-	void changeTypeContext(ResolutionContext old, ResolutionContext new_, MethodDeclaration m) {
-		m.setType(changeTypeContext(old, new_, m.getType()));
-		m.setBody(new BlockStmt(NodeList.nodeList(new ThrowStmt(new ObjectCreationExpr(null, new ClassOrInterfaceType("UnsupportedOperationException"), NodeList.nodeList())))));
-		NodeUtil.forChildren(m, node -> {
-			Expression scope = node.getScope().orElse(null);
-			// TODO: Currently guesses that it's a type name if first character is uppercase.
-			// Should check for fields/variables which match instead
-			if (scope instanceof NameExpr) {
-				String name = ((NameExpr) scope).getName().asString();
-				if (Character.isUpperCase(name.charAt(0)))
-					node.setScope(new NameExpr(new_.typeToString(old.resolve(name))));
-			}
-		}, MethodCallExpr.class);
-		NodeUtil.forChildren(m, node -> node.getVariable(0).setType(changeTypeContext(old, new_, node.getCommonType())), VariableDeclarationExpr.class);
-		NodeUtil.forChildren(m, node -> node.setType(changeTypeContext(old, new_, node.getType())), TypeExpr.class);
-		NodeUtil.forChildren(m, node -> node.setType(changeTypeContext(old, new_, node.getType())), com.github.javaparser.ast.body.Parameter.class);
 	}
 
 	@Override
