@@ -1,9 +1,6 @@
 package org.minimallycorrect.javatransformer.api;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NonNull;
-import lombok.val;
+import lombok.*;
 import org.jetbrains.annotations.Nullable;
 import org.minimallycorrect.javatransformer.internal.ResolutionContext;
 import org.minimallycorrect.javatransformer.internal.util.*;
@@ -301,6 +298,7 @@ public class Type {
 		VALUE(null),
 		UNION(null);
 
+		@Getter
 		final String primitiveName;
 
 		public static DescriptorType of(char c) {
