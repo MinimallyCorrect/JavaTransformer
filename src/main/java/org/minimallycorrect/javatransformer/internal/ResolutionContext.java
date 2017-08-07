@@ -87,8 +87,12 @@ public class ResolutionContext {
 	}
 
 	public static com.github.javaparser.ast.type.Type typeToJavaParserType(Type t) {
-		if (t.isPrimitiveType())
+		if (t.isPrimitiveType()) {
+			val primitiveName = t.getPrimitiveTypeName();
+			if (primitiveName.equals(Type.DescriptorType.VOID.getPrimitiveName()))
+				return new VoidType();
 			return new PrimitiveType(JVMUtil.searchEnum(PrimitiveType.Primitive.class, t.getPrimitiveTypeName()));
+		}
 
 		if (t.isArrayType())
 			return new ArrayType(typeToJavaParserType(t.getArrayContainedType()));

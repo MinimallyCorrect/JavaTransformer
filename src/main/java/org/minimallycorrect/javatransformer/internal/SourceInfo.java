@@ -216,17 +216,8 @@ public class SourceInfo implements ClassInfo {
 			.map(x -> new FieldDeclarationWrapper((FieldDeclaration) x));
 	}
 
-	private com.github.javaparser.ast.type.Type toType(Type t) {
-		String name = getContext().typeToString(t);
-		if (t.isPrimitiveType()) {
-			return new PrimitiveType(JVMUtil.searchEnum(PrimitiveType.Primitive.class, name));
-		} else {
-			return new ClassOrInterfaceType(name);
-		}
-	}
-
 	private com.github.javaparser.ast.type.Type setType(Type newType, com.github.javaparser.ast.type.Type currentType) {
-		val newType_ = toType(newType);
+		val newType_ = ResolutionContext.typeToJavaParserType(newType);
 
 		if (currentType instanceof ClassOrInterfaceType && newType_ instanceof ClassOrInterfaceType) {
 			val annotations = currentType.getAnnotations();
