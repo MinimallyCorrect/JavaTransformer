@@ -39,12 +39,16 @@ public class ResolutionContext {
 		return new ResolutionContext(packageName, imports, typeParameters, searchPath);
 	}
 
-	public static ResolutionContext of(Node node, SearchPath searchPath) {
-		CompilationUnit cu = NodeUtil.getParentNode(node, CompilationUnit.class);
+	public static ResolutionContext of(Node targetNode, Node outerClassNode, SearchPath searchPath) {
+		CompilationUnit cu = NodeUtil.getParentNode(outerClassNode, CompilationUnit.class);
 		String packageName = NodeUtil.qualifiedName(cu.getPackageDeclaration().get().getName());
-		List<TypeParameter> typeParameters = NodeUtil.getTypeParameters(node);
+		List<TypeParameter> typeParameters = NodeUtil.getTypeParameters(targetNode);
 
 		return new ResolutionContext(packageName, cu.getImports(), typeParameters, searchPath);
+	}
+
+	public static ResolutionContext of(Node node, SearchPath searchPath) {
+		return of(node, node, searchPath);
 	}
 
 	private static boolean hasPackages(String name) {
