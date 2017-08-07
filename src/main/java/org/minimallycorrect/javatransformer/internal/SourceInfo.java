@@ -12,6 +12,7 @@ import lombok.*;
 import org.minimallycorrect.javatransformer.api.*;
 import org.minimallycorrect.javatransformer.api.Parameter;
 import org.minimallycorrect.javatransformer.internal.util.AnnotationParser;
+import org.minimallycorrect.javatransformer.internal.util.CachingSupplier;
 import org.minimallycorrect.javatransformer.internal.util.JVMUtil;
 import org.minimallycorrect.javatransformer.internal.util.NodeUtil;
 
@@ -342,7 +343,7 @@ public class SourceInfo implements ClassInfo {
 		@Override
 		public List<Parameter> getParameters() {
 			return declaration.getParameters().stream()
-				.map((parameter) -> new Parameter(getContext().resolve(parameter.getType()), parameter.getName().asString()))
+				.map((parameter) -> new Parameter(getContext().resolve(parameter.getType()), parameter.getName().asString(), CachingSupplier.of(() -> parameter.getAnnotations().stream().map(it -> AnnotationParser.annotationFromAnnotationExpr(it, searchPath)).collect(Collectors.toList()))))
 				.collect(Collectors.toList());
 		}
 
@@ -436,7 +437,7 @@ public class SourceInfo implements ClassInfo {
 
 		@Override
 		public void setParameters(List<Parameter> parameters) {
-			val javaParserParameters = parameters.stream().map(p -> new com.github.javaparser.ast.body.Parameter(ResolutionContext.typeToJavaParserType(new Type(p.descriptor, p.signature)), p.name)).collect(Collectors.toList());
+			val javaParserParameters = parameters.stream().map(p -> new com.github.javaparser.ast.body.Parameter(ResolutionContext.typeToJavaParserType(p.type), p.name)).collect(Collectors.toList());
 			declaration.setParameters(NodeList.nodeList(javaParserParameters));
 		}
 
