@@ -7,7 +7,7 @@ import java.lang.reflect.*;
 import java.util.*;
 
 @Data
-@RequiredArgsConstructor(staticName = "of")
+@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class Annotation {
 	@NonNull
 	public final Type type;
@@ -15,6 +15,10 @@ public class Annotation {
 	@Getter(AccessLevel.NONE)
 	@Setter(AccessLevel.NONE)
 	public final Map<String, Object> values;
+
+	public static Annotation of(Type t, Map<String, Object> value) {
+		return new Annotation(t, new HashMap<>(value));
+	}
 
 	public static Annotation of(Type t, Object value) {
 		val map = new HashMap<String, Object>();
@@ -60,6 +64,7 @@ public class Annotation {
 			throw new IllegalArgumentException("Class " + clazz.getName() + " is not an annotation");
 		if (!clazz.getName().equals(type.getClassName()))
 			throw new IllegalArgumentException("Type " + type + " can't be mapped to annotation class " + clazz);
+		val values = new HashMap<String, Object>();
 		for (val method : clazz.getDeclaredMethods()) {
 			if (!Modifier.isPublic(method.getModifiers()))
 				continue;
