@@ -55,12 +55,18 @@ public class Annotation {
 
 	@SneakyThrows
 	public <T extends java.lang.annotation.Annotation> T toAnnotation(Class<T> clazz) {
+		if (!clazz.isAnnotation())
+			throw new IllegalArgumentException("Class " + clazz.getName() + " is not an annotation");
 		if (!clazz.getName().equals(type.getClassName()))
 			throw new IllegalArgumentException("Type " + type + " can't be mapped to annotation class " + clazz);
 		val values = new HashMap<String, Object>();
 		for (val key : this.values.keySet()) {
-			val returnType = clazz.getMethod(key).getReturnType();
-			values.put(key, returnType.isPrimitive() ? this.values.get(key) : get(key, returnType));
+			val method = clazz.getMethod(key);
+			val returnType = method.getReturnType();
+			Object value = returnType.isPrimitive() ? this.values.get(key) : get(key, returnType);
+			if (value == null)
+				value = method.getDefaultValue();
+			values.put(key, value);
 		}
 		// TODO: change this to use our own proxy instead of reusing a sun.misc class
 		//noinspection unchecked
