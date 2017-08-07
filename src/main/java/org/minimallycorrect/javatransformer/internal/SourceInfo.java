@@ -251,7 +251,7 @@ public class SourceInfo implements ClassInfo {
 
 		private ResolutionContext getContext() {
 			if (context != null) return context;
-			return context = ResolutionContext.of(declaration, searchPath);
+			return context = ResolutionContext.of(declaration, SourceInfo.this.type.get(), searchPath);
 		}
 
 		@Override
@@ -316,7 +316,7 @@ public class SourceInfo implements ClassInfo {
 
 		private ResolutionContext getContext() {
 			if (context != null) return context;
-			return context = ResolutionContext.of(declaration, searchPath);
+			return context = ResolutionContext.of(declaration, SourceInfo.this.type.get(), searchPath);
 		}
 
 		@Override
@@ -405,7 +405,7 @@ public class SourceInfo implements ClassInfo {
 
 		private ResolutionContext getContext() {
 			if (context != null) return context;
-			return context = ResolutionContext.of(declaration, searchPath);
+			return context = ResolutionContext.of(declaration, SourceInfo.this.type.get(), searchPath);
 		}
 
 		@Override
