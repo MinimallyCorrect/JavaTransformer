@@ -5,6 +5,7 @@ import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.Name;
+import com.github.javaparser.ast.nodeTypes.NodeWithTypeParameters;
 import com.github.javaparser.ast.type.TypeParameter;
 import lombok.experimental.UtilityClass;
 
@@ -68,12 +69,8 @@ public class NodeUtil {
 	}
 
 	private static NodeList<TypeParameter> getTypeParametersOnly(Node node) {
-		if (node instanceof ClassOrInterfaceDeclaration) {
-			return ((ClassOrInterfaceDeclaration) node).getTypeParameters();
-		}
-
-		if (node instanceof MethodDeclaration) {
-			return ((MethodDeclaration) node).getTypeParameters();
+		if (node instanceof NodeWithTypeParameters) {
+			return ((NodeWithTypeParameters<?>) node).getTypeParameters();
 		}
 
 		return null;
