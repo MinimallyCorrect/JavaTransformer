@@ -81,7 +81,7 @@ public class JVMUtil {
 				return each;
 			}
 		}
-		return null;
+		throw new IllegalArgumentException("Can't find enum value with name " + search + " in " + enumeration);
 	}
 
 	public static String getParameterList(Method m) {
