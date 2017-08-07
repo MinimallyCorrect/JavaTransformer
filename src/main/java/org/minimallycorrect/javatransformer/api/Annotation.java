@@ -3,6 +3,7 @@ package org.minimallycorrect.javatransformer.api;
 import lombok.*;
 import org.minimallycorrect.javatransformer.internal.util.JVMUtil;
 
+import java.lang.reflect.*;
 import java.util.*;
 
 @Data
@@ -54,14 +55,15 @@ public class Annotation {
 	}
 
 	@SneakyThrows
-	public <T extends java.lang.annotation.Annotation> T toAnnotation(Class<T> clazz) {
+	public <T extends java.lang.annotation.Annotation> T toInstance(Class<T> clazz) {
 		if (!clazz.isAnnotation())
 			throw new IllegalArgumentException("Class " + clazz.getName() + " is not an annotation");
 		if (!clazz.getName().equals(type.getClassName()))
 			throw new IllegalArgumentException("Type " + type + " can't be mapped to annotation class " + clazz);
-		val values = new HashMap<String, Object>();
-		for (val key : this.values.keySet()) {
-			val method = clazz.getMethod(key);
+		for (val method : clazz.getDeclaredMethods()) {
+			if (!Modifier.isPublic(method.getModifiers()))
+				continue;
+			val key = method.getName();
 			val returnType = method.getReturnType();
 			Object value = returnType.isPrimitive() ? this.values.get(key) : get(key, returnType);
 			if (value == null)
