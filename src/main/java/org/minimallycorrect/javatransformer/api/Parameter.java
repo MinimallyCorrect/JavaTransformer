@@ -1,16 +1,18 @@
 package org.minimallycorrect.javatransformer.api;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.*;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.*;
 
+@EqualsAndHashCode(exclude = {"annotationSupplier"})
 @Getter
 @ToString
 public class Parameter implements Annotated {
+	@Nullable
 	public final String name;
+	@NonNull
 	public final Type type;
 	@Getter(AccessLevel.NONE)
 	private final Supplier<List<Annotation>> annotationSupplier;
