@@ -1,9 +1,7 @@
 package org.minimallycorrect.javatransformer.api;
 
-import lombok.Data;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.val;
+import lombok.*;
+import org.minimallycorrect.javatransformer.internal.util.JVMUtil;
 
 import java.util.*;
 
@@ -13,6 +11,8 @@ public class Annotation {
 	@NonNull
 	public final Type type;
 	@NonNull
+	@Getter(AccessLevel.NONE)
+	@Setter(AccessLevel.NONE)
 	public final Map<String, Object> values;
 
 	public static Annotation of(Type t, Object value) {
@@ -23,5 +23,33 @@ public class Annotation {
 
 	public static Annotation of(Type t) {
 		return of(t, Collections.emptyMap());
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T> T get(String key, Class<T> clazz) {
+		val value = values.get(key);
+		if (value == null)
+			return null;
+		if (clazz.isAssignableFrom(value.getClass()))
+			return (T) value;
+		if (clazz.isEnum()) {
+			if (!(value instanceof String[]))
+				throw new IllegalArgumentException("value for " + key + " is not a String[] so can't be mapped to enum. Actual type " + value.getClass().getName() + " value " + value);
+			val array = ((String[]) value);
+			val type = new Type(array[0]);
+			if (!type.getClassName().endsWith(clazz.getName()))
+				throw new IllegalArgumentException("value for " + key + " is of enum type " + type + " which does not match expected type " + clazz.getName() + " actual value " + Arrays.toString(array));
+			return (T) JVMUtil.searchEnum((Class<? extends Enum<?>>) clazz, key);
+		}
+		throw new UnsupportedOperationException("Can't convert enum value of type " + value.getClass().getName() + " value " + value + " to " + clazz.getName());
+	}
+
+	public void set(String key, Object value) {
+		if (value != null) {
+			val clazz = value.getClass();
+			if (clazz.isEnum())
+				value = new String[] { Type.of(clazz.getName()).descriptor, ((Enum) value).name()};
+		}
+		values.put(key, value);
 	}
 }
