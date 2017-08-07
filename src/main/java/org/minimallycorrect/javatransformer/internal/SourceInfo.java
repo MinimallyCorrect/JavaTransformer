@@ -385,6 +385,7 @@ public class SourceInfo implements ClassInfo {
 		@Override
 		public void setTypeVariables(List<TypeVariable> typeVariables) {
 			declaration.setTypeParameters(NodeList.nodeList(typeVariables.stream().map(getContext()::unresolveTypeVariable).collect(Collectors.toList())));
+			context = null;
 		}
 
 		@Override
