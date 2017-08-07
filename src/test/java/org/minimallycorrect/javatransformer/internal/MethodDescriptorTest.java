@@ -21,10 +21,10 @@ public class MethodDescriptorTest {
 		Parameter first = d.getParameters().get(0);
 		Parameter second = d.getParameters().get(1);
 
-		Assert.assertEquals("java.lang.Object", first.getClassName());
-		Assert.assertEquals("T", first.getTypeParameterName());
+		Assert.assertEquals("java.lang.Object", first.type.getClassName());
+		Assert.assertEquals("T", first.type.getTypeParameterName());
 
-		Assert.assertEquals("java.util.ArrayList", second.getClassName());
-		Assert.assertEquals("A", second.getTypeParameterName());
+		Assert.assertEquals("java.util.ArrayList", second.type.getClassName());
+		Assert.assertEquals("A", second.type.getTypeParameterName());
 	}
 }

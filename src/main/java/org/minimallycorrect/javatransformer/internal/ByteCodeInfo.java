@@ -203,7 +203,7 @@ public class ByteCodeInfo implements ClassInfo {
 			this.node = node;
 			descriptor = CachingSupplier.of(() -> {
 				try {
-					return new MethodDescriptor(node.desc, node.signature);
+					return new MethodDescriptor(node);
 				} catch (TransformationException e) {
 					throw new TransformationException("Failed to parse method parameters in " + node.name + ':' +
 						"\n\tname: " + node.name +

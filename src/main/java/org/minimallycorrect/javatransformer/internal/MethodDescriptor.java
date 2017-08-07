@@ -3,11 +3,11 @@ package org.minimallycorrect.javatransformer.internal;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.val;
-import org.minimallycorrect.javatransformer.api.Parameter;
-import org.minimallycorrect.javatransformer.api.TransformationException;
-import org.minimallycorrect.javatransformer.api.Type;
-import org.minimallycorrect.javatransformer.api.TypeVariable;
+import org.minimallycorrect.javatransformer.api.*;
+import org.minimallycorrect.javatransformer.internal.util.AnnotationParser;
+import org.minimallycorrect.javatransformer.internal.util.CachingSupplier;
 import org.minimallycorrect.javatransformer.internal.util.TypeUtil;
+import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.MethodNode;
 
 import java.util.*;
@@ -29,8 +29,12 @@ public class MethodDescriptor {
 		this(descriptor, signature, null);
 	}
 
+	public MethodDescriptor(MethodNode node) {
+		this(getTypeVariables(node.signature), getParameters(node), getReturnType(node.desc, node.signature));
+	}
+
 	public MethodDescriptor(String descriptor, String signature, List<String> parameterNames) {
-		this(getTypeVariables(signature), getParameters(descriptor, signature, parameterNames), getReturnType(descriptor, signature));
+		this(getTypeVariables(signature), getParameters(descriptor, signature, parameterNames, null, null), getReturnType(descriptor, signature));
 	}
 
 	private static List<TypeVariable> getTypeVariables(String signature) {
@@ -70,14 +74,37 @@ public class MethodDescriptor {
 		return new Type(returnDescriptor, returnSignature);
 	}
 
-	private static List<Parameter> getParameters(String descriptor, String signature, List<String> parameterNames) {
+	private static List<Parameter> getParameters(MethodNode node) {
+		val parameterNames = new ArrayList<String>();
+		if (node.parameters != null)
+			for (val param : node.parameters)
+				parameterNames.add(param.name);
+		return getParameters(node.desc, node.signature, parameterNames, node.invisibleParameterAnnotations, node.visibleParameterAnnotations);
+	}
+
+	private static List<Parameter> getParameters(String descriptor, String signature, List<String> parameterNames, List<AnnotationNode>[] invisibleAnnotations, List<AnnotationNode>[] visibleAnnotations) {
 		val parameters = new ArrayList<Parameter>();
 
 		List<Type> parameterTypes = Type.listOf(getParameters(descriptor), getParameters(signature));
 
 		for (int i = 0; i < parameterTypes.size(); i++) {
-			String name = (parameterNames == null || parameterNames.isEmpty()) ? null : parameterNames.get(i);
-			parameters.add(new Parameter(parameterTypes.get(i), name));
+			String name = (parameterNames == null || i >= parameterNames.size()) ? null : parameterNames.get(i);
+			CachingSupplier<List<Annotation>> annotationSupplier = null;
+
+			if ((invisibleAnnotations != null && invisibleAnnotations.length > 0) || (visibleAnnotations != null && visibleAnnotations.length > 0)) {
+				val j = i;
+				annotationSupplier = CachingSupplier.of(() -> {
+					val annotations = new ArrayList<Annotation>();
+					if (invisibleAnnotations != null && j < invisibleAnnotations.length)
+						for (val node : invisibleAnnotations[j])
+							annotations.add(AnnotationParser.annotationFromAnnotationNode(node));
+					if (visibleAnnotations != null && j < visibleAnnotations.length)
+						for (val node : visibleAnnotations[j])
+							annotations.add(AnnotationParser.annotationFromAnnotationNode(node));
+					return annotations;
+				});
+			}
+			parameters.add(new Parameter(parameterTypes.get(i), name, annotationSupplier));
 		}
 
 		return parameters;
@@ -128,7 +155,7 @@ public class MethodDescriptor {
 		StringBuilder desc = new StringBuilder("(");
 
 		for (Parameter parameter : parameters) {
-			desc.append(parameter.descriptor);
+			desc.append(parameter.type.descriptor);
 		}
 
 		desc.append(")").append(returnType.descriptor);
@@ -151,9 +178,9 @@ public class MethodDescriptor {
 		signature.append("(");
 
 		for (Parameter parameter : parameters) {
-			String generic = parameter.signature;
+			String generic = parameter.type.signature;
 			if (generic == null)
-				generic = parameter.descriptor;
+				generic = parameter.type.descriptor;
 			else
 				any = true;
 
