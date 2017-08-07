@@ -39,7 +39,7 @@ public class Annotation {
 			val type = new Type(array[0]);
 			if (!type.getClassName().endsWith(clazz.getName()))
 				throw new IllegalArgumentException("value for " + key + " is of enum type " + type + " which does not match expected type " + clazz.getName() + " actual value " + Arrays.toString(array));
-			return (T) JVMUtil.searchEnum((Class<? extends Enum<?>>) clazz, key);
+			return (T) JVMUtil.searchEnum((Class<? extends Enum<?>>) clazz, array[1]);
 		}
 		throw new UnsupportedOperationException("Can't convert enum value of type " + value.getClass().getName() + " value " + value + " to " + clazz.getName());
 	}
