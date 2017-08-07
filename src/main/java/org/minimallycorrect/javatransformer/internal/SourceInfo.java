@@ -7,13 +7,11 @@ import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.ThrowStmt;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
-import com.github.javaparser.ast.type.PrimitiveType;
 import lombok.*;
 import org.minimallycorrect.javatransformer.api.*;
 import org.minimallycorrect.javatransformer.api.Parameter;
 import org.minimallycorrect.javatransformer.internal.util.AnnotationParser;
 import org.minimallycorrect.javatransformer.internal.util.CachingSupplier;
-import org.minimallycorrect.javatransformer.internal.util.JVMUtil;
 import org.minimallycorrect.javatransformer.internal.util.NodeUtil;
 
 import java.util.*;
@@ -340,7 +338,8 @@ public class SourceInfo implements ClassInfo {
 
 		@Override
 		public void setParameters(List<Parameter> parameters) {
-			throw new UnsupportedOperationException();
+			val javaParserParameters = parameters.stream().map(p -> new com.github.javaparser.ast.body.Parameter(ResolutionContext.typeToJavaParserType(p.type), p.name)).collect(Collectors.toList());
+			declaration.setParameters(NodeList.nodeList(javaParserParameters));
 		}
 
 		@Override
