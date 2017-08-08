@@ -114,7 +114,7 @@ public class SourceInfo implements ClassInfo {
 			val methodDeclaration = wrapper.declaration.clone();
 			declaration = methodDeclaration;
 			methodDeclaration.setAnnotations(NodeList.nodeList());
-			wrapper.getClassInfo().changeTypeContext(wrapper.getContext(), getContext(), methodDeclaration);
+			changeTypeContext(wrapper.getContext(), getContext(), methodDeclaration);
 		} else if (method.isConstructor()) {
 			val constructorDeclaration = new ConstructorDeclaration();
 			val name = getName();
