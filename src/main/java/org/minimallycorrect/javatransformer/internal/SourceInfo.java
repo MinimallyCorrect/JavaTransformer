@@ -238,7 +238,7 @@ public class SourceInfo implements ClassInfo {
 		return SourceInfo.this;
 	}
 
-	class FieldDeclarationWrapper implements FieldInfo {
+	public class FieldDeclarationWrapper implements FieldInfo {
 		private final FieldDeclaration declaration;
 		private ResolutionContext context;
 
@@ -306,7 +306,7 @@ public class SourceInfo implements ClassInfo {
 		}
 	}
 
-	class MethodDeclarationWrapper implements MethodInfo {
+	public class MethodDeclarationWrapper implements MethodInfo {
 		private final MethodDeclaration declaration;
 		private ResolutionContext context;
 
@@ -395,7 +395,7 @@ public class SourceInfo implements ClassInfo {
 		}
 	}
 
-	class ConstructorDeclarationWrapper implements MethodInfo {
+	public class ConstructorDeclarationWrapper implements MethodInfo {
 		private final ConstructorDeclaration declaration;
 		private ResolutionContext context;
 
