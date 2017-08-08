@@ -132,7 +132,7 @@ public class ByteCodeInfo implements ClassInfo {
 		return new MethodNodeInfo(node);
 	}
 
-	class FieldNodeInfo implements FieldInfo {
+	public class FieldNodeInfo implements FieldInfo {
 		final FieldNode node;
 		private Type type;
 
@@ -195,7 +195,7 @@ public class ByteCodeInfo implements ClassInfo {
 		}
 	}
 
-	class MethodNodeInfo implements MethodInfo {
+	public class MethodNodeInfo implements MethodInfo {
 		private final MethodNode node;
 		private CachingSupplier<MethodDescriptor> descriptor;
 
