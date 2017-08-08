@@ -30,7 +30,7 @@ public class MethodNodeInfoTest {
 		Assert.assertEquals("()Ljava/lang/Boolean;", node.desc);
 
 		val parameters = info.getParameters();
-		parameters.add(new Parameter(new Type("Ljava/lang/String;", null), "test"));
+		parameters.add(Parameter.of(new Type("Ljava/lang/String;", null), "test", null));
 		info.setParameters(parameters);
 
 		Assert.assertEquals("(Ljava/lang/String;)Ljava/lang/Boolean;", ((ByteCodeInfo.MethodNodeInfo) info).getDescriptor());
