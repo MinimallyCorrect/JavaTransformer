@@ -104,7 +104,7 @@ public class MethodDescriptor {
 					return annotations;
 				});
 			}
-			parameters.add(new Parameter(parameterTypes.get(i), name, annotationSupplier));
+			parameters.add(Parameter.of(parameterTypes.get(i), name, annotationSupplier));
 		}
 
 		return parameters;

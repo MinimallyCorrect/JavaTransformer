@@ -17,14 +17,14 @@ public class Parameter implements Annotated {
 	@Getter(AccessLevel.NONE)
 	private final Supplier<List<Annotation>> annotationSupplier;
 
-	public Parameter(Type type, String name) {
-		this(type, name, null);
-	}
-
-	public Parameter(Type type, String name, Supplier<List<Annotation>> annotationSupplier) {
+	private Parameter(Type type, String name, Supplier<List<Annotation>> annotationSupplier) {
 		this.type = type;
 		this.name = name;
 		this.annotationSupplier = annotationSupplier;
+	}
+
+	public static Parameter of(Type type, String name, Supplier<List<Annotation>> annotationSupplier) {
+		return new Parameter(type, name, annotationSupplier);
 	}
 
 	@Override
