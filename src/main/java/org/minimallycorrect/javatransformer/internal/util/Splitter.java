@@ -40,6 +40,6 @@ public interface Splitter {
 	Stream<String> split(String s);
 
 	default Iterable<String> splitIterable(String s) {
-		return () -> split(s).iterator();
+		return split(s)::iterator;
 	}
 }
