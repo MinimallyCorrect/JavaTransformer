@@ -76,7 +76,8 @@ public class Annotation {
 				value = method.getDefaultValue();
 			values.put(key, value);
 		}
-		// TODO: change this to use our own proxy instead of reusing a sun.misc class
+		// TODO: change this to use our own proxy instead of reusing a sun.reflect class
+		// (will still be in jdk.unsupported module in Java 9 so no rush...)
 		return (T) sun.reflect.annotation.AnnotationParser.annotationForMap(clazz, values);
 	}
 }
