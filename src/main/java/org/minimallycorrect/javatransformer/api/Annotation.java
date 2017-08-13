@@ -58,6 +58,7 @@ public class Annotation {
 		values.put(key, value);
 	}
 
+	@SuppressWarnings("unchecked")
 	@SneakyThrows
 	public <T extends java.lang.annotation.Annotation> T toInstance(Class<T> clazz) {
 		if (!clazz.isAnnotation())
@@ -76,7 +77,6 @@ public class Annotation {
 			values.put(key, value);
 		}
 		// TODO: change this to use our own proxy instead of reusing a sun.misc class
-		//noinspection unchecked
 		return (T) sun.reflect.annotation.AnnotationParser.annotationForMap(clazz, values);
 	}
 }
