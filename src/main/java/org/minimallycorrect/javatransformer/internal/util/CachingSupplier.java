@@ -3,6 +3,7 @@ package org.minimallycorrect.javatransformer.internal.util;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.ToString;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.*;
@@ -36,7 +37,7 @@ public class CachingSupplier<T> implements Supplier<T> {
 		return value;
 	}
 
-	public void set(@NonNull T value) {
+	public void set(@Nullable T value) {
 		this.value = value;
 	}
 
