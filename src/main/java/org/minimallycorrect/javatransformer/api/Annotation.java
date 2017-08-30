@@ -53,7 +53,7 @@ public class Annotation {
 		if (value != null) {
 			val clazz = value.getClass();
 			if (clazz.isEnum())
-				value = new String[] { Type.of(clazz.getName()).descriptor, ((Enum) value).name()};
+				value = new String[]{Type.of(clazz.getName()).descriptor, ((Enum) value).name()};
 		}
 		values.put(key, value);
 	}
@@ -81,3 +81,4 @@ public class Annotation {
 		return (T) sun.reflect.annotation.AnnotationParser.annotationForMap(clazz, values);
 	}
 }
+
