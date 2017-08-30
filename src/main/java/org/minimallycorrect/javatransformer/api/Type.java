@@ -94,6 +94,7 @@ public class Type {
 		if (genericType == null)
 			return type;
 
+		// TODO: check this handles Map<Map<a, b>, Map<b, d>> correctly?
 		return type.withTypeArguments(CollectionUtil.stream(Splitter.commaSplitter.splitIterable(genericType)).map(Type::of).collect(Collectors.toList()));
 	}
 
