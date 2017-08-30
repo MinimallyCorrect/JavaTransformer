@@ -10,6 +10,7 @@ import org.minimallycorrect.javatransformer.internal.SearchPath;
 import org.minimallycorrect.javatransformer.internal.SourceInfo;
 import org.minimallycorrect.javatransformer.internal.asm.FilteringClassWriter;
 import org.minimallycorrect.javatransformer.internal.util.CachingSupplier;
+import org.minimallycorrect.javatransformer.internal.util.DefineClass;
 import org.minimallycorrect.javatransformer.internal.util.JVMUtil;
 import org.minimallycorrect.javatransformer.internal.util.NodeUtil;
 import org.objectweb.asm.ClassReader;
@@ -334,6 +335,11 @@ public class JavaTransformer {
 		}
 
 		return dataSupplier;
+	}
+
+	public Class<?> defineClass(ClassLoader classLoader, String name) {
+		byte[] result = Objects.requireNonNull(transformedFiles.get(JVMUtil.classNameToFileName(name)));
+		return DefineClass.defineClass(classLoader, name, result);
 	}
 
 	private enum PathType {
