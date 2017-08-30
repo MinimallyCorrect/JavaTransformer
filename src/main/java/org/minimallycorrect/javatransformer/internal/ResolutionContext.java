@@ -58,7 +58,7 @@ public class ResolutionContext {
 
 	public static String extractGeneric(String name) {
 		int leftBracket = name.indexOf('<');
-		int rightBracket = name.indexOf('>');
+		int rightBracket = name.lastIndexOf('>');
 
 		if (leftBracket == -1 && rightBracket == -1)
 			return null;
