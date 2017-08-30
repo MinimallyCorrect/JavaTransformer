@@ -33,6 +33,7 @@ public class JavaTransformer {
 	private final SimpleMultiMap<String, Transformer> classTransformers = new SimpleMultiMap<>();
 	private final Map<String, byte[]> transformedFiles = new HashMap<>();
 	private final List<Consumer<JavaTransformer>> afterTransform = new ArrayList<>();
+	private final List<Path> extraSearchPaths = new ArrayList<>();
 
 	private static byte[] readFully(InputStream is) {
 		byte[] output = {};
@@ -134,7 +135,9 @@ public class JavaTransformer {
 
 	private void loadFolder(Path input, boolean saveTransformedResults) {
 		try {
-			val searchPath = new SearchPath(Collections.singletonList(input));
+			val searchPaths = new ArrayList<Path>(extraSearchPaths);
+			searchPaths.add(input);
+			val searchPath = new SearchPath(searchPaths);
 			Files.walkFileTree(input, new SimpleFileVisitor<Path>() {
 				@Override
 				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
@@ -299,6 +302,10 @@ public class JavaTransformer {
 			supplier.get().accept(classWriter);
 			return classWriter.toByteArray();
 		};
+	}
+
+	public void addSearchPath(Path path) {
+		extraSearchPaths.add(path);
 	}
 
 	private void transformClassInfo(ClassInfo editor) {
