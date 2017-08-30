@@ -38,8 +38,10 @@ public class SearchPath {
 			else if (Files.isRegularFile(path))
 				try (val zis = new ZipInputStream(Files.newInputStream(path))) {
 					ZipEntry e;
-					while ((e = zis.getNextEntry()) != null)
+					while ((e = zis.getNextEntry()) != null) {
 						findPaths(e, zis);
+						zis.closeEntry();
+					}
 				}
 	}
 
@@ -47,7 +49,18 @@ public class SearchPath {
 		val entryName = e.getName();
 		if (!e.getName().endsWith(".java"))
 			return;
-		val parsed = JavaParser.parse(zis);
+		val parsed = JavaParser.parse(new InputStream() {
+			public int read(byte[] b, int off, int len) throws IOException {
+				return zis.read(b, off, len);
+			}
+
+			public void close() throws IOException {
+			}
+
+			public int read() throws IOException {
+				return zis.read();
+			}
+		});
 		findPaths(entryName, parsed);
 	}
 
