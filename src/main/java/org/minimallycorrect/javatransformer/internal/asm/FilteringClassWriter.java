@@ -1,4 +1,4 @@
-package org.minimallycorrect.javatransformer.internal.util;
+package org.minimallycorrect.javatransformer.internal.asm;
 
 import lombok.val;
 import org.objectweb.asm.ClassReader;
