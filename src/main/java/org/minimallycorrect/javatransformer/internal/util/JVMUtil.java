@@ -146,6 +146,10 @@ public class JVMUtil {
 		return f.replace('\\', '.').replace('/', '.');
 	}
 
+	public static String classNameToFileName(String f) {
+		return f.replace('.', '/') + ".class";
+	}
+
 	private static String removeFromEnd(String s, String f) {
 		return s.endsWith(f) ? s.substring(0, s.length() - f.length()) : s;
 	}
