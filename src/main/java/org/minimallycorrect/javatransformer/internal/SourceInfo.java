@@ -74,6 +74,12 @@ public class SourceInfo implements ClassInfo {
 		NodeUtil.forChildren(m, node -> node.setType(changeTypeContext(old, new_, node.getType())), com.github.javaparser.ast.body.Parameter.class);
 	}
 
+	private static List<Parameter> getParameters(NodeWithParameters<?> nodeWithParameters, Supplier<ResolutionContext> context, SearchPath searchPath) {
+		return nodeWithParameters.getParameters().stream()
+			.map((parameter) -> Parameter.of(context.get().resolve(parameter.getType()), parameter.getName().asString(), CachingSupplier.of(() -> parameter.getAnnotations().stream().map(it -> AnnotationParser.annotationFromAnnotationExpr(it, searchPath)).collect(Collectors.toList()))))
+			.collect(Collectors.toList());
+	}
+
 	@Nullable
 	private ClassOrInterfaceDeclaration getClassOrInterfaceDeclaration() {
 		val declaration = type.get();
@@ -244,12 +250,6 @@ public class SourceInfo implements ClassInfo {
 
 	private List<Annotation> getAnnotationsInternal(List<AnnotationExpr> l) {
 		return l.stream().map((it) -> AnnotationParser.annotationFromAnnotationExpr(it, searchPath)).collect(Collectors.toList());
-	}
-
-	private static List<Parameter> getParameters(NodeWithParameters<?> nodeWithParameters, Supplier<ResolutionContext> context, SearchPath searchPath) {
-		return nodeWithParameters.getParameters().stream()
-			.map((parameter) -> Parameter.of(context.get().resolve(parameter.getType()), parameter.getName().asString(), CachingSupplier.of(() -> parameter.getAnnotations().stream().map(it -> AnnotationParser.annotationFromAnnotationExpr(it, searchPath)).collect(Collectors.toList()))))
-			.collect(Collectors.toList());
 	}
 
 	@Override
