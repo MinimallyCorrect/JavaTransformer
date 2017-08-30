@@ -4,6 +4,7 @@ public class InnerClassExample {
 	class Inner {
 
 	}
+
 	class Inner2 {
 
 	}
