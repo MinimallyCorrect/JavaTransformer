@@ -120,6 +120,11 @@ public class SourceInfo implements ClassInfo {
 	}
 
 	@Override
+	public String toString() {
+		return "SourceInfo: " + getAccessFlags() + " " + getClassName();
+	}
+
+	@Override
 	public void add(MethodInfo method) {
 		BodyDeclaration<?> declaration;
 
