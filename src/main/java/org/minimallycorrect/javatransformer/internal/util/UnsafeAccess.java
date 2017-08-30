@@ -17,17 +17,22 @@ public class UnsafeAccess {
 			Field theUnsafe = Class.forName("sun.misc.Unsafe").getDeclaredField("theUnsafe");
 			theUnsafe.setAccessible(true);
 			temp = (Unsafe) theUnsafe.get(null);
-		} catch (Exception e) {
-			Log.error("Failed to get unsafe", e);
+		} catch (Throwable t) {
+			Log.error("Failed to get unsafe", t);
 		}
 		$ = temp;
 
 		MethodHandles.Lookup lookup = MethodHandles.lookup();
 		try {
 			val field = MethodHandles.Lookup.class.getDeclaredField("IMPL_LOOKUP");
-			lookup = (MethodHandles.Lookup) $.getObject($.staticFieldBase(field), $.staticFieldOffset(field));
-		} catch (Exception e) {
-			Log.error("Failed to get MethodHandles.Lookup.IMPL_LOOKUP");
+			if ($ != null) {
+				lookup = (MethodHandles.Lookup) $.getObject($.staticFieldBase(field), $.staticFieldOffset(field));
+			} else {
+				field.setAccessible(true);
+				lookup = (MethodHandles.Lookup) field.get(null);
+			}
+		} catch (Throwable t) {
+			Log.error("Failed to get MethodHandles.Lookup.IMPL_LOOKUP", t);
 		}
 		IMPL_LOOKUP = lookup;
 	}
