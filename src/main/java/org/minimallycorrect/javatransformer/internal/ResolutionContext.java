@@ -205,7 +205,16 @@ public class ResolutionContext {
 	}
 
 	private Type resolveClassType(String name) {
-		String dotName = name.contains(".") ? name : '.' + name;
+		String dotName = name;
+		String preDotName = null;
+		String postDotName = null;
+		if (name.indexOf('.') != -1) {
+			val index = name.indexOf('.');
+			preDotName = name.substring(0, index);
+			postDotName = name.substring(index);
+		} else {
+			dotName = '.' + name;
+		}
 
 		for (ImportDeclaration anImport : imports) {
 			if (anImport.isAsterisk() || anImport.isStatic())
@@ -214,6 +223,11 @@ public class ResolutionContext {
 			String importName = classOf(anImport);
 			if (importName.endsWith(dotName)) {
 				return Type.of(importName);
+			}
+
+			// inner class in imported class
+			if (preDotName != null && importName.endsWith(preDotName)) {
+				String fullName = importName + postDotName;
 			}
 		}
 
@@ -251,7 +265,7 @@ public class ResolutionContext {
 			} catch (ClassNotFoundException ignored) {
 			}
 		}
-		if (searchPath.exists(s))
+		if (searchPath.hasClass(s))
 			return Type.of(s);
 		return null;
 	}
