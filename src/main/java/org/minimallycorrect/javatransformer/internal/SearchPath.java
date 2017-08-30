@@ -74,12 +74,11 @@ public class SearchPath {
 
 	private void findPaths(String path, TypeDeclaration<?> typeDeclaration, String packagePrefix) {
 		val parent = typeDeclaration.getParentNode().orElse(null);
-		String name;
-		if (parent instanceof TypeDeclaration)
-			name = packagePrefix + ((TypeDeclaration) parent).getNameAsString() + '.' + typeDeclaration.getNameAsString();
-		else
-			name = packagePrefix + typeDeclaration.getNameAsString();
+		val name = packagePrefix + typeDeclaration.getNameAsString();
 		classNameToPath.put(name, path);
+		for (val node : typeDeclaration.getChildNodes())
+			if (node instanceof TypeDeclaration)
+				findPaths(path, (TypeDeclaration<?>) node, name + '.');
 	}
 
 	@Override
