@@ -224,11 +224,6 @@ class AsmCodeFragmentGenerator implements Opcodes {
 				DebugPrinter.printByteCode(clonedMethod, "convertedTypes");
 			}
 
-			val insertedExecutionResult = fragment.getExecutionOutcome();
-
-			if (!executionResult.canFallThrough && insertedExecutionResult.canFallThrough)
-				throw new UnreachableInsertionException(this, InsertionPosition.AFTER);
-
 			val startIndex = containingList.indexOf(first);
 			val endIndex = containingList.indexOf(last);
 			if (startIndex == -1 || endIndex == -1)
@@ -259,6 +254,9 @@ class AsmCodeFragmentGenerator implements Opcodes {
 					}
 					break;
 				case AFTER:
+					val insertedExecutionResult = fragment.getExecutionOutcome();
+					if (!executionResult.canFallThrough && insertedExecutionResult.canFallThrough)
+						throw new UnreachableInsertionException(this, InsertionPosition.AFTER);
 					containingList.insert(last, insertInstructions);
 					break;
 				default:
