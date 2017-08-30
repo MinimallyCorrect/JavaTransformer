@@ -429,6 +429,9 @@ class AsmCodeFragmentGenerator implements Opcodes {
 		@SuppressWarnings({"JavaReflectionMemberAccess", "unchecked"})
 		@SneakyThrows
 		public <T extends CodeFragment> List<T> findFragments(Class<T> fragmentType) {
+			if (fragmentType.isAssignableFrom(this.getClass()))
+				return Collections.singletonList((T) this);
+
 			val constructor = (Constructor<T>) concreteImplementation(fragmentType).getDeclaredConstructors()[0];
 
 			val result = new ArrayList<T>();

@@ -37,7 +37,10 @@ public interface CodeFragment {
 		insert(codeFragment, position, new InsertionOptions());
 	}
 
+	@SuppressWarnings("unchecked")
 	default <T extends CodeFragment> List<T> findFragments(Class<T> fragmentType) {
+		if (fragmentType.isAssignableFrom(this.getClass()))
+			return Collections.singletonList((T) this);
 		return Collections.emptyList();
 	}
 
