@@ -13,30 +13,34 @@ import org.omg.CORBA.BooleanHolder;
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
+import java.util.stream.*;
 
 @RunWith(Parameterized.class)
 public class JavaTransformerTest {
 	private static final int EXPECTED_METHOD_CALL_COUNT = 4;
 	private static final String[] extensions = new String[]{"java", "class"};
 	private final Path input;
+	private final List<Path> extraPaths;
 	@Rule
 	public TemporaryFolder folder = new TemporaryFolder();
 
-	public JavaTransformerTest(Path input) {
-		this.input = input;
+	public JavaTransformerTest(List<Path> inputs) {
+		inputs = new ArrayList<>(inputs);
+		this.input = inputs.remove(0);
+		this.extraPaths = inputs;
 	}
 
 	@Parameterized.Parameters
-	public static Collection<Path> paths() {
+	public static Collection<List<Path>> paths() {
 		return Arrays.asList(getClassPath(), getSourcePath());
 	}
 
-	private static Path getClassPath() {
-		return JavaTransformer.pathFromClass(JavaTransformerTest.class);
+	private static List<Path> getClassPath() {
+		return new ArrayList<>(Collections.singletonList(JavaTransformer.pathFromClass(JavaTransformerTest.class)));
 	}
 
-	private static Path getSourcePath() {
-		return Paths.get("src/test/java/");
+	private static List<Path> getSourcePath() {
+		return new ArrayList<>(Arrays.asList(Paths.get("src/test/java/"), Paths.get("src/main/java")));
 	}
 
 	private static boolean exists(Path p) {
@@ -55,6 +59,8 @@ public class JavaTransformerTest {
 		Path output = folder.newFolder("output").toPath();
 
 		JavaTransformer transformer = new JavaTransformer();
+		for (Path extraPath : extraPaths)
+			transformer.addSearchPath(extraPath);
 
 		val targetClass = this.getClass().getName();
 		BooleanHolder holder = new BooleanHolder(false);
@@ -66,11 +72,13 @@ public class JavaTransformerTest {
 
 			c.accessFlags(it -> it.makeAccessible(true));
 			c.getAnnotations();
-			c.getFields();
+			c.getFields().collect(Collectors.toList());
 			c.getInterfaceTypes();
-			c.getMembers();
-			c.getConstructors();
+			c.getMembers().collect(Collectors.toList());
+			c.getConstructors().collect(Collectors.toList());
 			c.getMethods().forEach(it -> {
+				it.getReturnType();
+
 				val cf = it.getCodeFragment();
 
 				// TODO: remove once added for SourceCodeInfo
