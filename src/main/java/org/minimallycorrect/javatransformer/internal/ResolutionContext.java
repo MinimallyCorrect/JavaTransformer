@@ -228,6 +228,10 @@ public class ResolutionContext {
 			// inner class in imported class
 			if (preDotName != null && importName.endsWith(preDotName)) {
 				String fullName = importName + postDotName;
+				Type type = resolveIfExists(fullName);
+				if (type != null) {
+					return type;
+				}
 			}
 		}
 

@@ -1,11 +1,11 @@
 package org.minimallycorrect.javatransformer.transform;
 
 public class InnerClassExample {
-	class Inner {
+	public class Inner {
 
 	}
 
-	class Inner2 {
+	public class Inner2 {
 
 	}
 }
