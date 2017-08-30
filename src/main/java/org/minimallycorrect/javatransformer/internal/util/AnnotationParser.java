@@ -13,6 +13,7 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AnnotationNode;
 
+import java.lang.reflect.*;
 import java.util.*;
 import java.util.stream.*;
 
@@ -64,8 +65,19 @@ public class AnnotationParser {
 			return ((BooleanLiteralExpr) e).getValue();
 		} else if (e instanceof ClassExpr) {
 			return ((ClassExpr) e).getType().asString();
+		} else if (e instanceof ArrayInitializerExpr) {
+			return arrayExpressionToArray((ArrayInitializerExpr) e);
 		}
 		throw new TransformationException("Unknown value: " + e + "\nClass: " + e.getClass());
+	}
+
+	private static Object[] arrayExpressionToArray(ArrayInitializerExpr expr) {
+		val values = expr.getValues();
+		if (values.isEmpty())
+			return new Object[0];
+
+		val results = values.stream().map(AnnotationParser::expressionToValue).collect(Collectors.toList());
+		return results.toArray((Object[]) Array.newInstance(results.get(0).getClass(), 0));
 	}
 
 	private static class AnnotationVisitor extends ClassVisitor {
