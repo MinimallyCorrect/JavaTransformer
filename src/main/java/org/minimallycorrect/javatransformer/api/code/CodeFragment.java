@@ -2,7 +2,6 @@ package org.minimallycorrect.javatransformer.api.code;
 
 import lombok.*;
 import lombok.experimental.Wither;
-import org.jetbrains.annotations.Nullable;
 import org.minimallycorrect.javatransformer.api.TransformationException;
 import org.minimallycorrect.javatransformer.api.Type;
 
@@ -56,10 +55,10 @@ public interface CodeFragment {
 		AFTER
 	}
 
-	interface MethodCallExpression extends CodeFragment, HasInputTypes, HasContainingClassType, HasName {
+	interface MethodCallExpression extends CodeFragment, HasContainingClassType, HasName {
 	}
 
-	interface FieldAccessFragment extends CodeFragment, HasInputTypes, HasContainingClassType, HasName {
+	interface FieldAccessFragment extends CodeFragment, HasContainingClassType, HasName {
 	}
 
 	interface FieldLoadFragment extends FieldAccessFragment {
@@ -68,44 +67,10 @@ public interface CodeFragment {
 	interface FieldStoreFragment extends FieldAccessFragment {
 	}
 
-	interface ReturnFragment extends CodeFragment, HasInputType {
+	interface ReturnFragment extends CodeFragment {
 	}
 
-	interface NewExpression extends CodeFragment, HasInputTypes {
-	}
-
-	@FunctionalInterface
-	interface HasInputType extends HasInputTypes {
-		@Nullable
-		default IntermediateValue getInputType() {
-			val inputTypes = getInputTypes();
-			if (inputTypes.size() != 1)
-				throw new TransformationException("Found multiple input types, expected 1");
-			return inputTypes.get(0);
-		}
-	}
-
-	@FunctionalInterface
-	interface HasInputTypes {
-		@NonNull
-		List<IntermediateValue> getInputTypes();
-	}
-
-	@FunctionalInterface
-	interface HasOutputType extends HasOutputTypes {
-		@Nullable
-		default IntermediateValue getOutputType() {
-			val outputTypes = getOutputTypes();
-			if (outputTypes.size() != 1)
-				throw new TransformationException("Found multiple input types, expected 1");
-			return outputTypes.get(0);
-		}
-	}
-
-	@FunctionalInterface
-	interface HasOutputTypes {
-		@NonNull
-		List<IntermediateValue> getOutputTypes();
+	interface NewExpression extends CodeFragment {
 	}
 
 	@FunctionalInterface
@@ -119,6 +84,11 @@ public interface CodeFragment {
 		@NonNull
 		String getName();
 	}
+
+	/**
+	 * Marker interface, the entire body of a method
+	 */
+	interface Body extends CodeFragment { }
 
 	@AllArgsConstructor
 	@Getter

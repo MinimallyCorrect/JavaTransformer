@@ -8,7 +8,7 @@ import java.util.*;
 
 public interface HasCodeFragment {
 	@Nullable
-	default CodeFragment getCodeFragment() {
+	default CodeFragment.Body getCodeFragment() {
 		return null;
 	}
 

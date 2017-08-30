@@ -39,7 +39,7 @@ class AsmCodeFragmentGenerator implements Opcodes {
 
 	@EqualsAndHashCode
 	@RequiredArgsConstructor
-	abstract static class AsmCodeFragment implements CodeFragment, CodeFragment.HasInputTypes, CodeFragment.HasOutputTypes {
+	abstract static class AsmCodeFragment implements CodeFragment {
 		@NonNull
 		public final ByteCodeInfo.MethodNodeInfo containingMethodNodeInfo;
 
@@ -464,7 +464,7 @@ class AsmCodeFragmentGenerator implements Opcodes {
 		}
 	}
 
-	static class MethodNodeInfoCodeFragment extends AsmCodeFragment {
+	static class MethodNodeInfoCodeFragment extends AsmCodeFragment implements CodeFragment.Body {
 		public MethodNodeInfoCodeFragment(ByteCodeInfo.MethodNodeInfo containingMethodNodeInfo) {
 			super(containingMethodNodeInfo);
 		}
