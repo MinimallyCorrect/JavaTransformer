@@ -58,7 +58,7 @@ public class SourceInfo implements ClassInfo {
 
 	static void changeTypeContext(ResolutionContext old, ResolutionContext new_, MethodDeclaration m) {
 		m.setType(changeTypeContext(old, new_, m.getType()));
-		m.setBody(new BlockStmt(NodeList.nodeList(new ThrowStmt(new ObjectCreationExpr(null, new ClassOrInterfaceType("UnsupportedOperationException"), NodeList.nodeList())))));
+		m.setBody(new BlockStmt(NodeList.nodeList(new ThrowStmt(new ObjectCreationExpr(null, ResolutionContext.nonGenericClassOrInterfaceType("UnsupportedOperationException"), NodeList.nodeList())))));
 		NodeUtil.forChildren(m, node -> {
 			Expression scope = node.getScope().orElse(null);
 			// TODO: Currently guesses that it's a type name if first character is uppercase.

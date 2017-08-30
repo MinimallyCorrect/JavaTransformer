@@ -108,14 +108,19 @@ public class ResolutionContext {
 			throw new UnsupportedOperationException(t + " is not a class type");
 
 		if (t.isTypeParameter())
-			return new ClassOrInterfaceType(t.getTypeParameterName());
+			return nonGenericClassOrInterfaceType(t.getTypeParameterName());
 
-		val type = new ClassOrInterfaceType(t.getClassName());
+		val type = nonGenericClassOrInterfaceType(t.getClassName());
 
 		if (t.hasTypeArguments())
 			type.setTypeArguments(NodeList.nodeList(t.getTypeArguments().stream().map(ResolutionContext::typeToJavaParserType).collect(Collectors.toList())));
 
 		return type;
+	}
+
+	@SuppressWarnings("deprecation")
+	public static ClassOrInterfaceType nonGenericClassOrInterfaceType(String name) {
+		return new ClassOrInterfaceType(name);
 	}
 
 	public Type resolve(com.github.javaparser.ast.type.Type type) {
