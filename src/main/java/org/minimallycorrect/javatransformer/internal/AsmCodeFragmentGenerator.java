@@ -229,15 +229,6 @@ class AsmCodeFragmentGenerator implements Opcodes {
 			if (startIndex == -1 || endIndex == -1)
 				throw new ArrayIndexOutOfBoundsException();
 
-			// optional: convert method returns
-			// TODO: inputTypes should match
-			{
-				val ourInputTypes = getInputTypes();
-
-				//if (!ourInputTypes.equals(inputTypes))
-				//	throw new IllegalArgumentException("mismatch of fragment types: \n" + ourInputTypes + '\n' + inputTypes);
-			}
-
 			switch (position) {
 				case BEFORE:
 					containingList.insertBefore(first, insertInstructions);
