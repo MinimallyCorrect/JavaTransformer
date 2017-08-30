@@ -1,12 +1,14 @@
 package org.minimallycorrect.javatransformer.internal.util;
 
-import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NonNull;
+import lombok.ToString;
 
 import java.util.*;
 import java.util.function.*;
 
-@Data
+@EqualsAndHashCode
+@ToString
 public class CachingSupplier<T> implements Supplier<T> {
 	@NonNull
 	private final Supplier<T> wrapped;
