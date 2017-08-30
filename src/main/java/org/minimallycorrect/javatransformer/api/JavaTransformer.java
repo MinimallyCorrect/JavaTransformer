@@ -2,7 +2,6 @@ package org.minimallycorrect.javatransformer.api;
 
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import lombok.*;
 import org.minimallycorrect.javatransformer.internal.ByteCodeInfo;
@@ -246,22 +245,17 @@ public class JavaTransformer {
 		if (!shouldTransform(name))
 			return data;
 
-		CachingSupplier<ClassOrInterfaceDeclaration> supplier = CachingSupplier.of(() -> {
+		CachingSupplier<TypeDeclaration<?>> supplier = CachingSupplier.of(() -> {
 			byte[] bytes = data.get();
 			CompilationUnit cu = JavaParser.parse(new ByteArrayInputStream(bytes));
 
 			List<String> tried = new ArrayList<>();
 			String packageName = NodeUtil.qualifiedName(cu.getPackageDeclaration().get().getName());
 			for (TypeDeclaration<?> typeDeclaration : cu.getTypes()) {
-				if (!(typeDeclaration instanceof ClassOrInterfaceDeclaration)) {
-					continue;
-				}
-				ClassOrInterfaceDeclaration classDeclaration = (ClassOrInterfaceDeclaration) typeDeclaration;
-
-				String shortClassName = classDeclaration.getName().asString();
+				String shortClassName = typeDeclaration.getName().asString();
 				String fullName = packageName + '.' + shortClassName;
 				if (fullName.equalsIgnoreCase(name)) {
-					return classDeclaration;
+					return typeDeclaration;
 				}
 
 				tried.add(fullName);

@@ -9,6 +9,7 @@ import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.ThrowStmt;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import lombok.*;
+import org.jetbrains.annotations.Nullable;
 import org.minimallycorrect.javatransformer.api.*;
 import org.minimallycorrect.javatransformer.api.Parameter;
 import org.minimallycorrect.javatransformer.internal.util.AnnotationParser;
@@ -24,7 +25,7 @@ import java.util.stream.*;
 @SuppressWarnings("unchecked")
 public class SourceInfo implements ClassInfo {
 	@Getter(AccessLevel.NONE)
-	private final Supplier<ClassOrInterfaceDeclaration> type;
+	private final Supplier<TypeDeclaration<?>> type;
 	@Getter(lazy = true)
 	private final String packageName = getPackageNameInternal();
 	private String className;
@@ -71,6 +72,12 @@ public class SourceInfo implements ClassInfo {
 		NodeUtil.forChildren(m, node -> node.getVariable(0).setType(changeTypeContext(old, new_, node.getCommonType())), VariableDeclarationExpr.class);
 		NodeUtil.forChildren(m, node -> node.setType(changeTypeContext(old, new_, node.getType())), TypeExpr.class);
 		NodeUtil.forChildren(m, node -> node.setType(changeTypeContext(old, new_, node.getType())), com.github.javaparser.ast.body.Parameter.class);
+	}
+
+	@Nullable
+	private ClassOrInterfaceDeclaration getClassOrInterfaceDeclaration() {
+		val declaration = type.get();
+		return declaration instanceof ClassOrInterfaceDeclaration ? (ClassOrInterfaceDeclaration) declaration : null;
 	}
 
 	private String getPackageNameInternal() {
@@ -180,7 +187,11 @@ public class SourceInfo implements ClassInfo {
 
 	@Override
 	public Type getSuperType() {
-		val extends_ = type.get().getExtendedTypes();
+		val declaration = getClassOrInterfaceDeclaration();
+		if (declaration == null)
+			return null;
+
+		val extends_ = declaration.getExtendedTypes();
 
 		if (extends_ == null || extends_.isEmpty())
 			return null;
@@ -190,7 +201,8 @@ public class SourceInfo implements ClassInfo {
 
 	@Override
 	public List<Type> getInterfaceTypes() {
-		return type.get().getImplementedTypes().stream().map(getContext()::resolve).collect(Collectors.toList());
+		val declaration = getClassOrInterfaceDeclaration();
+		return declaration == null ? Collections.emptyList() : declaration.getImplementedTypes().stream().map(getContext()::resolve).collect(Collectors.toList());
 	}
 
 	public Stream<MethodInfo> getMethods() {
