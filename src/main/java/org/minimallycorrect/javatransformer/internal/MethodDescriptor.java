@@ -1,6 +1,7 @@
 package org.minimallycorrect.javatransformer.internal;
 
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.ToString;
 import lombok.val;
 import org.minimallycorrect.javatransformer.api.*;
@@ -25,7 +26,7 @@ public class MethodDescriptor {
 		this.returnType = returnType;
 	}
 
-	public MethodDescriptor(String descriptor, String signature) {
+	public MethodDescriptor(@NonNull String descriptor, String signature) {
 		this(descriptor, signature, null);
 	}
 
