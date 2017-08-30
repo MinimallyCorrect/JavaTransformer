@@ -26,7 +26,9 @@ tasks.withType(JavaCompile) {
 	options.with {
 		deprecation = true
 		encoding = 'UTF-8'
-		compilerArgs << "-Xlint:all" << "-Xlint:-path" << "-Xlint:-processing"
+		compilerArgs << "-Xlint:all" << "-Xlint:-path" << "-Xlint:-processing" << "-Xlint:-serial" << '-XDignore.symbol.file'
+		fork = true
+		forkOptions.executable = 'javac'
 	}
 }
 
