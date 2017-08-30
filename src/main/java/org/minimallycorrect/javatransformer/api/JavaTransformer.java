@@ -374,8 +374,4 @@ public class JavaTransformer {
 	private static class Holder<T> {
 		public T value;
 	}
-
-	static <T> Iterable<T> iterable(Stream<T> stream) {
-		return stream::iterator;
-	}
 }

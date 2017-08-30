@@ -1,9 +1,10 @@
 package org.minimallycorrect.javatransformer.api;
 
+import org.minimallycorrect.javatransformer.internal.util.CollectionUtil;
+
 import java.util.*;
 import java.util.function.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.stream.*;
 
 public interface ClassInfo extends ClassMember {
 	default void add(ClassMember member) {
@@ -46,7 +47,7 @@ public interface ClassInfo extends ClassMember {
 	}
 
 	default MethodInfo get(MethodInfo like) {
-		for (MethodInfo methodInfo : JavaTransformer.iterable(getMethods())) {
+		for (MethodInfo methodInfo : CollectionUtil.iterable(getMethods())) {
 			if (like.similar(methodInfo))
 				return methodInfo;
 		}
@@ -55,7 +56,7 @@ public interface ClassInfo extends ClassMember {
 	}
 
 	default FieldInfo get(FieldInfo like) {
-		for (FieldInfo fieldInfo : JavaTransformer.iterable(getFields())) {
+		for (FieldInfo fieldInfo : CollectionUtil.iterable(getFields())) {
 			if (like.similar(fieldInfo))
 				return fieldInfo;
 		}
