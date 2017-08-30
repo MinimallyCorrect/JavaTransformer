@@ -7,13 +7,16 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.minimallycorrect.javatransformer.api.code.CodeFragment;
 import org.omg.CORBA.BooleanHolder;
 
+import java.io.*;
 import java.nio.file.*;
 import java.util.*;
 
 @RunWith(Parameterized.class)
 public class JavaTransformerTest {
+	private static final int EXPECTED_METHOD_CALL_COUNT = 4;
 	private static final String[] extensions = new String[]{"java", "class"};
 	private final Path input;
 	@Rule
@@ -58,17 +61,41 @@ public class JavaTransformerTest {
 
 		transformer.addTransformer(c -> {
 			System.out.println("Transforming class: " + c.getName() + " of type " + c.getClass().getSimpleName());
-			if (c.getName().equals(targetClass)) {
+			if (c.getName().equals(targetClass))
 				holder.value = true;
-				c.accessFlags(it -> it.makeAccessible(true));
-				c.getAnnotations();
-				c.getFields();
-				c.getInterfaceTypes();
-				c.getMembers();
-				c.getConstructors();
-			}
+
+			c.accessFlags(it -> it.makeAccessible(true));
+			c.getAnnotations();
+			c.getFields();
+			c.getInterfaceTypes();
+			c.getMembers();
+			c.getConstructors();
+			c.getMethods().forEach(it -> {
+				val cf = it.getCodeFragment();
+
+				// TODO: remove once added for SourceCodeInfo
+				if (cf == null)
+					return;
+
+				Assert.assertNotNull(it + " should have a CodeFragment", cf);
+				if (it.getName().equals("testMethodCallExpression")) {
+					val methodCalls = cf.findFragments(CodeFragment.MethodCallExpression.class);
+					Assert.assertEquals(EXPECTED_METHOD_CALL_COUNT, methodCalls.size());
+					for (int i = 1; i <= EXPECTED_METHOD_CALL_COUNT; i++) {
+						val call = methodCalls.get(i - 1);
+						Assert.assertEquals(PrintStream.class.getName(), call.getContainingClassType().getClassName());
+						val inputTypes = call.getInputTypes();
+						Assert.assertNotNull("Should find inputTypes for method call expression", inputTypes);
+						Assert.assertEquals(2, inputTypes.size());
+						Assert.assertEquals(inputTypes.get(1).constantValue, String.valueOf(i));
+					}
+				} else {
+					cf.insert(cf, CodeFragment.InsertionPosition.OVERWRITE);
+				}
+			});
 		});
 
+		System.out.println("Transforming path '" + input + "' to '" + output + "'");
 		transformer.transform(input, output);
 
 		Assert.assertTrue("Transformer must process " + targetClass, holder.value);

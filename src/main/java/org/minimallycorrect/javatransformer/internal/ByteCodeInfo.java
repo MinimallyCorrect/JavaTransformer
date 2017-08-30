@@ -1,14 +1,20 @@
 package org.minimallycorrect.javatransformer.internal;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.Getter;
-import lombok.val;
+import lombok.*;
 import org.minimallycorrect.javatransformer.api.*;
-import org.minimallycorrect.javatransformer.internal.util.*;
+import org.minimallycorrect.javatransformer.api.code.CodeFragment;
+import org.minimallycorrect.javatransformer.internal.asm.CombinedAnalyzer;
+import org.minimallycorrect.javatransformer.internal.asm.CombinedInterpreter;
+import org.minimallycorrect.javatransformer.internal.asm.CombinedValue;
+import org.minimallycorrect.javatransformer.internal.asm.FilteringClassWriter;
+import org.minimallycorrect.javatransformer.internal.util.AnnotationParser;
+import org.minimallycorrect.javatransformer.internal.util.CachingSupplier;
+import org.minimallycorrect.javatransformer.internal.util.Cloner;
+import org.minimallycorrect.javatransformer.internal.util.CollectionUtil;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.analysis.Frame;
 
 import java.util.*;
 import java.util.function.*;
@@ -128,7 +134,7 @@ public class ByteCodeInfo implements ClassInfo {
 		return this;
 	}
 
-	MethodInfo wrap(MethodNode node) {
+	MethodNodeInfo wrap(MethodNode node) {
 		return new MethodNodeInfo(node);
 	}
 
@@ -196,8 +202,10 @@ public class ByteCodeInfo implements ClassInfo {
 	}
 
 	public class MethodNodeInfo implements MethodInfo {
-		private final MethodNode node;
+		public final MethodNode node;
+		private final CachingSupplier<Frame<CombinedValue>[]> stackFrames;
 		private CachingSupplier<MethodDescriptor> descriptor;
+		private CachingSupplier<CodeFragment> codeFragment;
 
 		MethodNodeInfo(MethodNode node) {
 			this.node = node;
@@ -211,6 +219,8 @@ public class ByteCodeInfo implements ClassInfo {
 						"\n\tsignature:" + node.signature, e);
 				}
 			});
+			codeFragment = CachingSupplier.of(() -> new AsmCodeFragmentGenerator.MethodNodeInfoCodeFragment(this));
+			stackFrames = CachingSupplier.of(this::analyzeStackFrames);
 		}
 
 		@Override
@@ -265,7 +275,7 @@ public class ByteCodeInfo implements ClassInfo {
 		}
 
 		@Override
-		public ClassInfo getClassInfo() {
+		public ByteCodeInfo getClassInfo() {
 			return ByteCodeInfo.this;
 		}
 
@@ -289,6 +299,25 @@ public class ByteCodeInfo implements ClassInfo {
 		@SuppressWarnings("MethodDoesntCallSuperMethod")
 		public MethodInfo clone() {
 			return new MethodNodeInfo(Cloner.clone(node));
+		}
+
+		@Override
+		public @NonNull
+		CodeFragment getCodeFragment() {
+			return codeFragment.get();
+		}
+
+		public Frame<CombinedValue>[] getStackFrames() {
+			return stackFrames.get();
+		}
+
+		@SneakyThrows
+		private Frame<CombinedValue>[] analyzeStackFrames() {
+			return CombinedAnalyzer.analyze(new CombinedInterpreter(), getClassInfo().getNode().get().name, node);
+		}
+
+		public void markCodeDirty() {
+			stackFrames.set(null);
 		}
 	}
 }
