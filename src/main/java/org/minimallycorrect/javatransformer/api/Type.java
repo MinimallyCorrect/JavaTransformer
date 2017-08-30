@@ -282,6 +282,11 @@ public class Type {
 		return new Type(descriptor, signature);
 	}
 
+	public boolean isAssignableFrom(Type type) {
+		return descriptor.equals(type.descriptor) ||
+			(isClassType() && getClassName().equals("java.lang.Object") && (type.isArrayType() || type.isClassType()));
+	}
+
 	@AllArgsConstructor
 	public enum DescriptorType {
 		BYTE("byte"),
