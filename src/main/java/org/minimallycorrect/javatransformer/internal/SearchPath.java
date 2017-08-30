@@ -6,6 +6,7 @@ import com.github.javaparser.ast.body.TypeDeclaration;
 import lombok.SneakyThrows;
 import lombok.val;
 import org.jetbrains.annotations.Nullable;
+import org.minimallycorrect.javatransformer.internal.util.Joiner;
 
 import java.io.*;
 import java.nio.file.*;
@@ -83,7 +84,7 @@ public class SearchPath {
 
 	@Override
 	public String toString() {
-		return "SearchPath: " + inputPaths;
+		return "SearchPath: " + inputPaths + " classes:\n" + Joiner.on("\n").join(classNameToPath.keySet().stream().sorted());
 	}
 
 	public boolean hasClass(String className) {
