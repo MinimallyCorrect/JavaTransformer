@@ -173,7 +173,7 @@ public class JavaTransformer {
 
 	private void saveTransformedResult(String relativeName, Supplier<byte[]> supplier, boolean saveTransformedResults) {
 		if (saveTransformedResults)
-			transformedFiles.put(relativeName, supplier.get());
+			transformedFiles.put(relativeName.replace('\\', '/'), supplier.get());
 	}
 
 	private void saveFolder(Path output) {
