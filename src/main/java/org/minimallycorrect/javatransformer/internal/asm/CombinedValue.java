@@ -92,7 +92,7 @@ public class CombinedValue implements Value, Opcodes {
 			case Type.OBJECT:
 				return type.getInternalName().equals("java/lang/Object") ? CombinedValue.REFERENCE_VALUE : new CombinedValue(type, insns);
 			default:
-				throw new IllegalArgumentException("Unhandled type" + type.getSort() + " " + type.toString());
+				throw new IllegalArgumentException("Unhandled type" + type.getSort() + " " + type);
 		}
 	}
 

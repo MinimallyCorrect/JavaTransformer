@@ -325,6 +325,8 @@ class AsmCodeFragmentGenerator implements Opcodes {
 					continue;
 				}
 				val input = movedInputTypes.get(index++);
+				if (!iv.type.isAssignableFrom(input.type))
+					throw new UnsupportedOperationException();
 				switch (iv.location.type) {
 					case STACK:
 						val var = new VarInsnNode(AsmInstructions.getLoadInstructionForType(iv), input.location.index);
@@ -339,9 +341,6 @@ class AsmCodeFragmentGenerator implements Opcodes {
 						throw new UnsupportedOperationException(iv.toString());
 				}
 			}
-
-			if (existingInputTypes.size() != index)
-				throw new IllegalStateException("size mismatch: existing input types size does not match required input type size");
 
 			rebaseLocals(locals, insertFragment, containingMethodNodeInfo.node.maxLocals);
 			insns.insert(varInsns);
