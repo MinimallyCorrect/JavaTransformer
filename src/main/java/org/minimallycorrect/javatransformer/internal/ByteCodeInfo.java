@@ -205,7 +205,7 @@ public class ByteCodeInfo implements ClassInfo {
 		public final MethodNode node;
 		private final CachingSupplier<Frame<CombinedValue>[]> stackFrames;
 		private CachingSupplier<MethodDescriptor> descriptor;
-		private CachingSupplier<CodeFragment> codeFragment;
+		private CachingSupplier<CodeFragment.Body> codeFragment;
 
 		MethodNodeInfo(MethodNode node) {
 			this.node = node;
@@ -303,7 +303,7 @@ public class ByteCodeInfo implements ClassInfo {
 
 		@Override
 		public @NonNull
-		CodeFragment getCodeFragment() {
+		CodeFragment.Body getCodeFragment() {
 			return codeFragment.get();
 		}
 
