@@ -55,22 +55,28 @@ public interface CodeFragment {
 		AFTER
 	}
 
-	interface MethodCallExpression extends CodeFragment, HasContainingClassType, HasName {
+	interface MethodCall extends CodeFragment, HasContainingClassType, HasName {
 	}
 
-	interface FieldAccessFragment extends CodeFragment, HasContainingClassType, HasName {
+	interface FieldAccess extends CodeFragment, HasContainingClassType, HasName {
 	}
 
-	interface FieldLoadFragment extends FieldAccessFragment {
+	interface FieldLoad extends FieldAccess {
 	}
 
-	interface FieldStoreFragment extends FieldAccessFragment {
+	interface FieldStore extends FieldAccess {
 	}
 
-	interface ReturnFragment extends CodeFragment {
+	interface Return extends CodeFragment {
 	}
 
-	interface NewExpression extends CodeFragment {
+	interface New extends CodeFragment {
+	}
+
+	/**
+	 * Marker interface, the entire body of a method
+	 */
+	interface Body extends CodeFragment {
 	}
 
 	@FunctionalInterface
@@ -84,11 +90,6 @@ public interface CodeFragment {
 		@NonNull
 		String getName();
 	}
-
-	/**
-	 * Marker interface, the entire body of a method
-	 */
-	interface Body extends CodeFragment { }
 
 	@AllArgsConstructor
 	@Getter

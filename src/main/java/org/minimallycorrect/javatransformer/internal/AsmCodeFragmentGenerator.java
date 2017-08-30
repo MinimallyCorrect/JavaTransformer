@@ -26,10 +26,10 @@ class AsmCodeFragmentGenerator implements Opcodes {
 	static Class<?> concreteImplementation(Class<?> interfaceType) {
 		if (interfaceType == CodeFragment.class)
 			return MethodNodeInfoCodeFragment.class;
-		if (interfaceType == CodeFragment.MethodCallExpression.class)
+		if (interfaceType == CodeFragment.MethodCall.class)
 			return MethodCall.class;
-		if (interfaceType == CodeFragment.FieldAccessFragment.class)
-			return CodeFragment.FieldAccessFragment.class;
+		if (interfaceType == CodeFragment.FieldAccess.class)
+			return CodeFragment.FieldAccess.class;
 		throw new UnsupportedOperationException("No ASM implementation for " + interfaceType);
 	}
 
@@ -495,7 +495,7 @@ class AsmCodeFragmentGenerator implements Opcodes {
 	}
 
 	@Getter
-	static class MethodCall extends InstructionCodeFragment implements CodeFragment.MethodCallExpression {
+	static class MethodCall extends InstructionCodeFragment implements CodeFragment.MethodCall {
 		private final MethodInsnNode instruction;
 
 		public MethodCall(ByteCodeInfo.MethodNodeInfo containingMethodNodeInfo, MethodInsnNode instruction) {

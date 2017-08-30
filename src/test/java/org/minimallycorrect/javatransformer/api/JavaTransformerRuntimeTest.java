@@ -42,7 +42,7 @@ public class JavaTransformerRuntimeTest {
 				val cf = it.getCodeFragment();
 				Assert.assertNotNull(it + " should have a CodeFragment", cf);
 				if (it.getName().equals("testMethodCallExpression")) {
-					val methodCalls = cf.findFragments(CodeFragment.MethodCallExpression.class);
+					val methodCalls = cf.findFragments(CodeFragment.MethodCall.class);
 					Assert.assertEquals(EXPECTED_METHOD_CALL_COUNT, methodCalls.size());
 					for (int i = 1; i <= EXPECTED_METHOD_CALL_COUNT; i++) {
 						System.out.println("call " + i);
