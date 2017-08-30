@@ -170,6 +170,7 @@ public class CombinedAnalyzer<V extends Value> implements Opcodes {
 		}
 
 		@Override
+		@SuppressWarnings("unchecked")
 		public V pop() {
 			val top = getStackSize();
 			if (top == 0) {

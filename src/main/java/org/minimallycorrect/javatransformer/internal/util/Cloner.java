@@ -73,6 +73,7 @@ public class Cloner {
 		return list == null ? null : new ArrayList<T>(list);
 	}
 
+	@SuppressWarnings("unchecked")
 	private static <T> ArrayList<T>[] clone(List<T>[] lists) {
 		if (lists == null)
 			return null;
