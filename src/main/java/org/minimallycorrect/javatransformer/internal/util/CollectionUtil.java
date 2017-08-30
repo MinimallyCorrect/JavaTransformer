@@ -1,6 +1,7 @@
 package org.minimallycorrect.javatransformer.internal.util;
 
 import lombok.experimental.UtilityClass;
+import lombok.val;
 
 import java.util.*;
 import java.util.function.*;
@@ -35,6 +36,23 @@ public class CollectionUtil {
 
 	public static <T> Iterable<T> iterable(Supplier<T> supplier) {
 		return () -> new IteratorFromSupplier<>(supplier);
+	}
+
+	public static <T> boolean equals(Collection<T> a, Collection<T> b, Comparer<T> c) {
+		if (a.size() != b.size())
+			return false;
+		val bIterator = b.iterator();
+		for (val aa : a) {
+			val bb = bIterator.next();
+			if (!c.compare(aa, bb))
+				return false;
+		}
+		return true;
+	}
+
+	@FunctionalInterface
+	public interface Comparer<T> {
+		boolean compare(T a, T b);
 	}
 
 	private static class IteratorFromSupplier<T> implements Iterator<T> {
