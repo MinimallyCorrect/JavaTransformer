@@ -91,6 +91,6 @@ public class TypeUtil {
 					throw new TransformationException("Unexpected character '" + c + "' in signature/descriptor '" + in + "' Searched section '" + in.substring(startPos, pos) + "'");
 			}
 
-		throw new StringIndexOutOfBoundsException(pos);
+		throw new StringIndexOutOfBoundsException("Reached " + pos + " in " + in);
 	}
 }
