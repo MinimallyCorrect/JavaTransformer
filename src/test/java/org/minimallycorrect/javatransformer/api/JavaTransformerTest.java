@@ -79,7 +79,7 @@ public class JavaTransformerTest {
 
 				Assert.assertNotNull(it + " should have a CodeFragment", cf);
 				if (it.getName().equals("testMethodCallExpression")) {
-					val methodCalls = cf.findFragments(CodeFragment.MethodCallExpression.class);
+					val methodCalls = cf.findFragments(CodeFragment.MethodCall.class);
 					Assert.assertEquals(EXPECTED_METHOD_CALL_COUNT, methodCalls.size());
 					for (int i = 1; i <= EXPECTED_METHOD_CALL_COUNT; i++) {
 						val call = methodCalls.get(i - 1);
