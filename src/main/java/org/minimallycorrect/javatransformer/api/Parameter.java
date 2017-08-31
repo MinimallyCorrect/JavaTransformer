@@ -6,7 +6,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.function.*;
 
-@EqualsAndHashCode(exclude = {"annotationSupplier"})
+@EqualsAndHashCode(exclude = {"annotationSupplier", "name"})
 @Getter
 @ToString
 public class Parameter implements Annotated {
