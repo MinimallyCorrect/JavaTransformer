@@ -11,6 +11,7 @@ import org.minimallycorrect.javatransformer.internal.asm.CombinedValue;
 import org.minimallycorrect.javatransformer.internal.asm.DebugPrinter;
 import org.minimallycorrect.javatransformer.internal.util.Cloner;
 import org.minimallycorrect.javatransformer.internal.util.CollectionUtil;
+import org.minimallycorrect.javatransformer.internal.util.JVMUtil;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
 import org.objectweb.asm.tree.analysis.Frame;
@@ -159,10 +160,20 @@ class AsmCodeFragmentGenerator implements Opcodes {
 			}
 
 			if (stack) {
-				val firstFrame = frames[inputs ? startIndex : endIndex];
-				Frame<CombinedValue> lastFrame = endIndex >= frames.length ? null : frames[inputs ? endIndex : startIndex];
-				val fs = firstFrame.getStackSize();
+				Frame<CombinedValue> firstFrame = frames[startIndex];
+				Frame<CombinedValue> lastFrame = endIndex >= frames.length ? null : frames[endIndex];
+				if (!inputs) {
+					Frame<CombinedValue> temp = firstFrame;
+					firstFrame = lastFrame;
+					lastFrame = temp;
+				}
+				val fs = firstFrame == null ? 0 : firstFrame.getStackSize();
 				val ls = lastFrame == null ? 0 : lastFrame.getStackSize();
+
+				if (firstFrame == null && lastFrame == null) {
+					DebugPrinter.printByteCode(containingMethodNodeInfo.node, "unexpected_null_frame");
+					throw new IllegalStateException("frames were unreachable " + Arrays.toString(frames));
+				}
 
 				// Stack types
 				for (int i = 0; i < fs; i++) {
@@ -389,7 +400,40 @@ class AsmCodeFragmentGenerator implements Opcodes {
 				}
 			}
 			if (options.convertReturnCallToReturnInstruction) {
-				// TODO: implement this
+				AbstractInsnNode current = fragment.getFirstInstruction();
+				AbstractInsnNode last = fragment.getLastInstruction();
+				while (true) {
+					int opcode = current.getOpcode();
+					if (opcode == INVOKESTATIC || current instanceof MethodInsnNode) {
+						val methodInsnNode = (MethodInsnNode) current;
+						if (JVMUtil.classNameToSlashName(org.minimallycorrect.javatransformer.api.code.RETURN.class).equals(methodInsnNode.owner)) {
+							val desc = new MethodDescriptor(methodInsnNode.desc, null);
+							val params = desc.getParameters();
+							Parameter first = params.isEmpty() ? null : params.get(0);
+							insns.insertBefore(current, new InsnNode(AsmInstructions.getReturnInstructionForType(first == null ? null : first.type)));
+							containingMethodNodeInfo.markCodeDirty();
+							if (current == last) {
+								insns.remove(current);
+								break;
+							}
+							val next = current.getNext();
+							insns.remove(current);
+							current = next;
+						}
+					}
+					if (current == last)
+						break;
+					current = current.getNext();
+				}
+			}
+			if (options.eliminateDeadCode) {
+				val frames = containingMethodNodeInfo.getStackFrames();
+				for (int i = insns.size() - 1; i >= 0; i--) {
+					if (frames[i] == null) {
+						insns.remove(insns.get(i));
+						containingMethodNodeInfo.markCodeDirty();
+					}
+				}
 			}
 		}
 

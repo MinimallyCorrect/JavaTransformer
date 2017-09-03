@@ -297,7 +297,7 @@ public class JavaTransformer {
 		return () -> {
 			if (readerHolder.value == null)
 				throw new IllegalStateException();
-			FilteringClassWriter classWriter = new FilteringClassWriter(readerHolder.value, ClassWriter.COMPUTE_MAXS);
+			FilteringClassWriter classWriter = new FilteringClassWriter(readerHolder.value, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
 			classWriter.filters.putAll(filters);
 			supplier.get().accept(classWriter);
 			return classWriter.toByteArray();
