@@ -99,17 +99,19 @@ class AsmCodeFragmentGenerator implements Opcodes {
 			return new ExecutionOutcome(canFallThrough, canThrow, canReturn);
 		}
 
+		@NonNull
 		@Override
 		public List<IntermediateValue> getInputTypes() {
 			return getTypes(true, true, true);
 		}
 
+		@NonNull
 		@Override
 		public List<IntermediateValue> getOutputTypes() {
 			return getTypes(false, true, true);
 		}
 
-		public List<IntermediateValue> getTypes(boolean inputs, boolean stack, boolean locals) {
+		List<IntermediateValue> getTypes(boolean inputs, boolean stack, boolean locals) {
 			val first = getFirstInstruction();
 			val last = getLastInstruction();
 			val node = containingMethodNodeInfo.node;
@@ -186,6 +188,7 @@ class AsmCodeFragmentGenerator implements Opcodes {
 					if (Objects.equals(stackValue, origStackValue))
 						continue;
 
+					assert stackValue.getType() != null;
 					results.add(new IntermediateValue(new Type(stackValue.getType().getDescriptor()), stackValue.getConstantValue(), new IntermediateValue.Location(STACK, i, null)));
 				}
 			}
@@ -353,7 +356,6 @@ class AsmCodeFragmentGenerator implements Opcodes {
 					localIndex--;
 					if (localIndex < 0)
 						throw new IllegalStateException("localIndex < 0");
-					val stackIndex = iv.location.index;
 					insns.add(new VarInsnNode(AsmInstructions.getLoadInstructionForType(iv), localIndex));
 				}
 
@@ -393,14 +395,15 @@ class AsmCodeFragmentGenerator implements Opcodes {
 							if (current.getNext() != endLabel)
 								insns.insert(current, new JumpInsnNode(GOTO, endLabel));
 						}
-						val prev = current.getPrevious();
 						insns.remove(current);
 						containingMethodNodeInfo.markCodeDirty();
 					}
 				}
 			}
 			if (options.convertReturnCallToReturnInstruction) {
+				@NonNull
 				AbstractInsnNode current = fragment.getFirstInstruction();
+				@NonNull
 				AbstractInsnNode last = fragment.getLastInstruction();
 				while (true) {
 					int opcode = current.getOpcode();
@@ -482,17 +485,19 @@ class AsmCodeFragmentGenerator implements Opcodes {
 	}
 
 	abstract static class InstructionCodeFragment extends AsmCodeFragment {
-		public InstructionCodeFragment(ByteCodeInfo.MethodNodeInfo containingMethodNodeInfo) {
+		InstructionCodeFragment(ByteCodeInfo.MethodNodeInfo containingMethodNodeInfo) {
 			super(containingMethodNodeInfo);
 		}
 
 		public abstract AbstractInsnNode getInstruction();
 
+		@NonNull
 		@Override
 		public final AbstractInsnNode getFirstInstruction() {
 			return getInstruction();
 		}
 
+		@NonNull
 		@Override
 		public final AbstractInsnNode getLastInstruction() {
 			return getInstruction();
@@ -500,7 +505,7 @@ class AsmCodeFragmentGenerator implements Opcodes {
 	}
 
 	static class MethodNodeInfoCodeFragment extends AsmCodeFragment implements CodeFragment.Body {
-		public MethodNodeInfoCodeFragment(ByteCodeInfo.MethodNodeInfo containingMethodNodeInfo) {
+		MethodNodeInfoCodeFragment(ByteCodeInfo.MethodNodeInfo containingMethodNodeInfo) {
 			super(containingMethodNodeInfo);
 		}
 
@@ -511,18 +516,19 @@ class AsmCodeFragmentGenerator implements Opcodes {
 			if (!containingMethodNodeInfo.getAccessFlags().has(AccessFlags.ACC_STATIC))
 				set.set(i++);
 
-			for (Parameter parameter : containingMethodNodeInfo.getParameters())
-				set.set(i++);
+			set.set(i, i + containingMethodNodeInfo.getParameters().size());
 
 			if (i > containingMethodNodeInfo.node.maxLocals)
 				throw new IllegalStateException();
 		}
 
+		@NonNull
 		@Override
 		public AbstractInsnNode getFirstInstruction() {
 			return containingMethodNodeInfo.node.instructions.getFirst();
 		}
 
+		@NonNull
 		@Override
 		public AbstractInsnNode getLastInstruction() {
 			return containingMethodNodeInfo.node.instructions.getLast();
@@ -538,11 +544,13 @@ class AsmCodeFragmentGenerator implements Opcodes {
 			this.instruction = instruction;
 		}
 
+		@NonNull
 		@Override
 		public Type getContainingClassType() {
 			return new Type('L' + instruction.owner + ';');
 		}
 
+		@NonNull
 		@Override
 		public String getName() {
 			return instruction.name;

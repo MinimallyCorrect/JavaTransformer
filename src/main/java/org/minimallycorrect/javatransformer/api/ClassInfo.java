@@ -1,5 +1,6 @@
 package org.minimallycorrect.javatransformer.api;
 
+import org.jetbrains.annotations.Nullable;
 import org.minimallycorrect.javatransformer.internal.util.CollectionUtil;
 
 import java.util.*;
@@ -33,10 +34,12 @@ public interface ClassInfo extends ClassMember {
 
 	void remove(FieldInfo field);
 
+	@Nullable
 	Type getSuperType();
 
 	List<Type> getInterfaceTypes();
 
+	@Nullable
 	default ClassMember get(ClassMember member) {
 		if (member instanceof MethodInfo)
 			return get((MethodInfo) member);
@@ -46,6 +49,7 @@ public interface ClassInfo extends ClassMember {
 			throw new TransformationException("Can't get member of type " + member.getClass().getCanonicalName() + " in " + this);
 	}
 
+	@Nullable
 	default MethodInfo get(MethodInfo like) {
 		for (MethodInfo methodInfo : CollectionUtil.iterable(getMethods())) {
 			if (like.similar(methodInfo))
@@ -55,6 +59,7 @@ public interface ClassInfo extends ClassMember {
 		return null;
 	}
 
+	@Nullable
 	default FieldInfo get(FieldInfo like) {
 		for (FieldInfo fieldInfo : CollectionUtil.iterable(getFields())) {
 			if (like.similar(fieldInfo))

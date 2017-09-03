@@ -52,21 +52,24 @@ public class CombinedValue implements Value, Opcodes {
 	@Nullable
 	private final Type type;
 
-	protected CombinedValue(final Type type, final Set<AbstractInsnNode> insns) {
+	protected CombinedValue(@Nullable final Type type, final Set<AbstractInsnNode> insns) {
 		this.type = type;
 		this.insns = insns;
 	}
 
+	@Nullable
 	@Deprecated
-	public static CombinedValue of(Type type) {
+	public static CombinedValue of(@Nullable Type type) {
 		return of(type, Collections.emptySet());
 	}
 
-	public static CombinedValue of(Type type, AbstractInsnNode insn) {
+	@Nullable
+	public static CombinedValue of(@Nullable Type type, AbstractInsnNode insn) {
 		return of(type, Collections.singleton(insn));
 	}
 
-	public static CombinedValue of(Type type, Set<AbstractInsnNode> insns) {
+	@Nullable
+	public static CombinedValue of(@Nullable Type type, Set<AbstractInsnNode> insns) {
 		if (type != null && type.getSort() == Type.VOID && insns.size() == 1 && insns.contains(PREFILLED))
 			return null;
 		if (!insns.isEmpty())
@@ -96,6 +99,7 @@ public class CombinedValue implements Value, Opcodes {
 		}
 	}
 
+	@Nullable
 	public Type getType() {
 		return type;
 	}
@@ -112,6 +116,7 @@ public class CombinedValue implements Value, Opcodes {
 		return type != null;
 	}
 
+	@Nullable
 	public Object getConstantValue() {
 		val iterator = insns.iterator();
 		if (!iterator.hasNext())

@@ -7,6 +7,7 @@ import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.type.*;
 import lombok.NonNull;
 import lombok.val;
+import org.jetbrains.annotations.Nullable;
 import org.minimallycorrect.javatransformer.api.TransformationException;
 import org.minimallycorrect.javatransformer.api.Type;
 import org.minimallycorrect.javatransformer.api.TypeVariable;
@@ -56,7 +57,11 @@ public class ResolutionContext {
 		return !Character.isUpperCase(name.charAt(0)) && name.indexOf('.') != -1;
 	}
 
-	public static String extractGeneric(String name) {
+	@Nullable
+	public static String extractGeneric(@Nullable String name) {
+		if (name == null)
+			return null;
+
 		int leftBracket = name.indexOf('<');
 		int rightBracket = name.lastIndexOf('>');
 
@@ -145,6 +150,7 @@ public class ResolutionContext {
 	 * @param name Name to resolve
 	 * @return Type containing resolved name with descriptor/signature
 	 */
+	@Nullable
 	public Type resolve(String name) {
 		if (name == null)
 			return null;
@@ -188,6 +194,7 @@ public class ResolutionContext {
 		return sanityCheck(type);
 	}
 
+	@Nullable
 	private Type resolveReal(String name) {
 		String primitive = JVMUtil.primitiveTypeToDescriptor(name, true);
 		if (primitive != null)
@@ -204,6 +211,7 @@ public class ResolutionContext {
 		return null;
 	}
 
+	@Nullable
 	private Type resolveClassType(String name) {
 		String dotName = name;
 		String preDotName = null;
@@ -262,6 +270,7 @@ public class ResolutionContext {
 		return Type.of(name);
 	}
 
+	@Nullable
 	private Type resolveIfExists(String s) {
 		if (s.startsWith("java.") || s.startsWith("javax.")) {
 			try {
@@ -280,6 +289,7 @@ public class ResolutionContext {
 	 * descriptor: Ljava/lang/StringBuilder;
 	 * signature: TA;
 	 */
+	@Nullable
 	private Type resolveTypeParameterType(String name) {
 		for (TypeParameter typeParameter : typeParameters) {
 			String typeName = typeParameter.getName().asString();

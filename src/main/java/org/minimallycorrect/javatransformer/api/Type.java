@@ -71,7 +71,7 @@ public class Type {
 			throw new TransformationException("Invalid descriptor '" + descriptor + "'");
 	}
 
-	private static void checkSignature(String signature) {
+	private static void checkSignature(@Nullable String signature) {
 		if (signature == null)
 			return;
 
@@ -98,7 +98,7 @@ public class Type {
 		return type.withTypeArguments(CollectionUtil.stream(Splitter.commaSplitter.splitIterable(genericType)).map(Type::of).collect(Collectors.toList()));
 	}
 
-	public static List<Type> listOf(String desc, String signature) {
+	public static List<Type> listOf(String desc, @Nullable String signature) {
 		val parsedDesc = TypeUtil.splitTypes(desc, false);
 		val parsedSignature = TypeUtil.splitTypes(signature, true);
 
@@ -214,10 +214,10 @@ public class Type {
 	}
 
 	public List<Type> getTypeArguments() {
-		if (signature == null || !hasTypeArguments())
+		val arguments = ResolutionContext.extractGeneric(signature);
+		if (arguments == null)
 			throw new UnsupportedOperationException("Can't get type argument for type: " + this);
 
-		val arguments = ResolutionContext.extractGeneric(signature);
 		val argumentList = new ArrayList<Type>();
 
 		for (String argument : CollectionUtil.iterable(TypeUtil.readTypes(arguments, true))) {
