@@ -1,7 +1,9 @@
 package org.minimallycorrect.javatransformer.internal.util;
 
+import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import lombok.val;
+import org.jetbrains.annotations.Nullable;
 import org.minimallycorrect.javatransformer.api.TransformationException;
 
 import java.util.*;
@@ -25,10 +27,11 @@ public class TypeUtil {
 		return types;
 	}
 
-	public static Stream<String> readTypes(String in, boolean isSignature) {
+	public static Stream<String> readTypes(@NonNull String in, boolean isSignature) {
 		return CollectionUtil.stream(new Supplier<String>() {
 			int pos = 0;
 
+			@Nullable
 			@Override
 			public String get() {
 				if (pos < in.length()) {
@@ -44,7 +47,7 @@ public class TypeUtil {
 	public static String readType(String in, int pos, boolean isSignature) {
 		int startPos = pos;
 		char c;
-		String current = "";
+		String arrayLevel = "";
 		String name;
 		while (pos < in.length())
 			switch (c = in.charAt(pos++)) {
@@ -57,16 +60,16 @@ public class TypeUtil {
 				case 'J':
 				case 'D':
 				case 'V':
-					return current + c;
+					return arrayLevel + c;
 
 				case '[':
-					current += '[';
+					arrayLevel += '[';
 					break;
 
 				case 'T':
 					int end = in.indexOf(';', pos);
 					name = in.substring(pos, end);
-					return current + 'T' + name + ';';
+					return arrayLevel + 'T' + name + ';';
 				case 'L':
 					int start = pos;
 					int genericCount = 0;
@@ -76,7 +79,7 @@ public class TypeUtil {
 								if (genericCount > 0)
 									break;
 								name = in.substring(start, pos);
-								return current + 'L' + name;
+								return arrayLevel + 'L' + name;
 							case '<':
 								if (!isSignature)
 									throw new TransformationException("Illegal character '<' in descriptor: " + in);

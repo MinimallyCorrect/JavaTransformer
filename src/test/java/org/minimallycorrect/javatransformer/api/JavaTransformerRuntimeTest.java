@@ -61,6 +61,7 @@ public class JavaTransformerRuntimeTest {
 							val callbackCaller = c.getMethods().filter(method -> method.getName().equals("callbackCaller")).findFirst().get();
 							val callbackCallerFragment = callbackCaller.getCodeFragment();
 
+							assert callbackCallerFragment != null;
 							call.insert(callbackCallerFragment, CodeFragment.InsertionPosition.OVERWRITE);
 							for (val inputType : callbackCallerFragment.getInputTypes())
 								Assert.assertEquals(LOCAL, inputType.location.type);
@@ -69,6 +70,7 @@ public class JavaTransformerRuntimeTest {
 						break;
 					case "testAbortEarly":
 						val aborter = c.getMethods().filter(method -> method.getName().equals("aborter")).findFirst().get().getCodeFragment();
+						assert aborter != null;
 						cf.insert(aborter, CodeFragment.InsertionPosition.BEFORE);
 						break;
 				}

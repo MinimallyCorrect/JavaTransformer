@@ -196,6 +196,7 @@ public class SourceInfo implements ClassInfo {
 		type.get().getMembers().remove(fieldDeclarationWrapper.declaration);
 	}
 
+	@Nullable
 	@Override
 	public Type getSuperType() {
 		val declaration = getClassOrInterfaceDeclaration();

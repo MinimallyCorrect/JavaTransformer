@@ -1,6 +1,7 @@
 package org.minimallycorrect.javatransformer.api;
 
 import lombok.*;
+import org.jetbrains.annotations.Nullable;
 import org.minimallycorrect.javatransformer.internal.util.JVMUtil;
 
 import java.lang.reflect.*;
@@ -30,6 +31,7 @@ public class Annotation {
 		return of(t, Collections.emptyMap());
 	}
 
+	@Nullable
 	@SuppressWarnings("unchecked")
 	public <T> T get(String key, Class<T> clazz) {
 		val value = values.get(key);

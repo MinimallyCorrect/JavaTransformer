@@ -1,7 +1,10 @@
 package org.minimallycorrect.javatransformer.internal.util;
 
+import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import lombok.val;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.Nullable;
 import org.minimallycorrect.javatransformer.api.TransformationException;
 import org.objectweb.asm.tree.*;
 
@@ -69,12 +72,16 @@ public class Cloner {
 		return node;
 	}
 
-	private static <T> ArrayList<T> clone(List<T> list) {
-		return list == null ? null : new ArrayList<T>(list);
+	@Contract(value = "null -> null; !null -> !null", pure = true)
+	@Nullable
+	private static <T> ArrayList<T> clone(@Nullable List<T> list) {
+		return list == null ? null : new ArrayList<>(list);
 	}
 
+	@Contract(value = "null -> null; !null -> !null", pure = true)
+	@Nullable
 	@SuppressWarnings("unchecked")
-	private static <T> ArrayList<T>[] clone(List<T>[] lists) {
+	private static <T> ArrayList<T>[] clone(@Nullable List<T>[] lists) {
 		if (lists == null)
 			return null;
 		val newList = new List<?>[lists.length];
@@ -87,10 +94,12 @@ public class Cloner {
 		return clone(list, list.getFirst(), list.getLast());
 	}
 
-	public static InsnList clone(InsnList list, AbstractInsnNode first, AbstractInsnNode last) {
+	public static InsnList clone(@NonNull InsnList list, @Nullable AbstractInsnNode first, @Nullable AbstractInsnNode last) {
 		val cloned = new InsnList();
 		if (first == null && last == null)
 			return cloned;
+		if (first == null || last == null)
+			throw new NullPointerException();
 
 		val labels = new HashMap<LabelNode, LabelNode>() {
 			@Override

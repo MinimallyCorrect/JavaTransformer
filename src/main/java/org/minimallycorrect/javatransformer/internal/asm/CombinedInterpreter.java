@@ -1,6 +1,7 @@
 package org.minimallycorrect.javatransformer.internal.asm;
 
 import lombok.val;
+import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -19,6 +20,7 @@ public class CombinedInterpreter extends Interpreter<CombinedValue> implements O
 		super(api);
 	}
 
+	@Nullable
 	@Override
 	public CombinedValue unaryOperation(final AbstractInsnNode insn,
 										final CombinedValue value) throws AnalyzerException {
@@ -107,11 +109,13 @@ public class CombinedInterpreter extends Interpreter<CombinedValue> implements O
 		}
 	}
 
+	@Nullable
 	@Override
 	public CombinedValue ternaryOperation(final AbstractInsnNode insn, final CombinedValue value1, final CombinedValue value2, final CombinedValue value3) throws AnalyzerException {
 		return naryOperation(insn, Arrays.asList(value1, value2, value3));
 	}
 
+	@Nullable
 	@Override
 	public CombinedValue naryOperation(final AbstractInsnNode insn, final List<? extends CombinedValue> values) throws AnalyzerException {
 		int opcode = insn.getOpcode();
@@ -128,12 +132,14 @@ public class CombinedInterpreter extends Interpreter<CombinedValue> implements O
 	public void returnOperation(final AbstractInsnNode insn, final CombinedValue value, final CombinedValue expected) {
 	}
 
+	@Nullable
 	@Deprecated
 	@Override
 	public CombinedValue newValue(final Type type) {
 		return CombinedValue.of(type, CombinedValue.PREFILLED);
 	}
 
+	@Nullable
 	@Override
 	public CombinedValue newOperation(final AbstractInsnNode insn) throws AnalyzerException {
 		switch (insn.getOpcode()) {
@@ -206,6 +212,7 @@ public class CombinedInterpreter extends Interpreter<CombinedValue> implements O
 	}
 
 
+	@Nullable
 	@Override
 	public CombinedValue binaryOperation(final AbstractInsnNode insn,
 										 final CombinedValue value1, final CombinedValue value2)
@@ -277,6 +284,7 @@ public class CombinedInterpreter extends Interpreter<CombinedValue> implements O
 		}
 	}
 
+	@Nullable
 	@Override
 	public CombinedValue merge(final CombinedValue v, final CombinedValue w) {
 		if (v.equals(w)) {

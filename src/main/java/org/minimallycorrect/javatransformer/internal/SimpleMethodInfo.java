@@ -1,6 +1,7 @@
 package org.minimallycorrect.javatransformer.internal;
 
 import lombok.Data;
+import org.jetbrains.annotations.Nullable;
 import org.minimallycorrect.javatransformer.api.*;
 
 import java.util.*;
@@ -34,6 +35,7 @@ public class SimpleMethodInfo implements MethodInfo {
 		return Collections.unmodifiableList(parameters);
 	}
 
+	@Nullable
 	@Override
 	public ClassInfo getClassInfo() {
 		return null;

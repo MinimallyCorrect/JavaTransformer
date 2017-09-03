@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
 import lombok.val;
+import org.jetbrains.annotations.Nullable;
 import org.minimallycorrect.javatransformer.api.*;
 import org.minimallycorrect.javatransformer.internal.util.AnnotationParser;
 import org.minimallycorrect.javatransformer.internal.util.CachingSupplier;
@@ -26,7 +27,7 @@ public class MethodDescriptor {
 		this.returnType = returnType;
 	}
 
-	public MethodDescriptor(@NonNull String descriptor, String signature) {
+	public MethodDescriptor(@NonNull String descriptor, @Nullable String signature) {
 		this(descriptor, signature, null);
 	}
 
@@ -34,11 +35,11 @@ public class MethodDescriptor {
 		this(getTypeVariables(node.signature), getParameters(node), getReturnType(node.desc, node.signature));
 	}
 
-	public MethodDescriptor(String descriptor, String signature, List<String> parameterNames) {
+	public MethodDescriptor(String descriptor, @Nullable String signature, @Nullable List<String> parameterNames) {
 		this(getTypeVariables(signature), getParameters(descriptor, signature, parameterNames, null, null), getReturnType(descriptor, signature));
 	}
 
-	private static List<TypeVariable> getTypeVariables(String signature) {
+	private static List<TypeVariable> getTypeVariables(@Nullable String signature) {
 		if (signature == null)
 			return Collections.emptyList();
 
@@ -65,7 +66,7 @@ public class MethodDescriptor {
 		return list;
 	}
 
-	private static Type getReturnType(String descriptor, String signature) {
+	private static Type getReturnType(String descriptor, @Nullable String signature) {
 		String returnDescriptor = after(')', descriptor);
 		String returnSignature = null;
 
@@ -83,7 +84,7 @@ public class MethodDescriptor {
 		return getParameters(node.desc, node.signature, parameterNames, node.invisibleParameterAnnotations, node.visibleParameterAnnotations);
 	}
 
-	private static List<Parameter> getParameters(String descriptor, String signature, List<String> parameterNames, List<AnnotationNode>[] invisibleAnnotations, List<AnnotationNode>[] visibleAnnotations) {
+	private static List<Parameter> getParameters(String descriptor, @Nullable String signature, @Nullable List<String> parameterNames, @Nullable List<AnnotationNode>[] invisibleAnnotations, @Nullable List<AnnotationNode>[] visibleAnnotations) {
 		val parameters = new ArrayList<Parameter>();
 
 		List<Type> parameterTypes = Type.listOf(getParameters(descriptor), getParameters(signature));
@@ -97,9 +98,11 @@ public class MethodDescriptor {
 				annotationSupplier = CachingSupplier.of(() -> {
 					val annotations = new ArrayList<Annotation>();
 					if (invisibleAnnotations != null && j < invisibleAnnotations.length)
+						//noinspection ConstantConditions
 						for (val node : invisibleAnnotations[j])
 							annotations.add(AnnotationParser.annotationFromAnnotationNode(node));
 					if (visibleAnnotations != null && j < visibleAnnotations.length)
+						//noinspection ConstantConditions
 						for (val node : visibleAnnotations[j])
 							annotations.add(AnnotationParser.annotationFromAnnotationNode(node));
 					return annotations;
@@ -111,6 +114,7 @@ public class MethodDescriptor {
 		return parameters;
 	}
 
+	@Nullable
 	private static String getParameters(String descriptor) {
 		if (descriptor == null)
 			return null;
@@ -164,6 +168,7 @@ public class MethodDescriptor {
 		return desc.toString();
 	}
 
+	@Nullable
 	private String getSignature() {
 		boolean any = false;
 		StringBuilder signature = new StringBuilder();

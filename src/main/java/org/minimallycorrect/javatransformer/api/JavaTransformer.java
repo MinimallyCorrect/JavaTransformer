@@ -4,6 +4,7 @@ import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import lombok.*;
+import org.jetbrains.annotations.Nullable;
 import org.minimallycorrect.javatransformer.internal.ByteCodeInfo;
 import org.minimallycorrect.javatransformer.internal.SearchPath;
 import org.minimallycorrect.javatransformer.internal.SourceInfo;
@@ -317,7 +318,7 @@ public class JavaTransformer {
 		return !transformers.isEmpty() || !classTransformers.get(className).isEmpty();
 	}
 
-	Supplier<byte[]> transformBytes(Supplier<byte[]> dataSupplier, String relativeName, SearchPath searchPath) {
+	Supplier<byte[]> transformBytes(@Nullable Supplier<byte[]> dataSupplier, String relativeName, @Nullable SearchPath searchPath) {
 		boolean isClass = relativeName.endsWith(".class");
 		boolean isSource = relativeName.endsWith(".java");
 
