@@ -2,6 +2,7 @@ package org.minimallycorrect.javatransformer.internal.asm;
 
 import lombok.experimental.UtilityClass;
 import lombok.val;
+import org.minimallycorrect.javatransformer.api.Type;
 import org.minimallycorrect.javatransformer.api.code.IntermediateValue;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
@@ -112,6 +113,34 @@ public class AsmInstructions implements Opcodes {
 			case ARRAY:
 			case CLASS:
 				return ALOAD;
+			case VALUE:
+			case UNION:
+			default:
+				throw new UnsupportedOperationException();
+		}
+	}
+
+	public static int getReturnInstructionForType(Type type) {
+		if (type == null)
+			return RETURN;
+		switch (type.getDescriptorType()) {
+			case BYTE:
+			case CHAR:
+			case INT:
+			case SHORT:
+			case BOOLEAN:
+				return IRETURN;
+			case DOUBLE:
+				return DRETURN;
+			case FLOAT:
+				return FRETURN;
+			case LONG:
+				return LRETURN;
+			case VOID:
+				return RETURN;
+			case ARRAY:
+			case CLASS:
+				return ARETURN;
 			case VALUE:
 			case UNION:
 			default:

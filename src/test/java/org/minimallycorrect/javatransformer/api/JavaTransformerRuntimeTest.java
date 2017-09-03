@@ -41,30 +41,36 @@ public class JavaTransformerRuntimeTest {
 			c.getMethods().forEach(it -> {
 				val cf = it.getCodeFragment();
 				Assert.assertNotNull(it + " should have a CodeFragment", cf);
-				if (it.getName().equals("testMethodCallExpression")) {
-					val methodCalls = cf.findFragments(CodeFragment.MethodCall.class);
-					Assert.assertEquals(EXPECTED_METHOD_CALL_COUNT, methodCalls.size());
-					for (int i = 1; i <= EXPECTED_METHOD_CALL_COUNT; i++) {
-						System.out.println("call " + i);
-						val call = methodCalls.get(i - 1);
-						Assert.assertEquals("println", call.getName());
-						Assert.assertEquals(PrintStream.class.getName(), call.getContainingClassType().getClassName());
-						val inputTypes = call.getInputTypes();
-						for (val inputType : inputTypes)
-							Assert.assertEquals(STACK, inputType.location.type);
-						Assert.assertNotNull("Should find inputTypes for method call expression", inputTypes);
-						Assert.assertEquals(2, inputTypes.size());
-						Assert.assertEquals(String.valueOf(i), inputTypes.get(1).constantValue);
-						Assert.assertEquals("java.io.PrintStream", inputTypes.get(0).type.getClassName());
+				switch (it.getName()) {
+					case "testMethodCallExpression":
+						val methodCalls = cf.findFragments(CodeFragment.MethodCall.class);
+						Assert.assertEquals(EXPECTED_METHOD_CALL_COUNT, methodCalls.size());
+						for (int i = 1; i <= EXPECTED_METHOD_CALL_COUNT; i++) {
+							System.out.println("call " + i);
+							val call = methodCalls.get(i - 1);
+							Assert.assertEquals("println", call.getName());
+							Assert.assertEquals(PrintStream.class.getName(), call.getContainingClassType().getClassName());
+							val inputTypes = call.getInputTypes();
+							for (val inputType : inputTypes)
+								Assert.assertEquals(STACK, inputType.location.type);
+							Assert.assertNotNull("Should find inputTypes for method call expression", inputTypes);
+							Assert.assertEquals(2, inputTypes.size());
+							Assert.assertEquals(String.valueOf(i), inputTypes.get(1).constantValue);
+							Assert.assertEquals("java.io.PrintStream", inputTypes.get(0).type.getClassName());
 
-						val callbackCaller = c.getMethods().filter(method -> method.getName().equals("callbackCaller")).findFirst().get();
-						val callbackCallerFragment = callbackCaller.getCodeFragment();
+							val callbackCaller = c.getMethods().filter(method -> method.getName().equals("callbackCaller")).findFirst().get();
+							val callbackCallerFragment = callbackCaller.getCodeFragment();
 
-						call.insert(callbackCallerFragment, CodeFragment.InsertionPosition.OVERWRITE);
-						for (val inputType : callbackCallerFragment.getInputTypes())
-							Assert.assertEquals(LOCAL, inputType.location.type);
-						DebugPrinter.printByteCode(((ByteCodeInfo.MethodNodeInfo) it).node, "after insert callbackCallerFragment");
-					}
+							call.insert(callbackCallerFragment, CodeFragment.InsertionPosition.OVERWRITE);
+							for (val inputType : callbackCallerFragment.getInputTypes())
+								Assert.assertEquals(LOCAL, inputType.location.type);
+							DebugPrinter.printByteCode(((ByteCodeInfo.MethodNodeInfo) it).node, "after insert callbackCallerFragment");
+						}
+						break;
+					case "testAbortEarly":
+						val aborter = c.getMethods().filter(method -> method.getName().equals("aborter")).findFirst().get().getCodeFragment();
+						cf.insert(aborter, CodeFragment.InsertionPosition.BEFORE);
+						break;
 				}
 			});
 		});
@@ -79,6 +85,10 @@ public class JavaTransformerRuntimeTest {
 		val codeFragmentTesting = new CodeFragmentTesting(list::add);
 		codeFragmentTesting.testMethodCallExpression();
 		Assert.assertEquals(EXPECTED_METHOD_CALL_INPUTS, list);
+
+		val result = codeFragmentTesting.testAbortEarly();
+		Assert.assertTrue("testAbortEarly should return true after patch", result);
+		Assert.assertEquals(null, System.getProperty("finishedTestAbortEarly"));
 	}
 
 }

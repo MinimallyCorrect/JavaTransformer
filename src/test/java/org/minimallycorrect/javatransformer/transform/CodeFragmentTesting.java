@@ -24,6 +24,15 @@ public class CodeFragmentTesting {
 		callback.accept(parameter);
 	}
 
+	public boolean testAbortEarly() {
+		System.setProperty("finishedTestAbortEarly", "true");
+		return false;
+	}
+
+	private void aborter() {
+		throw RETURN.BOOLEAN(true);
+	}
+
 	private void methodToInsert() {
 		throw RETURN.VOID();
 	}

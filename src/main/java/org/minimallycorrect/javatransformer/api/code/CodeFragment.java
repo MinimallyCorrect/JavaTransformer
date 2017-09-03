@@ -102,6 +102,7 @@ public interface CodeFragment {
 		public static InsertionOptions DEFAULT = new InsertionOptions();
 		public boolean convertReturnToOutputTypes = true;
 		public boolean convertReturnCallToReturnInstruction = true;
+		public boolean eliminateDeadCode = true;
 	}
 
 	@RequiredArgsConstructor

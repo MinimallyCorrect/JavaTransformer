@@ -2,39 +2,39 @@ package org.minimallycorrect.javatransformer.api.code;
 
 @SuppressWarnings("unused")
 public class RETURN {
-	public static RuntimeException VOID() {
-		throw new UnsupportedOperationException();
+	public static ShouldNotBeCalledError VOID() {
+		throw new ShouldNotBeCalledError();
 	}
 
-	public static <T> RuntimeException OBJECT(T value) {
-		throw new UnsupportedOperationException();
+	public static <T> ShouldNotBeCalledError OBJECT(T value) {
+		throw new ShouldNotBeCalledError();
 	}
 
-	public static RuntimeException BYTE(byte value) {
-		throw new UnsupportedOperationException();
+	public static ShouldNotBeCalledError BYTE(byte value) {
+		throw new ShouldNotBeCalledError();
 	}
 
-	public static RuntimeException SHORT(short value) {
-		throw new UnsupportedOperationException();
+	public static ShouldNotBeCalledError SHORT(short value) {
+		throw new ShouldNotBeCalledError();
 	}
 
-	public static RuntimeException INT(int value) {
-		throw new UnsupportedOperationException();
+	public static ShouldNotBeCalledError INT(int value) {
+		throw new ShouldNotBeCalledError();
 	}
 
-	public static RuntimeException LONG(long value) {
-		throw new UnsupportedOperationException();
+	public static ShouldNotBeCalledError LONG(long value) {
+		throw new ShouldNotBeCalledError();
 	}
 
-	public static RuntimeException BOOLEAN(boolean value) {
-		throw new UnsupportedOperationException();
+	public static ShouldNotBeCalledError BOOLEAN(boolean value) {
+		throw new ShouldNotBeCalledError();
 	}
 
-	public static RuntimeException FLOAT(float value) {
-		throw new UnsupportedOperationException();
+	public static ShouldNotBeCalledError FLOAT(float value) {
+		throw new ShouldNotBeCalledError();
 	}
 
-	public static RuntimeException DOUBLE(double value) {
-		throw new UnsupportedOperationException();
+	public static ShouldNotBeCalledError DOUBLE(double value) {
+		throw new ShouldNotBeCalledError();
 	}
 }
