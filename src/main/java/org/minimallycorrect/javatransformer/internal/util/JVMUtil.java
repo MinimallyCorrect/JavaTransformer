@@ -1,6 +1,7 @@
 package org.minimallycorrect.javatransformer.internal.util;
 
 import lombok.experimental.UtilityClass;
+import lombok.val;
 import org.minimallycorrect.javatransformer.api.AccessFlags;
 import org.minimallycorrect.javatransformer.api.TransformationException;
 
@@ -143,7 +144,8 @@ public class JVMUtil {
 	public static String fileNameToClassName(String f) {
 		f = removeFromEnd(f, ".class");
 		f = removeFromEnd(f, ".java");
-		return f.replace('\\', '.').replace('/', '.');
+		val result = f.replace('\\', '.').replace('/', '.');
+		return result.isEmpty() ? "" : (result.charAt(0) == '.' ? result.substring(1) : result);
 	}
 
 	public static String classNameToFileName(String f) {
