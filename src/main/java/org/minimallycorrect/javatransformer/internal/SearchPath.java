@@ -6,6 +6,7 @@ import com.github.javaparser.ast.body.TypeDeclaration;
 import lombok.SneakyThrows;
 import lombok.val;
 import org.jetbrains.annotations.Nullable;
+import org.minimallycorrect.javatransformer.internal.util.JVMUtil;
 import org.minimallycorrect.javatransformer.internal.util.Joiner;
 
 import java.io.*;
@@ -31,7 +32,7 @@ public class SearchPath {
 						val entryName = path.relativize(file).toString().replace(File.separatorChar, '/');
 						if (entryName.endsWith(".java")) {
 							val parsed = JavaParser.parse(file);
-							findPaths(entryName, parsed);
+							findJavaPaths(entryName, parsed);
 						}
 						return super.visitFile(file, attrs);
 					}
@@ -40,16 +41,25 @@ public class SearchPath {
 				try (val zis = new ZipInputStream(Files.newInputStream(path))) {
 					ZipEntry e;
 					while ((e = zis.getNextEntry()) != null) {
-						findPaths(e, zis);
-						zis.closeEntry();
+						try {
+							findPaths(e, zis);
+						} finally {
+							zis.closeEntry();
+						}
 					}
 				}
 	}
 
 	private void findPaths(ZipEntry e, ZipInputStream zis) {
 		val entryName = e.getName();
-		if (!e.getName().endsWith(".java"))
-			return;
+		if (entryName.endsWith(".java"))
+			findJavaPaths(entryName, zis);
+
+		if (entryName.endsWith(".class"))
+			classNameToPath.put(JVMUtil.fileNameToClassName(entryName), entryName);
+	}
+
+	private void findJavaPaths(String entryName, ZipInputStream zis) {
 		val parsed = JavaParser.parse(new InputStream() {
 			public int read(byte[] b, int off, int len) throws IOException {
 				return zis.read(b, off, len);
@@ -62,24 +72,23 @@ public class SearchPath {
 				return zis.read();
 			}
 		});
-		findPaths(entryName, parsed);
+		findJavaPaths(entryName, parsed);
 	}
 
-	private void findPaths(String path, CompilationUnit compilationUnit) {
+	private void findJavaPaths(String path, CompilationUnit compilationUnit) {
 		val typeNames = compilationUnit.getTypes();
 		val packageDeclaration = compilationUnit.getPackageDeclaration().orElse(null);
 		val prefix = packageDeclaration == null ? "" : packageDeclaration.getNameAsString() + '.';
 		for (TypeDeclaration<?> typeDeclaration : typeNames)
-			findPaths(path, typeDeclaration, prefix);
+			findJavaPaths(path, typeDeclaration, prefix);
 	}
 
-	private void findPaths(String path, TypeDeclaration<?> typeDeclaration, String packagePrefix) {
-		val parent = typeDeclaration.getParentNode().orElse(null);
+	private void findJavaPaths(String path, TypeDeclaration<?> typeDeclaration, String packagePrefix) {
 		val name = packagePrefix + typeDeclaration.getNameAsString();
 		classNameToPath.put(name, path);
 		for (val node : typeDeclaration.getChildNodes())
 			if (node instanceof TypeDeclaration)
-				findPaths(path, (TypeDeclaration<?>) node, name + '.');
+				findJavaPaths(path, (TypeDeclaration<?>) node, name + '.');
 	}
 
 	@Override
