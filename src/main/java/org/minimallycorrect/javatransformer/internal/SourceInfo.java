@@ -29,7 +29,7 @@ public class SourceInfo implements ClassInfo {
 	@Getter(lazy = true)
 	private final String packageName = getPackageNameInternal();
 	private String className;
-	private SearchPath searchPath;
+	private ClassPath classPath;
 	@Getter(lazy = true)
 	private final List<Annotation> annotations = getAnnotationsInternal();
 	@Getter(lazy = true)
@@ -74,9 +74,9 @@ public class SourceInfo implements ClassInfo {
 		NodeUtil.forChildren(m, node -> node.setType(changeTypeContext(old, new_, node.getType())), com.github.javaparser.ast.body.Parameter.class);
 	}
 
-	private static List<Parameter> getParameters(NodeWithParameters<?> nodeWithParameters, Supplier<ResolutionContext> context, SearchPath searchPath) {
+	private static List<Parameter> getParameters(NodeWithParameters<?> nodeWithParameters, Supplier<ResolutionContext> context, ClassPath classPath) {
 		return nodeWithParameters.getParameters().stream()
-			.map((parameter) -> Parameter.of(context.get().resolve(parameter.getType()), parameter.getName().asString(), CachingSupplier.of(() -> parameter.getAnnotations().stream().map(it -> AnnotationParser.annotationFromAnnotationExpr(it, searchPath)).collect(Collectors.toList()))))
+			.map((parameter) -> Parameter.of(context.get().resolve(parameter.getType()), parameter.getName().asString(), CachingSupplier.of(() -> parameter.getAnnotations().stream().map(it -> AnnotationParser.annotationFromAnnotationExpr(it, classPath)).collect(Collectors.toList()))))
 			.collect(Collectors.toList());
 	}
 
@@ -91,7 +91,7 @@ public class SourceInfo implements ClassInfo {
 	}
 
 	private ResolutionContext getContextInternal() {
-		return ResolutionContext.of(type.get(), searchPath);
+		return ResolutionContext.of(type.get(), classPath);
 	}
 
 	@Override
@@ -255,7 +255,7 @@ public class SourceInfo implements ClassInfo {
 	}
 
 	private List<Annotation> getAnnotationsInternal(List<AnnotationExpr> l) {
-		return l.stream().map((it) -> AnnotationParser.annotationFromAnnotationExpr(it, searchPath)).collect(Collectors.toList());
+		return l.stream().map((it) -> AnnotationParser.annotationFromAnnotationExpr(it, classPath)).collect(Collectors.toList());
 	}
 
 	@Override
@@ -276,7 +276,7 @@ public class SourceInfo implements ClassInfo {
 
 		private ResolutionContext getContext() {
 			if (context != null) return context;
-			return context = ResolutionContext.of(declaration, SourceInfo.this.type.get(), searchPath);
+			return context = ResolutionContext.of(declaration, SourceInfo.this.type.get(), classPath);
 		}
 
 		@Override
@@ -341,7 +341,7 @@ public class SourceInfo implements ClassInfo {
 
 		private ResolutionContext getContext() {
 			if (context != null) return context;
-			return context = ResolutionContext.of(declaration, SourceInfo.this.type.get(), searchPath);
+			return context = ResolutionContext.of(declaration, SourceInfo.this.type.get(), classPath);
 		}
 
 		@Override
@@ -356,7 +356,7 @@ public class SourceInfo implements ClassInfo {
 
 		@Override
 		public List<Parameter> getParameters() {
-			return SourceInfo.getParameters(declaration, this::getContext, searchPath);
+			return SourceInfo.getParameters(declaration, this::getContext, classPath);
 		}
 
 		@Override
@@ -428,7 +428,7 @@ public class SourceInfo implements ClassInfo {
 
 		private ResolutionContext getContext() {
 			if (context != null) return context;
-			return context = ResolutionContext.of(declaration, SourceInfo.this.type.get(), searchPath);
+			return context = ResolutionContext.of(declaration, SourceInfo.this.type.get(), classPath);
 		}
 
 		@Override
@@ -444,7 +444,7 @@ public class SourceInfo implements ClassInfo {
 
 		@Override
 		public List<Parameter> getParameters() {
-			return SourceInfo.getParameters(declaration, this::getContext, searchPath);
+			return SourceInfo.getParameters(declaration, this::getContext, classPath);
 		}
 
 		@Override

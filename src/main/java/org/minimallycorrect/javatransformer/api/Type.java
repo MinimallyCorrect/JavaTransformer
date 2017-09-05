@@ -102,8 +102,8 @@ public class Type {
 		val parsedDesc = TypeUtil.splitTypes(desc, false);
 		val parsedSignature = TypeUtil.splitTypes(signature, true);
 
-		if (parsedSignature != null && parsedSignature.size() != parsedDesc.size()) {
-			throw new TransformationException("Failed to parse type lists." +
+		if (parsedSignature != null && !parsedSignature.isEmpty() && parsedSignature.size() != parsedDesc.size()) {
+			throw new TransformationException("Failed to parse type lists due to size mismatch." +
 				"\n\tdesc: " + desc +
 				"\n\tsignature: " + signature +
 				"\n\tparsedDesc: " + parsedDesc +

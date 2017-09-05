@@ -3,6 +3,7 @@ package org.minimallycorrect.javatransformer.internal.util;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import lombok.val;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 import org.minimallycorrect.javatransformer.api.TransformationException;
 
@@ -12,7 +13,9 @@ import java.util.stream.*;
 
 @UtilityClass
 public class TypeUtil {
-	public static List<String> splitTypes(final String signature, boolean isSignature) {
+	@Contract("null, _ -> null; !null, true -> _; !null, false -> !null")
+	@Nullable
+	public static List<String> splitTypes(@Nullable final String signature, boolean isSignature) {
 		if (signature == null)
 			return null;
 
@@ -23,6 +26,9 @@ public class TypeUtil {
 			pos += type.length();
 			types.add(type);
 		}
+
+		if (isSignature && types.isEmpty())
+			return null;
 
 		return types;
 	}
