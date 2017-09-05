@@ -1,7 +1,6 @@
 package org.minimallycorrect.javatransformer.api;
 
 import lombok.val;
-import org.jetbrains.annotations.Contract;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -72,11 +71,6 @@ public class JavaTransformerTest {
 
 			c.accessFlags(it -> it.makeAccessible(true));
 			c.getAnnotations().forEach(it -> {
-				if (it.getType().getClassName().equals(Contract.class.getName())) {
-					val contract = it.toInstance(Contract.class);
-					Assert.assertNotNull(contract.value());
-					contract.pure();
-				}
 				if (it.getType().getClassName().equals(AnnotationWithDefault.class.getName())) {
 					val contract = it.toInstance(AnnotationWithDefault.class);
 					Assert.assertEquals(TestEnum.SECOND, contract.testEnum());
