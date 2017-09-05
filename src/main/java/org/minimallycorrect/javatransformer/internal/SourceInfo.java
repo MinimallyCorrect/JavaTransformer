@@ -74,9 +74,9 @@ public class SourceInfo implements ClassInfo {
 		NodeUtil.forChildren(m, node -> node.setType(changeTypeContext(old, new_, node.getType())), com.github.javaparser.ast.body.Parameter.class);
 	}
 
-	private static List<Parameter> getParameters(NodeWithParameters<?> nodeWithParameters, Supplier<ResolutionContext> context, ClassPath classPath) {
+	private static List<Parameter> getParameters(NodeWithParameters<?> nodeWithParameters, Supplier<ResolutionContext> context) {
 		return nodeWithParameters.getParameters().stream()
-			.map((parameter) -> Parameter.of(context.get().resolve(parameter.getType()), parameter.getName().asString(), CachingSupplier.of(() -> parameter.getAnnotations().stream().map(it -> AnnotationParser.annotationFromAnnotationExpr(it, classPath)).collect(Collectors.toList()))))
+			.map((parameter) -> Parameter.of(context.get().resolve(parameter.getType()), parameter.getName().asString(), CachingSupplier.of(() -> parameter.getAnnotations().stream().map(it -> AnnotationParser.annotationFromAnnotationExpr(it, context.get())).collect(Collectors.toList()))))
 			.collect(Collectors.toList());
 	}
 
@@ -255,7 +255,7 @@ public class SourceInfo implements ClassInfo {
 	}
 
 	private List<Annotation> getAnnotationsInternal(List<AnnotationExpr> l) {
-		return l.stream().map((it) -> AnnotationParser.annotationFromAnnotationExpr(it, classPath)).collect(Collectors.toList());
+		return l.stream().map((it) -> AnnotationParser.annotationFromAnnotationExpr(it, getContext())).collect(Collectors.toList());
 	}
 
 	@Override
@@ -356,7 +356,7 @@ public class SourceInfo implements ClassInfo {
 
 		@Override
 		public List<Parameter> getParameters() {
-			return SourceInfo.getParameters(declaration, this::getContext, classPath);
+			return SourceInfo.getParameters(declaration, this::getContext);
 		}
 
 		@Override
@@ -444,7 +444,7 @@ public class SourceInfo implements ClassInfo {
 
 		@Override
 		public List<Parameter> getParameters() {
-			return SourceInfo.getParameters(declaration, this::getContext, classPath);
+			return SourceInfo.getParameters(declaration, this::getContext);
 		}
 
 		@Override

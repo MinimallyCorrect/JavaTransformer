@@ -36,20 +36,26 @@ public class ResolutionContextTest {
 	@Test
 	public void testExtractPrimitive() {
 		Type t = context().resolve("int");
+		Assert.assertNotNull(t);
 		Assert.assertEquals(t.descriptor, "I");
 		t = context().resolve("boolean");
+		Assert.assertNotNull(t);
 		Assert.assertEquals(t.descriptor, "Z");
 	}
 
 	@Test
 	public void testExtractPrimitiveArray() {
 		Type t = context().resolve("int[]");
+		Assert.assertNotNull(t);
 		Assert.assertEquals(t.descriptor, "[I");
 		t = context().resolve("int[][]");
+		Assert.assertNotNull(t);
 		Assert.assertEquals(t.descriptor, "[[I");
 		t = context().resolve("boolean[]");
+		Assert.assertNotNull(t);
 		Assert.assertEquals(t.descriptor, "[Z");
 		t = context().resolve("boolean[][]");
+		Assert.assertNotNull(t);
 		Assert.assertEquals(t.descriptor, "[[Z");
 	}
 
@@ -67,6 +73,7 @@ public class ResolutionContextTest {
 	@Test
 	public void testMapWithArrayValue() {
 		Type t = context().resolve("java.util.Hashtable<Integer, long[]>");
+		Assert.assertNotNull(t);
 		Assert.assertEquals("java.util.Hashtable", t.getClassName());
 		Assert.assertEquals("java.lang.Integer", t.getTypeArguments().get(0).getClassName());
 		Assert.assertEquals("long", t.getTypeArguments().get(1).getArrayContainedType().getPrimitiveTypeName());
@@ -77,6 +84,7 @@ public class ResolutionContextTest {
 	public void testTypeToJavaParsetType() {
 		val qualifiedType = "java.util.Hashtable<java.lang.Integer,long[]>";
 		Type t = context().resolve(qualifiedType);
+		Assert.assertNotNull(t);
 		val javaParserType = ResolutionContext.typeToJavaParserType(t);
 		Assert.assertEquals(qualifiedType, javaParserType.asString());
 	}
@@ -84,6 +92,7 @@ public class ResolutionContextTest {
 	@Test
 	public void testSingleLengthTypeArgument() {
 		Type t = context().resolve("java.util.Hashtable<A, B[]>");
+		Assert.assertNotNull(t);
 		Assert.assertEquals("A", t.getTypeArguments().get(0).getTypeParameterName());
 		Assert.assertEquals("B", t.getTypeArguments().get(1).getTypeParameterName());
 	}
@@ -91,6 +100,7 @@ public class ResolutionContextTest {
 	@Test
 	public void testAutomaticGenericType() {
 		Type t = context().resolve("java.util.Hashtable<>");
+		Assert.assertNotNull(t);
 		Assert.assertEquals("java.util.Hashtable", t.getClassName());
 	}
 }
