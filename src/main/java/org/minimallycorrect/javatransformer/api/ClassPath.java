@@ -20,8 +20,8 @@ import java.util.zip.*;
 // TODO: make this faster by using dumb regexes instead of JavaParser?
 // probably not worth doing
 public class ClassPath {
-	private final Map<String, String> classNameToPath = new HashMap<>();
-	private final Set<Path> inputPaths = new HashSet<>();
+	private final HashSet<String> classes = new HashSet<>();
+	private final HashSet<Path> inputPaths = new HashSet<>();
 	private final ClassPath parent;
 	private boolean loaded;
 
@@ -47,7 +47,7 @@ public class ClassPath {
 	@Override
 	public String toString() {
 		initialise();
-		return "[" + parent.toString() + ", " + inputPaths + " classes:\n" + Joiner.on("\n").join(classNameToPath.keySet().stream().sorted()) + "]";
+		return "[" + parent.toString() + ", " + inputPaths + " classes:\n" + Joiner.on("\n").join(classes.stream().sorted()) + "]";
 	}
 
 	/**
@@ -59,7 +59,7 @@ public class ClassPath {
 	@Contract("null -> fail")
 	public boolean classExists(@NonNull String className) {
 		initialise();
-		return classNameToPath.containsKey(className) || (parent != null && parent.classExists(className));
+		return classes.contains(className) || (parent != null && parent.classExists(className));
 	}
 
 	/**
@@ -94,15 +94,15 @@ public class ClassPath {
 	private void findPaths(ZipEntry e, ZipInputStream zis) {
 		val entryName = e.getName();
 		if (entryName.endsWith(".java"))
-			findJavaPaths(entryName, zis);
+			findJavaPaths(zis);
 
 		if (entryName.endsWith(".class"))
-			classNameToPath.put(JVMUtil.fileNameToClassName(entryName), entryName);
+			classes.add(JVMUtil.fileNameToClassName(entryName));
 	}
 
-	private void findJavaPaths(String entryName, ZipInputStream zis) {
+	private void findJavaPaths(ZipInputStream zis) {
 		val parsed = JavaParser.parse(new InputStream() {
-			public int read(byte[] b, int off, int len) throws IOException {
+			public int read(@NonNull byte[] b, int off, int len) throws IOException {
 				return zis.read(b, off, len);
 			}
 
@@ -113,23 +113,23 @@ public class ClassPath {
 				return zis.read();
 			}
 		});
-		findJavaPaths(entryName, parsed);
+		findJavaPaths(parsed);
 	}
 
-	private void findJavaPaths(String path, CompilationUnit compilationUnit) {
+	private void findJavaPaths(CompilationUnit compilationUnit) {
 		val typeNames = compilationUnit.getTypes();
 		val packageDeclaration = compilationUnit.getPackageDeclaration().orElse(null);
 		val prefix = packageDeclaration == null ? "" : packageDeclaration.getNameAsString() + '.';
 		for (TypeDeclaration<?> typeDeclaration : typeNames)
-			findJavaPaths(path, typeDeclaration, prefix);
+			findJavaPaths(typeDeclaration, prefix);
 	}
 
-	private void findJavaPaths(String path, TypeDeclaration<?> typeDeclaration, String packagePrefix) {
+	private void findJavaPaths(TypeDeclaration<?> typeDeclaration, String packagePrefix) {
 		val name = packagePrefix + typeDeclaration.getNameAsString();
-		classNameToPath.put(name, path);
+		classes.add(name);
 		for (val node : typeDeclaration.getChildNodes())
 			if (node instanceof TypeDeclaration)
-				findJavaPaths(path, (TypeDeclaration<?>) node, name + '.');
+				findJavaPaths((TypeDeclaration<?>) node, name + '.');
 	}
 
 	private void initialise() {
@@ -149,7 +149,7 @@ public class ClassPath {
 					val entryName = path.relativize(file).toString().replace(File.separatorChar, '/');
 					if (entryName.endsWith(".java")) {
 						val parsed = JavaParser.parse(file);
-						findJavaPaths(entryName, parsed);
+						findJavaPaths(parsed);
 					}
 					return super.visitFile(file, attrs);
 				}

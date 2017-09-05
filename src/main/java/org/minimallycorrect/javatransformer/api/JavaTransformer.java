@@ -287,7 +287,16 @@ public class JavaTransformer {
 		});
 
 		val filters = new HashMap<String, String>();
-		transformClassInfo(new ByteCodeInfo(supplier, name, filters));
+
+		int flags_ = ClassWriter.COMPUTE_MAXS;
+		{
+			val byteCodeInfo = new ByteCodeInfo(supplier, name, filters);
+			transformClassInfo(byteCodeInfo);
+			if (byteCodeInfo.hasChangedMethodControlFlow) {
+				flags_ |= ClassWriter.COMPUTE_FRAMES;
+			}
+		}
+		final int flags = flags_;
 
 		if (!supplier.isCached())
 			return data;
@@ -295,7 +304,7 @@ public class JavaTransformer {
 		return () -> {
 			if (readerHolder.value == null)
 				throw new IllegalStateException();
-			FilteringClassWriter classWriter = new FilteringClassWriter(readerHolder.value, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
+			FilteringClassWriter classWriter = new FilteringClassWriter(readerHolder.value, flags);
 			classWriter.filters.putAll(filters);
 			supplier.get().accept(classWriter);
 			return classWriter.toByteArray();
