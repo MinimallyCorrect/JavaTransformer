@@ -5,9 +5,11 @@ import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.type.*;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.val;
 import org.jetbrains.annotations.Nullable;
+import org.minimallycorrect.javatransformer.api.ClassPath;
 import org.minimallycorrect.javatransformer.api.TransformationException;
 import org.minimallycorrect.javatransformer.api.Type;
 import org.minimallycorrect.javatransformer.api.TypeVariable;
@@ -19,6 +21,7 @@ import org.minimallycorrect.javatransformer.internal.util.Splitter;
 import java.util.*;
 import java.util.stream.*;
 
+@Getter
 public class ResolutionContext {
 	@NonNull
 	private final String packageName;
@@ -27,29 +30,29 @@ public class ResolutionContext {
 	@NonNull
 	private final Iterable<TypeParameter> typeParameters;
 	@NonNull
-	private final SearchPath searchPath;
+	private final ClassPath classPath;
 
-	private ResolutionContext(String packageName, List<ImportDeclaration> imports, Iterable<TypeParameter> typeParameters, SearchPath searchPath) {
+	private ResolutionContext(String packageName, List<ImportDeclaration> imports, Iterable<TypeParameter> typeParameters, ClassPath classPath) {
 		this.packageName = packageName;
 		this.imports = imports;
 		this.typeParameters = typeParameters;
-		this.searchPath = searchPath;
+		this.classPath = classPath;
 	}
 
-	public static ResolutionContext of(String packageName, List<ImportDeclaration> imports, Iterable<TypeParameter> typeParameters, SearchPath searchPath) {
-		return new ResolutionContext(packageName, imports, typeParameters, searchPath);
+	public static ResolutionContext of(String packageName, List<ImportDeclaration> imports, Iterable<TypeParameter> typeParameters, ClassPath classPath) {
+		return new ResolutionContext(packageName, imports, typeParameters, classPath);
 	}
 
-	public static ResolutionContext of(Node targetNode, Node outerClassNode, SearchPath searchPath) {
+	public static ResolutionContext of(Node targetNode, Node outerClassNode, ClassPath classPath) {
 		CompilationUnit cu = NodeUtil.getParentNode(outerClassNode, CompilationUnit.class);
 		String packageName = NodeUtil.qualifiedName(cu.getPackageDeclaration().get().getName());
 		List<TypeParameter> typeParameters = NodeUtil.getTypeParameters(targetNode);
 
-		return new ResolutionContext(packageName, cu.getImports(), typeParameters, searchPath);
+		return new ResolutionContext(packageName, cu.getImports(), typeParameters, classPath);
 	}
 
-	public static ResolutionContext of(Node node, SearchPath searchPath) {
-		return of(node, node, searchPath);
+	public static ResolutionContext of(Node node, ClassPath classPath) {
+		return of(node, node, classPath);
 	}
 
 	private static boolean hasPackages(String name) {
@@ -180,7 +183,7 @@ public class ResolutionContext {
 				"\nFound real type: " + type +
 				"\nGeneric types: " + genericTypes +
 				"\nImports:" + imports.stream().map(ResolutionContext::toString).collect(Collectors.toList()) +
-				"\nSearchPath: " + searchPath
+				"\nClassPath: " + classPath
 			);
 
 		if (generic != null) {
@@ -278,7 +281,7 @@ public class ResolutionContext {
 			} catch (ClassNotFoundException ignored) {
 			}
 		}
-		if (searchPath.hasClass(s))
+		if (classPath.classExists(s))
 			return Type.of(s);
 		return null;
 	}

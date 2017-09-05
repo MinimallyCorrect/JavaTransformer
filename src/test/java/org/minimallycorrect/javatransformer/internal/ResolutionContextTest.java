@@ -4,6 +4,7 @@ import com.github.javaparser.ast.type.TypeParameter;
 import lombok.val;
 import org.junit.Assert;
 import org.junit.Test;
+import org.minimallycorrect.javatransformer.api.ClassPath;
 import org.minimallycorrect.javatransformer.api.TransformationException;
 import org.minimallycorrect.javatransformer.api.Type;
 
@@ -11,7 +12,7 @@ import java.util.*;
 
 public class ResolutionContextTest {
 	private ResolutionContext context() {
-		return ResolutionContext.of("org.example", Collections.emptyList(), Arrays.asList(new TypeParameter("A"), new TypeParameter("B")), new SearchPath(Collections.emptyList()));
+		return ResolutionContext.of("org.example", Collections.emptyList(), Arrays.asList(new TypeParameter("A"), new TypeParameter("B")), new ClassPath(Collections.emptyList()));
 	}
 
 	@Test

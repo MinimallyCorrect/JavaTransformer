@@ -59,8 +59,7 @@ public class JavaTransformerTest {
 		Path output = folder.newFolder("output").toPath();
 
 		JavaTransformer transformer = new JavaTransformer();
-		for (Path extraPath : extraPaths)
-			transformer.addSearchPath(extraPath);
+		transformer.getClassPath().addPaths(extraPaths);
 
 		val targetClass = this.getClass().getName();
 		BooleanHolder holder = new BooleanHolder(false);
