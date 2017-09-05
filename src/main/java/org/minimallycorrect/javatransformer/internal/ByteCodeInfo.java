@@ -21,13 +21,15 @@ import java.util.function.*;
 import java.util.stream.*;
 
 @Data
-@AllArgsConstructor
 @SuppressWarnings("unchecked")
 public class ByteCodeInfo implements ClassInfo {
 	private final Supplier<ClassNode> node;
 	@Getter(lazy = true)
 	private final List<Annotation> annotations = getAnnotationsInternal();
+	public boolean hasChangedMethodControlFlow;
+	@NonNull
 	private String className;
+	@NonNull
 	private Map<String, String> filters;
 
 	@Override
@@ -318,6 +320,7 @@ public class ByteCodeInfo implements ClassInfo {
 
 		public void markCodeDirty() {
 			stackFrames.set(null);
+			hasChangedMethodControlFlow = true;
 		}
 	}
 }
