@@ -62,11 +62,19 @@ public class ClassPath {
 		return classNameToPath.containsKey(className) || (parent != null && parent.classExists(className));
 	}
 
+	/**
+	 * Adds a {@link Path} to this {@link ClassPath}
+	 *
+	 * @param path {@link Path} to add
+	 * @return true if the path was added, false if the path already existed in this {@link ClassPath}
+	 */
 	@Contract("null -> fail")
-	public void addPath(@NonNull Path path) {
+	public boolean addPath(@NonNull Path path) {
 		path = path.normalize().toAbsolutePath();
-		if (inputPaths.add(path) && loaded)
+		val add = !parentHasPath(path) && inputPaths.add(path);
+		if (add && loaded)
 			loadPath(path);
+		return add;
 	}
 
 	@Contract("null -> fail")
