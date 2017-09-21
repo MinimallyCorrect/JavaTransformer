@@ -144,11 +144,12 @@ public class ResolutionContext {
 
 	/**
 	 * Resolves a given name to a JVM type string.
-	 * <p>
-	 * EG:
-	 * ArrayList -> Ljava/util/ArrayList;
-	 * T -> TT;
-	 * boolean -> Z
+	 *
+	 * <ul>
+	 * <li>ArrayList -&gt; Ljava/util/ArrayList;</li>
+	 * <li>T -&gt; TT;</li>
+	 * <li>boolean -&gt; Z</li>
+	 * </ul>
 	 *
 	 * @param name Name to resolve
 	 * @return Type containing resolved name with descriptor/signature
@@ -183,8 +184,7 @@ public class ResolutionContext {
 				"\nFound real type: " + type +
 				"\nGeneric types: " + genericTypes +
 				"\nImports:" + imports.stream().map(ResolutionContext::toString).collect(Collectors.toList()) +
-				"\nClassPath: " + classPath
-			);
+				"\nClassPath: " + classPath);
 
 		if (generic != null) {
 			type = type.withTypeArguments(genericTypes);
@@ -278,8 +278,7 @@ public class ResolutionContext {
 		if (s.startsWith("java.") || s.startsWith("javax.")) {
 			try {
 				return Type.of(Class.forName(s).getName());
-			} catch (ClassNotFoundException ignored) {
-			}
+			} catch (ClassNotFoundException ignored) {}
 		}
 		if (classPath.classExists(s))
 			return Type.of(s);
@@ -287,10 +286,12 @@ public class ResolutionContext {
 	}
 
 	/**
-	 * If we have the type parameter "A extends StringBuilder",
-	 * then "A" is resolved to a type with:
-	 * descriptor: Ljava/lang/StringBuilder;
-	 * signature: TA;
+	 * If we have the type parameter "A extends StringBuilder", then "A" is resolved to a type with:
+	 *
+	 * <ul>
+	 * <li>descriptor: Ljava/lang/StringBuilder;</li>
+	 * <li>signature: TA;</li>
+	 * </ul>
 	 */
 	@Nullable
 	private Type resolveTypeParameterType(String name) {

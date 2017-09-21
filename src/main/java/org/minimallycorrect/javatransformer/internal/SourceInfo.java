@@ -275,7 +275,8 @@ public class SourceInfo implements ClassInfo {
 		}
 
 		private ResolutionContext getContext() {
-			if (context != null) return context;
+			if (context != null)
+				return context;
 			return context = ResolutionContext.of(declaration, SourceInfo.this.type.get(), classPath);
 		}
 
@@ -340,7 +341,8 @@ public class SourceInfo implements ClassInfo {
 		}
 
 		private ResolutionContext getContext() {
-			if (context != null) return context;
+			if (context != null)
+				return context;
 			return context = ResolutionContext.of(declaration, SourceInfo.this.type.get(), classPath);
 		}
 
@@ -427,7 +429,8 @@ public class SourceInfo implements ClassInfo {
 		}
 
 		private ResolutionContext getContext() {
-			if (context != null) return context;
+			if (context != null)
+				return context;
 			return context = ResolutionContext.of(declaration, SourceInfo.this.type.get(), classPath);
 		}
 

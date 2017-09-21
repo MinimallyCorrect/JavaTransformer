@@ -158,7 +158,7 @@ class AsmCodeFragmentGenerator implements Opcodes {
 						results.add(new IntermediateValue(new Type(type.getDescriptor()), IntermediateValue.UNKNOWN, new IntermediateValue.Location(LOCAL, i, null)));
 					}
 
-				//node.visibleLocalVariableAnnotations;
+				// node.visibleLocalVariableAnnotations;
 			}
 
 			if (stack) {
@@ -196,8 +196,7 @@ class AsmCodeFragmentGenerator implements Opcodes {
 			return results;
 		}
 
-		protected void setUsedLocalIndexes(BitSet usedLocals) {
-		}
+		protected void setUsedLocalIndexes(BitSet usedLocals) {}
 
 		@Override
 		public void insert(@NonNull CodeFragment fragmentOfAnyType, @NonNull InsertionPosition position, @NonNull InsertionOptions insertionOptions) {
@@ -228,8 +227,8 @@ class AsmCodeFragmentGenerator implements Opcodes {
 				val clonedMethod = Cloner.deepClone(fragment.containingMethodNodeInfo.node);
 				clonedMethod.instructions = insertInstructions;
 				clonedMethod.name += "_mod";
-				//clonedMethod.maxLocals += 20;
-				//clonedMethod.maxStack += 20;
+				// clonedMethod.maxLocals += 20;
+				// clonedMethod.maxStack += 20;
 				fragment = new MethodNodeInfoCodeFragment(containingMethodNodeInfo.getClassInfo().wrap(clonedMethod));
 				DebugPrinter.printByteCode(clonedMethod, "base");
 				applyInsertionOptions((MethodNodeInfoCodeFragment) fragment, insertionOptions);
@@ -348,7 +347,7 @@ class AsmCodeFragmentGenerator implements Opcodes {
 			rebaseLocals(locals, insertFragment, containingMethodNodeInfo.node.maxLocals);
 			insns.insert(varInsns);
 
-			//insns.insert(lastVarAdded);
+			// insns.insert(lastVarAdded);
 			if (existingOutputTypes == existingInputTypes && outputTypes.isEmpty())
 				for (val iv : existingOutputTypes) {
 					if (iv.location.type != STACK)

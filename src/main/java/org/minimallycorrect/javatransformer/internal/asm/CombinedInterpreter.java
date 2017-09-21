@@ -23,7 +23,7 @@ public class CombinedInterpreter extends Interpreter<CombinedValue> implements O
 	@Nullable
 	@Override
 	public CombinedValue unaryOperation(final AbstractInsnNode insn,
-										final CombinedValue value) throws AnalyzerException {
+		final CombinedValue value) throws AnalyzerException {
 		switch (insn.getOpcode()) {
 			case INEG:
 			case IINC:
@@ -129,8 +129,7 @@ public class CombinedInterpreter extends Interpreter<CombinedValue> implements O
 	}
 
 	@Override
-	public void returnOperation(final AbstractInsnNode insn, final CombinedValue value, final CombinedValue expected) {
-	}
+	public void returnOperation(final AbstractInsnNode insn, final CombinedValue value, final CombinedValue expected) {}
 
 	@Nullable
 	@Deprecated
@@ -211,11 +210,9 @@ public class CombinedInterpreter extends Interpreter<CombinedValue> implements O
 		return value;
 	}
 
-
 	@Nullable
 	@Override
-	public CombinedValue binaryOperation(final AbstractInsnNode insn,
-										 final CombinedValue value1, final CombinedValue value2)
+	public CombinedValue binaryOperation(final AbstractInsnNode insn, final CombinedValue value1, final CombinedValue value2)
 		throws AnalyzerException {
 		switch (insn.getOpcode()) {
 			case IALOAD:
