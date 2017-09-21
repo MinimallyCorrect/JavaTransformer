@@ -10,12 +10,11 @@ import java.util.function.*;
 import java.util.stream.*;
 
 /**
- * <pre><code>
+ * <pre>
+ * {@code
  * 		a variable of type List<String> has:
  * 			real type: Ljava/util/List;
- * 			generic type: Ljava/util/List<Ljava/lang/String
- *
- * 		;>
+ * 			generic type: Ljava/util/List<Ljava/lang/String;>
  *
  *     When the type parameter T is <T:Ljava/lang/Object;>
  *
@@ -30,7 +29,8 @@ import java.util.stream.*;
  * // signature <T:Ljava/lang/Object;>(Ljava/util/ArrayList<TT;>;Ljava/util/List<Ljava/lang/String;>;)TT;
  * // declaration: T test<T>(java.util.ArrayList<T>, java.util.List<java.lang.String>)
  * static test(Ljava/util/ArrayList;Ljava/util/List;)Ljava/lang/Object;
- * </code></pre>
+ * }
+ * </pre>
  */
 @Data
 public class Type {
@@ -107,8 +107,7 @@ public class Type {
 				"\n\tdesc: " + desc +
 				"\n\tsignature: " + signature +
 				"\n\tparsedDesc: " + parsedDesc +
-				"\n\tparsedSignature: " + parsedSignature
-			);
+				"\n\tparsedSignature: " + parsedSignature);
 		}
 
 		val types = new ArrayList<Type>();

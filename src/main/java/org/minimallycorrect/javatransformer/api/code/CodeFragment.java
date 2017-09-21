@@ -9,27 +9,25 @@ import java.util.*;
 
 @SuppressWarnings("serial")
 public interface CodeFragment {
-	/*
-	* TODO: implement this
-	*
-	* fall-through/abort considerations:
-	*
-	* insertion before is always allowed
-	*
-	* overwrite is only allowed if can already fall through the fragment being overwritten, or can't fall through the fragment being inserted
-	*
-	* after is only allowed if execution can fall through
-	*
-	* input/output considerations:
-	*
-	* before - inputs can be none or the same. if same duplicate inputs? or allow changing inputs?. outputs must be none
-	*
-	* configurable?? by default duplicate, option to allow changing
-	*
-	* overwrite - inputs must be the same outputs must be the same
-	*
-	* after - inputs must be none, outputs must be none or same?
-	* */
+	/* TODO: implement this
+	 *
+	 * fall-through/abort considerations:
+	 *
+	 * insertion before is always allowed
+	 *
+	 * overwrite is only allowed if can already fall through the fragment being overwritten, or can't fall through the fragment being inserted
+	 *
+	 * after is only allowed if execution can fall through
+	 *
+	 * input/output considerations:
+	 *
+	 * before - inputs can be none or the same. if same duplicate inputs? or allow changing inputs?. outputs must be none
+	 *
+	 * configurable?? by default duplicate, option to allow changing
+	 *
+	 * overwrite - inputs must be the same outputs must be the same
+	 *
+	 * after - inputs must be none, outputs must be none or same? */
 
 	void insert(@NonNull CodeFragment codeFragment, @NonNull InsertionPosition position, @NonNull InsertionOptions insertionOptions);
 
@@ -58,29 +56,22 @@ public interface CodeFragment {
 		AFTER
 	}
 
-	interface MethodCall extends CodeFragment, HasContainingClassType, HasName {
-	}
+	interface MethodCall extends CodeFragment, HasContainingClassType, HasName {}
 
-	interface FieldAccess extends CodeFragment, HasContainingClassType, HasName {
-	}
+	interface FieldAccess extends CodeFragment, HasContainingClassType, HasName {}
 
-	interface FieldLoad extends FieldAccess {
-	}
+	interface FieldLoad extends FieldAccess {}
 
-	interface FieldStore extends FieldAccess {
-	}
+	interface FieldStore extends FieldAccess {}
 
-	interface Return extends CodeFragment {
-	}
+	interface Return extends CodeFragment {}
 
-	interface New extends CodeFragment {
-	}
+	interface New extends CodeFragment {}
 
 	/**
 	 * Marker interface, the entire body of a method
 	 */
-	interface Body extends CodeFragment {
-	}
+	interface Body extends CodeFragment {}
 
 	@FunctionalInterface
 	interface HasContainingClassType {

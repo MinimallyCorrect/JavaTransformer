@@ -106,8 +106,7 @@ public class ClassPath {
 				return zis.read(b, off, len);
 			}
 
-			public void close() throws IOException {
-			}
+			public void close() throws IOException {}
 
 			public int read() throws IOException {
 				return zis.read();

@@ -34,10 +34,8 @@ public class CombinedValue implements Value, Opcodes {
 	private static final CombinedValue DOUBLE_VALUE = new CombinedValue(Type.DOUBLE_TYPE, Collections.emptySet());
 	private static final CombinedValue REFERENCE_VALUE = new CombinedValue(OBJECT_TYPE, Collections.emptySet());
 	/**
-	 * The instructions that can produce this value. For example, for the Java
-	 * code below, the instructions that can produce the value of <tt>i</tt> at
-	 * line 5 are the txo ISTORE instructions at line 1 and 3:
-	 * <p>
+	 * The instructions that can produce this value. For example, for the Java code below, the instructions that can produce the value of <tt>i</tt> at line 5 are the txo ISTORE instructions at line 1 and 3:
+	 * 
 	 * <pre>
 	 * 1: i = 0;
 	 * 2: if (...) {
@@ -45,7 +43,7 @@ public class CombinedValue implements Value, Opcodes {
 	 * 4: }
 	 * 5: return i;
 	 * </pre>
-	 * <p>
+	 * 
 	 * This field is a set of {@link AbstractInsnNode} objects.
 	 */
 	public final Set<AbstractInsnNode> insns;

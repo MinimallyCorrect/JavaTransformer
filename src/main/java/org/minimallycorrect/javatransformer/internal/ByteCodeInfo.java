@@ -304,8 +304,7 @@ public class ByteCodeInfo implements ClassInfo {
 		}
 
 		@Override
-		public @NonNull
-		CodeFragment.Body getCodeFragment() {
+		public @NonNull CodeFragment.Body getCodeFragment() {
 			return codeFragment.get();
 		}
 

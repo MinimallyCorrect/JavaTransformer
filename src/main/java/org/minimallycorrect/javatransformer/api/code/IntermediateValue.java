@@ -43,8 +43,7 @@ public final class IntermediateValue {
 	}
 
 	public final static class UNKNOWN_CONSTANT {
-		UNKNOWN_CONSTANT() {
-		}
+		UNKNOWN_CONSTANT() {}
 
 		@Override
 		public String toString() {

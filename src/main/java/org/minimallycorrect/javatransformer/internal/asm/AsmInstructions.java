@@ -12,9 +12,10 @@ import org.objectweb.asm.tree.LdcInsnNode;
 
 /**
  * asm is half an abstraction level above java bytecode, and very inconsistent.
- * <p>
- * const instructions - no common interface to handle short versions for 0/1/-1/etc
- * var instructions - auto converts the 0/1/-1 to varinsnnode.
+ * <ul>
+ * <li>const instructions - no common interface to handle short versions for 0/1/-1/etc</li>
+ * <li>var instructions - auto converts the 0/1/-1 to varinsnnode.</li>
+ * </ul>
  * <p>
  * THANKS!!!!!
  */

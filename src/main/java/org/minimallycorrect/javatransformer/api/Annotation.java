@@ -83,4 +83,3 @@ public class Annotation {
 		return (T) sun.reflect.annotation.AnnotationParser.annotationForMap(clazz, values);
 	}
 }
-
