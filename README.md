@@ -1,13 +1,32 @@
-JavaTransformer [![Build Status](https://jenkins.nallar.me/job/JavaTransformer/badge/icon)](https://jenkins.nallar.me/job/JavaTransformer/)
+JavaTransformer
 ====
-Java transformation library using ASM and JavaParser to allow modifications to both .java and .class files using the same API.
+<!---freshmark shields
+output = [
+	link(shield('Latest version', 'latest', '{{version}}', 'blue'), 'https://github.com/{{organisation}}/{{name}}/releases/latest'),
+	link(shield('Maven artifact', 'jcenter', '{{name}}', 'blue'), 'https://bintray.com/{{bintrayrepo}}/{{name}}/view'),
+	link(image('License', 'https://img.shields.io/github/license/{{organisation}}/{{name}}.svg'), 'LICENSE'),
+	'',
+	link(image('Coverage', 'https://img.shields.io/codecov/c/github/{{organisation}}/{{name}}/{{branch}}.svg'), ''),
+	link(image('Discord chat', 'https://img.shields.io/discord/{{discordId}}.svg'), '{{discordInvite}}'),
+	link(shield('Changelog', 'changelog', '{{version}}', 'brightgreen'), '{{releaseNotesPath}}'),
+	link(image('Travis CI', 'https://travis-ci.org/{{organisation}}/{{name}}.svg?branch=master'), 'https://travis-ci.org/{{organisation}}/{{name}}'),
+	].join('\n');
+-->
+[![Latest version](https://img.shields.io/badge/latest-1.8.0-blue.svg)](https://github.com/MinimallyCorrect/JavaTransformer/releases/latest)
+[![Maven artifact](https://img.shields.io/badge/jcenter-JavaTransformer-blue.svg)](https://bintray.com/minimallycorrect/minimallycorrectmaven/JavaTransformer/view)
+[![License](https://img.shields.io/github/license/MinimallyCorrect/JavaTransformer.svg)](LICENSE)
 
-Copyright &copy; 2016, nallar <git@nyx.nova.fail>
-JavaTransformer is licensed under the MIT license.
+[![Coverage](https://img.shields.io/codecov/c/github/MinimallyCorrect/JavaTransformer/master.svg)]()
+[![Discord chat](https://img.shields.io/discord/313371711632441344.svg)](https://discord.gg/YrV3bDm)
+[![Changelog](https://img.shields.io/badge/changelog-1.8.0-brightgreen.svg)](docs/release-notes.md)
+[![Travis CI](https://travis-ci.org/MinimallyCorrect/JavaTransformer.svg?branch=master)](https://travis-ci.org/MinimallyCorrect/JavaTransformer)
+<!---freshmark /shields -->
 
-Download
----
-Download the latest builds from [Jenkins](https://jenkins.nallar.me/job/JavaTransformer/).
+Applies transformations to .java and .class files using a unified high level API.
+
+Getting Started
+----
+TODO - WIKI
 
 Compiling
 ---
@@ -16,29 +35,7 @@ JavaTransformer is built using Gradle.
 * Install the Java 8 Development Kit
 * Run `./gradlew build`
 
-
-Coding and Pull Request Formatting
----
-* Generally follows the Oracle coding standards.
-* Tabs, no spaces.
-* Pull requests must compile and work.
-* Pull requests must be formatted properly.
-
-Please follow the above conventions if you want your pull requests accepted.
-
-Donations
----
-
-Paypal: [Donate](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=PTWH8MH8Y4WH8)
-Bitcoin: [1BUjvwxxGH23Fkj7vdGtbrgLEF91u8npQu](bitcoin:1BUjvwxxGH23Fkj7vdGtbrgLEF91u8npQu)
-
-Contributors
----
-
-* [nallar](https://github.com/nallar/ "Luna Nova")
-* Everyone who's helped with testing and reporting bugs :)
-
-Acknowledgements
----
-
-YourKit is kindly supporting open source projects with its full-featured Java Profiler. YourKit, LLC is the creator of innovative and intelligent tools for profiling Java and .NET applications. Take a look at YourKit's leading software products: [YourKit Java Profiler](http://www.yourkit.com/java/profiler/index.jsp) and [YourKit .NET Profiler](http://www.yourkit.com/.net/profiler/index.jsp).
+Formatting
+----
+* Formatting is automatically checked by spotless
+* Run `./gradlew spotlessApply` to fix formatting errors
