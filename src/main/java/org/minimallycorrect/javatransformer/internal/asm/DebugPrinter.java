@@ -1,14 +1,16 @@
 package org.minimallycorrect.javatransformer.internal.asm;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
 import lombok.experimental.UtilityClass;
+
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.InsnList;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.util.Printer;
 import org.objectweb.asm.util.Textifier;
 import org.objectweb.asm.util.TraceMethodVisitor;
-
-import java.io.*;
 
 @UtilityClass
 public class DebugPrinter {

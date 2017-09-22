@@ -1,10 +1,11 @@
 package org.minimallycorrect.javatransformer.api;
 
+import java.nio.file.Paths;
+
 import lombok.val;
+
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.nio.file.*;
 
 public class ClassPathTest {
 	@Test

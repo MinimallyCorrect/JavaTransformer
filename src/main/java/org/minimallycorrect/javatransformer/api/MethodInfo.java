@@ -1,8 +1,9 @@
 package org.minimallycorrect.javatransformer.api;
 
-import org.minimallycorrect.javatransformer.internal.SimpleMethodInfo;
+import java.util.Arrays;
+import java.util.List;
 
-import java.util.*;
+import org.minimallycorrect.javatransformer.internal.SimpleMethodInfo;
 
 public interface MethodInfo extends ClassMember, HasTypeVariable, Cloneable {
 	static MethodInfo of(AccessFlags accessFlags, List<TypeVariable> typeVariables, Type returnType, String name, Parameter... parameters) {

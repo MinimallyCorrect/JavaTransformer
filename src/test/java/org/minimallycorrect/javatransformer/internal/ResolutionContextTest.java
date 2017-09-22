@@ -1,14 +1,18 @@
 package org.minimallycorrect.javatransformer.internal;
 
-import com.github.javaparser.ast.type.TypeParameter;
+import java.util.Arrays;
+import java.util.Collections;
+
 import lombok.val;
+
 import org.junit.Assert;
 import org.junit.Test;
+
+import com.github.javaparser.ast.type.TypeParameter;
+
 import org.minimallycorrect.javatransformer.api.ClassPath;
 import org.minimallycorrect.javatransformer.api.TransformationException;
 import org.minimallycorrect.javatransformer.api.Type;
-
-import java.util.*;
 
 public class ResolutionContextTest {
 	private ResolutionContext context() {

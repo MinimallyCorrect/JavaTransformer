@@ -1,12 +1,13 @@
 package org.minimallycorrect.javatransformer.internal.util;
 
+import java.util.Objects;
+import java.util.function.Supplier;
+
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.ToString;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
-import java.util.function.*;
+import org.jetbrains.annotations.Nullable;
 
 @EqualsAndHashCode
 @ToString

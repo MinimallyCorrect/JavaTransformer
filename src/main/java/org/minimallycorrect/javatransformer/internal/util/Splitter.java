@@ -1,7 +1,7 @@
 package org.minimallycorrect.javatransformer.internal.util;
 
-import java.util.function.*;
-import java.util.stream.*;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 public interface Splitter {
 	Splitter commaSplitter = on(',');

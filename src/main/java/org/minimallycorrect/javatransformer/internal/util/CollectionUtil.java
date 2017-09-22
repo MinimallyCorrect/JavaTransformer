@@ -1,11 +1,15 @@
 package org.minimallycorrect.javatransformer.internal.util;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+
 import lombok.experimental.UtilityClass;
 import lombok.val;
-
-import java.util.*;
-import java.util.function.*;
-import java.util.stream.*;
 
 @UtilityClass
 public class CollectionUtil {

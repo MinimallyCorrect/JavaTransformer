@@ -1,11 +1,23 @@
 package org.minimallycorrect.javatransformer.api;
 
-import lombok.*;
-import org.jetbrains.annotations.Nullable;
-import org.minimallycorrect.javatransformer.internal.util.JVMUtil;
+import java.lang.reflect.Modifier;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
-import java.lang.reflect.*;
-import java.util.*;
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.SneakyThrows;
+import lombok.val;
+
+import org.jetbrains.annotations.Nullable;
+
+import org.minimallycorrect.javatransformer.internal.util.JVMUtil;
 
 @Data
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)

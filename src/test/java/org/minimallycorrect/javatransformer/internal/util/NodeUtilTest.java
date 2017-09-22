@@ -1,8 +1,9 @@
 package org.minimallycorrect.javatransformer.internal.util;
 
-import com.github.javaparser.ast.expr.Name;
 import org.junit.Assert;
 import org.junit.Test;
+
+import com.github.javaparser.ast.expr.Name;
 
 public class NodeUtilTest {
 	@Test

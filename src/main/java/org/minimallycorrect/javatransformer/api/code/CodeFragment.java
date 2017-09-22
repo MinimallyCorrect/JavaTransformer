@@ -1,11 +1,18 @@
 package org.minimallycorrect.javatransformer.api.code;
 
-import lombok.*;
+import java.util.Collections;
+import java.util.List;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.Wither;
+
 import org.minimallycorrect.javatransformer.api.TransformationException;
 import org.minimallycorrect.javatransformer.api.Type;
-
-import java.util.*;
 
 @SuppressWarnings("serial")
 public interface CodeFragment {

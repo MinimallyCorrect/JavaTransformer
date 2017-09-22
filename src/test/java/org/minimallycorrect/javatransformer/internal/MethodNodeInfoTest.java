@@ -1,15 +1,17 @@
 package org.minimallycorrect.javatransformer.internal;
 
+import java.util.HashMap;
+
 import lombok.val;
+
 import org.junit.Assert;
 import org.junit.Test;
+import org.objectweb.asm.tree.MethodNode;
+
 import org.minimallycorrect.javatransformer.api.AccessFlags;
 import org.minimallycorrect.javatransformer.api.MethodInfo;
 import org.minimallycorrect.javatransformer.api.Parameter;
 import org.minimallycorrect.javatransformer.api.Type;
-import org.objectweb.asm.tree.MethodNode;
-
-import java.util.*;
 
 public class MethodNodeInfoTest {
 	@Test

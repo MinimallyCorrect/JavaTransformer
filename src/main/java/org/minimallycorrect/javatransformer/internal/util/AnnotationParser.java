@@ -1,20 +1,37 @@
 package org.minimallycorrect.javatransformer.internal.util;
 
-import com.github.javaparser.ast.expr.*;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import lombok.experimental.UtilityClass;
 import lombok.val;
-import org.minimallycorrect.javatransformer.api.Annotation;
-import org.minimallycorrect.javatransformer.api.TransformationException;
-import org.minimallycorrect.javatransformer.api.Type;
-import org.minimallycorrect.javatransformer.internal.ResolutionContext;
+
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AnnotationNode;
 
-import java.lang.reflect.*;
-import java.util.*;
-import java.util.stream.*;
+import com.github.javaparser.ast.expr.AnnotationExpr;
+import com.github.javaparser.ast.expr.ArrayInitializerExpr;
+import com.github.javaparser.ast.expr.BooleanLiteralExpr;
+import com.github.javaparser.ast.expr.ClassExpr;
+import com.github.javaparser.ast.expr.Expression;
+import com.github.javaparser.ast.expr.FieldAccessExpr;
+import com.github.javaparser.ast.expr.MarkerAnnotationExpr;
+import com.github.javaparser.ast.expr.MemberValuePair;
+import com.github.javaparser.ast.expr.NormalAnnotationExpr;
+import com.github.javaparser.ast.expr.SingleMemberAnnotationExpr;
+import com.github.javaparser.ast.expr.StringLiteralExpr;
+
+import org.minimallycorrect.javatransformer.api.Annotation;
+import org.minimallycorrect.javatransformer.api.TransformationException;
+import org.minimallycorrect.javatransformer.api.Type;
+import org.minimallycorrect.javatransformer.internal.ResolutionContext;
 
 @UtilityClass
 public class AnnotationParser {

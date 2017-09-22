@@ -1,15 +1,18 @@
 package org.minimallycorrect.javatransformer.internal.util;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
+
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import lombok.val;
+
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
-import org.minimallycorrect.javatransformer.api.TransformationException;
 
-import java.util.*;
-import java.util.function.*;
-import java.util.stream.*;
+import org.minimallycorrect.javatransformer.api.TransformationException;
 
 @UtilityClass
 public class TypeUtil {

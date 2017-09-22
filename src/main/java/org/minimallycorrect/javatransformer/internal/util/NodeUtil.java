@@ -1,14 +1,17 @@
 package org.minimallycorrect.javatransformer.internal.util;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Function;
+
+import lombok.experimental.UtilityClass;
+
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.expr.Name;
 import com.github.javaparser.ast.nodeTypes.NodeWithTypeParameters;
 import com.github.javaparser.ast.type.TypeParameter;
-import lombok.experimental.UtilityClass;
-
-import java.util.*;
-import java.util.function.*;
 
 @UtilityClass
 public class NodeUtil {

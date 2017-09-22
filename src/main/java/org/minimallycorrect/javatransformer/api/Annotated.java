@@ -1,7 +1,7 @@
 package org.minimallycorrect.javatransformer.api;
 
-import java.util.*;
-import java.util.stream.*;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public interface Annotated {
 	List<Annotation> getAnnotations();

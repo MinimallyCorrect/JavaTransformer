@@ -1,6 +1,6 @@
 package org.minimallycorrect.javatransformer.api;
 
-import java.util.function.*;
+import java.util.function.Function;
 
 public interface Accessible {
 	AccessFlags getAccessFlags();

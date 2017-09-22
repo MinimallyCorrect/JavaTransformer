@@ -1,10 +1,14 @@
 package org.minimallycorrect.javatransformer.internal.util;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.security.ProtectionDomain;
+
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
-
-import java.lang.invoke.*;
-import java.security.*;
 
 @UtilityClass
 public class DefineClass {

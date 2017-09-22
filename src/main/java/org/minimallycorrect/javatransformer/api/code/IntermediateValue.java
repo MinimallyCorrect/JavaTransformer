@@ -5,7 +5,9 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.Wither;
+
 import org.jetbrains.annotations.Nullable;
+
 import org.minimallycorrect.javatransformer.api.Type;
 
 @RequiredArgsConstructor

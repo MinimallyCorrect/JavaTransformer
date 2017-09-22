@@ -1,20 +1,24 @@
 package org.minimallycorrect.javatransformer.api;
 
+import static org.minimallycorrect.javatransformer.api.code.IntermediateValue.LocationType.LOCAL;
+import static org.minimallycorrect.javatransformer.api.code.IntermediateValue.LocationType.STACK;
+
+import java.io.PrintStream;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import lombok.val;
+
 import org.junit.Assert;
 import org.junit.Test;
+import org.omg.CORBA.BooleanHolder;
+
 import org.minimallycorrect.javatransformer.api.code.CodeFragment;
 import org.minimallycorrect.javatransformer.internal.ByteCodeInfo;
 import org.minimallycorrect.javatransformer.internal.asm.DebugPrinter;
 import org.minimallycorrect.javatransformer.transform.CodeFragmentTesting;
-import org.omg.CORBA.BooleanHolder;
-
-import java.io.*;
-import java.nio.file.*;
-import java.util.*;
-
-import static org.minimallycorrect.javatransformer.api.code.IntermediateValue.LocationType.LOCAL;
-import static org.minimallycorrect.javatransformer.api.code.IntermediateValue.LocationType.STACK;
 
 public class JavaTransformerRuntimeTest {
 	private static final List<String> EXPECTED_METHOD_CALL_INPUTS = Arrays.asList("1", "2", "3", "4");

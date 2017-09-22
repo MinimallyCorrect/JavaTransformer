@@ -1,7 +1,32 @@
 package org.minimallycorrect.javatransformer.internal;
 
-import lombok.*;
-import org.minimallycorrect.javatransformer.api.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import lombok.Data;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.SneakyThrows;
+import lombok.val;
+
+import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.FieldNode;
+import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.analysis.Frame;
+
+import org.minimallycorrect.javatransformer.api.AccessFlags;
+import org.minimallycorrect.javatransformer.api.Annotation;
+import org.minimallycorrect.javatransformer.api.ClassInfo;
+import org.minimallycorrect.javatransformer.api.FieldInfo;
+import org.minimallycorrect.javatransformer.api.MethodInfo;
+import org.minimallycorrect.javatransformer.api.Parameter;
+import org.minimallycorrect.javatransformer.api.TransformationException;
+import org.minimallycorrect.javatransformer.api.Type;
+import org.minimallycorrect.javatransformer.api.TypeVariable;
 import org.minimallycorrect.javatransformer.api.code.CodeFragment;
 import org.minimallycorrect.javatransformer.internal.asm.CombinedAnalyzer;
 import org.minimallycorrect.javatransformer.internal.asm.CombinedInterpreter;
@@ -11,14 +36,6 @@ import org.minimallycorrect.javatransformer.internal.util.AnnotationParser;
 import org.minimallycorrect.javatransformer.internal.util.CachingSupplier;
 import org.minimallycorrect.javatransformer.internal.util.Cloner;
 import org.minimallycorrect.javatransformer.internal.util.CollectionUtil;
-import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.FieldNode;
-import org.objectweb.asm.tree.MethodNode;
-import org.objectweb.asm.tree.analysis.Frame;
-
-import java.util.*;
-import java.util.function.*;
-import java.util.stream.*;
 
 @Data
 @SuppressWarnings("unchecked")

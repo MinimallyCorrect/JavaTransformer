@@ -1,24 +1,55 @@
 package org.minimallycorrect.javatransformer.internal;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.Getter;
+import lombok.val;
+
+import org.jetbrains.annotations.Nullable;
+
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.NodeList;
-import com.github.javaparser.ast.body.*;
-import com.github.javaparser.ast.expr.*;
+import com.github.javaparser.ast.body.BodyDeclaration;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.ConstructorDeclaration;
+import com.github.javaparser.ast.body.FieldDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.TypeDeclaration;
+import com.github.javaparser.ast.body.VariableDeclarator;
+import com.github.javaparser.ast.expr.AnnotationExpr;
+import com.github.javaparser.ast.expr.Expression;
+import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.expr.NameExpr;
+import com.github.javaparser.ast.expr.ObjectCreationExpr;
+import com.github.javaparser.ast.expr.SimpleName;
+import com.github.javaparser.ast.expr.TypeExpr;
+import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.ast.nodeTypes.NodeWithParameters;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.ThrowStmt;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
-import lombok.*;
-import org.jetbrains.annotations.Nullable;
-import org.minimallycorrect.javatransformer.api.*;
+
+import org.minimallycorrect.javatransformer.api.AccessFlags;
+import org.minimallycorrect.javatransformer.api.Annotation;
+import org.minimallycorrect.javatransformer.api.ClassInfo;
+import org.minimallycorrect.javatransformer.api.ClassPath;
+import org.minimallycorrect.javatransformer.api.FieldInfo;
+import org.minimallycorrect.javatransformer.api.MethodInfo;
 import org.minimallycorrect.javatransformer.api.Parameter;
+import org.minimallycorrect.javatransformer.api.TransformationException;
+import org.minimallycorrect.javatransformer.api.Type;
+import org.minimallycorrect.javatransformer.api.TypeVariable;
 import org.minimallycorrect.javatransformer.internal.util.AnnotationParser;
 import org.minimallycorrect.javatransformer.internal.util.CachingSupplier;
 import org.minimallycorrect.javatransformer.internal.util.NodeUtil;
-
-import java.util.*;
-import java.util.function.*;
-import java.util.stream.*;
 
 @Data
 @AllArgsConstructor

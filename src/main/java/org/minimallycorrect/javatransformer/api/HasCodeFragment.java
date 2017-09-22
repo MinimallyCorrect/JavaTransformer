@@ -1,10 +1,12 @@
 package org.minimallycorrect.javatransformer.api;
 
-import lombok.val;
-import org.jetbrains.annotations.Nullable;
-import org.minimallycorrect.javatransformer.api.code.CodeFragment;
+import java.util.Collections;
 
-import java.util.*;
+import lombok.val;
+
+import org.jetbrains.annotations.Nullable;
+
+import org.minimallycorrect.javatransformer.api.code.CodeFragment;
 
 public interface HasCodeFragment {
 	@Nullable

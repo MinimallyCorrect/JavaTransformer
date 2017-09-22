@@ -1,11 +1,12 @@
 package org.minimallycorrect.javatransformer.internal.util;
 
+import java.lang.invoke.MethodType;
+
 import lombok.SneakyThrows;
 import lombok.val;
+
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.lang.invoke.*;
 
 public class ImplLookupTest {
 	private static String toString(Object o) {

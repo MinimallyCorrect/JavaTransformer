@@ -1,14 +1,23 @@
 package org.minimallycorrect.javatransformer.internal.asm;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import lombok.val;
+
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import org.objectweb.asm.tree.*;
+import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.InsnList;
+import org.objectweb.asm.tree.JumpInsnNode;
+import org.objectweb.asm.tree.LabelNode;
+import org.objectweb.asm.tree.LookupSwitchInsnNode;
+import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.TableSwitchInsnNode;
+import org.objectweb.asm.tree.TryCatchBlockNode;
 import org.objectweb.asm.tree.analysis.AnalyzerException;
 import org.objectweb.asm.tree.analysis.Interpreter;
 import org.objectweb.asm.tree.analysis.Value;
-
-import java.util.*;
 
 public class CombinedAnalyzer<V extends Value> implements Opcodes {
 	private final Interpreter<V> interpreter;

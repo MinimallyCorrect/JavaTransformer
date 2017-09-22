@@ -1,11 +1,12 @@
 package org.minimallycorrect.javatransformer.api;
 
-import org.jetbrains.annotations.Nullable;
-import org.minimallycorrect.javatransformer.internal.util.CollectionUtil;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
-import java.util.*;
-import java.util.function.*;
-import java.util.stream.*;
+import org.jetbrains.annotations.Nullable;
+
+import org.minimallycorrect.javatransformer.internal.util.CollectionUtil;
 
 public interface ClassInfo extends ClassMember {
 	default void add(ClassMember member) {

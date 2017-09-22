@@ -1,6 +1,6 @@
 package org.minimallycorrect.javatransformer.api;
 
-import java.util.*;
+import java.util.List;
 
 public interface HasTypeVariable {
 	List<TypeVariable> getTypeVariables();

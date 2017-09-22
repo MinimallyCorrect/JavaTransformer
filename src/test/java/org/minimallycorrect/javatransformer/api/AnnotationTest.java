@@ -1,10 +1,12 @@
 package org.minimallycorrect.javatransformer.api;
 
+import java.util.Collections;
+import java.util.HashMap;
+
 import lombok.val;
+
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.util.*;
 
 public class AnnotationTest {
 	@Test
