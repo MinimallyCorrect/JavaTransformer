@@ -1,12 +1,15 @@
 package org.minimallycorrect.javatransformer.api;
 
-import lombok.val;
-import org.junit.Test;
-import org.minimallycorrect.javatransformer.internal.SimpleMethodInfo;
-
-import java.util.*;
-
 import static org.junit.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.Collections;
+
+import lombok.val;
+
+import org.junit.Test;
+
+import org.minimallycorrect.javatransformer.internal.SimpleMethodInfo;
 
 public class MethodInfoTest {
 	@Test

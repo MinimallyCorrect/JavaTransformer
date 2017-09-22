@@ -1,11 +1,13 @@
 package org.minimallycorrect.javatransformer.internal.util;
 
-import com.github.javaparser.utils.Log;
+import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Field;
+
 import lombok.val;
+
 import sun.misc.Unsafe;
 
-import java.lang.invoke.*;
-import java.lang.reflect.*;
+import com.github.javaparser.utils.Log;
 
 public class UnsafeAccess {
 	public static final Unsafe $;

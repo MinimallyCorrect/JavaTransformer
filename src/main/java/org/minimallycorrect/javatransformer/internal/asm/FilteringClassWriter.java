@@ -1,10 +1,12 @@
 package org.minimallycorrect.javatransformer.internal.asm;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import lombok.val;
+
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
-
-import java.util.*;
 
 public class FilteringClassWriter extends ClassWriter {
 	public final Map<String, String> filters = new HashMap<>();

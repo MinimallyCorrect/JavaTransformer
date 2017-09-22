@@ -1,9 +1,9 @@
 package org.minimallycorrect.javatransformer.transform;
 
-import org.minimallycorrect.javatransformer.api.code.RETURN;
+import java.io.PrintStream;
+import java.util.function.Consumer;
 
-import java.io.*;
-import java.util.function.*;
+import org.minimallycorrect.javatransformer.api.code.RETURN;
 
 @SuppressWarnings({"FieldCanBeLocal", "unused"})
 public class CodeFragmentTesting {

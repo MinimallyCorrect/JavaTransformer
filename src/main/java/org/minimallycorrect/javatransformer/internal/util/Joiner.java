@@ -1,7 +1,7 @@
 package org.minimallycorrect.javatransformer.internal.util;
 
-import java.util.*;
-import java.util.stream.*;
+import java.util.Iterator;
+import java.util.stream.Stream;
 
 public interface Joiner {
 	Joiner empty = parts -> {

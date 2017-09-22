@@ -1,18 +1,26 @@
 package org.minimallycorrect.javatransformer.internal;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
 import lombok.val;
+
 import org.jetbrains.annotations.Nullable;
-import org.minimallycorrect.javatransformer.api.*;
-import org.minimallycorrect.javatransformer.internal.util.AnnotationParser;
-import org.minimallycorrect.javatransformer.internal.util.CachingSupplier;
-import org.minimallycorrect.javatransformer.internal.util.TypeUtil;
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.MethodNode;
 
-import java.util.*;
+import org.minimallycorrect.javatransformer.api.Annotation;
+import org.minimallycorrect.javatransformer.api.Parameter;
+import org.minimallycorrect.javatransformer.api.TransformationException;
+import org.minimallycorrect.javatransformer.api.Type;
+import org.minimallycorrect.javatransformer.api.TypeVariable;
+import org.minimallycorrect.javatransformer.internal.util.AnnotationParser;
+import org.minimallycorrect.javatransformer.internal.util.CachingSupplier;
+import org.minimallycorrect.javatransformer.internal.util.TypeUtil;
 
 @Getter
 @ToString

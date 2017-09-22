@@ -1,16 +1,20 @@
 package org.minimallycorrect.javatransformer.internal.asm;
 
+import java.util.Collections;
+import java.util.Objects;
+import java.util.Set;
+
 import lombok.EqualsAndHashCode;
 import lombok.val;
+
 import org.jetbrains.annotations.Nullable;
-import org.minimallycorrect.javatransformer.api.code.IntermediateValue;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.InsnNode;
 import org.objectweb.asm.tree.analysis.Value;
 
-import java.util.*;
+import org.minimallycorrect.javatransformer.api.code.IntermediateValue;
 
 @EqualsAndHashCode
 public class CombinedValue implements Value, Opcodes {

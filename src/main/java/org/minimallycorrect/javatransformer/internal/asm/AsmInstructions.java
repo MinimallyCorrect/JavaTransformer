@@ -2,13 +2,15 @@ package org.minimallycorrect.javatransformer.internal.asm;
 
 import lombok.experimental.UtilityClass;
 import lombok.val;
+
 import org.jetbrains.annotations.Nullable;
-import org.minimallycorrect.javatransformer.api.Type;
-import org.minimallycorrect.javatransformer.api.code.IntermediateValue;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.IntInsnNode;
 import org.objectweb.asm.tree.LdcInsnNode;
+
+import org.minimallycorrect.javatransformer.api.Type;
+import org.minimallycorrect.javatransformer.api.code.IntermediateValue;
 
 /**
  * asm is half an abstraction level above java bytecode, and very inconsistent.

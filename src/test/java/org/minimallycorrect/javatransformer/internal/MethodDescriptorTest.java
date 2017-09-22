@@ -1,6 +1,7 @@
 package org.minimallycorrect.javatransformer.internal;
 
 import org.junit.Assert;
+
 import org.minimallycorrect.javatransformer.api.Parameter;
 import org.minimallycorrect.javatransformer.api.Type;
 

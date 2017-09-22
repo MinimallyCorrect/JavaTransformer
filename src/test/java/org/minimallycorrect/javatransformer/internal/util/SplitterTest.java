@@ -1,10 +1,10 @@
 package org.minimallycorrect.javatransformer.internal.util;
 
-import org.junit.Test;
-
-import java.util.*;
-
 import static org.junit.Assert.assertArrayEquals;
+
+import java.util.ArrayList;
+
+import org.junit.Test;
 
 public class SplitterTest {
 	@Test

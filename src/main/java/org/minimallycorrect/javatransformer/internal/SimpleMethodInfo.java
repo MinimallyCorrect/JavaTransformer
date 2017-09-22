@@ -1,10 +1,20 @@
 package org.minimallycorrect.javatransformer.internal;
 
-import lombok.Data;
-import org.jetbrains.annotations.Nullable;
-import org.minimallycorrect.javatransformer.api.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
-import java.util.*;
+import lombok.Data;
+
+import org.jetbrains.annotations.Nullable;
+
+import org.minimallycorrect.javatransformer.api.AccessFlags;
+import org.minimallycorrect.javatransformer.api.Annotation;
+import org.minimallycorrect.javatransformer.api.ClassInfo;
+import org.minimallycorrect.javatransformer.api.MethodInfo;
+import org.minimallycorrect.javatransformer.api.Parameter;
+import org.minimallycorrect.javatransformer.api.Type;
+import org.minimallycorrect.javatransformer.api.TypeVariable;
 
 @Data
 public class SimpleMethodInfo implements MethodInfo {

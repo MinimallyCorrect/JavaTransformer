@@ -1,10 +1,13 @@
 package org.minimallycorrect.javatransformer.api;
 
-import com.github.javaparser.ast.Modifier;
-import lombok.val;
-import org.minimallycorrect.javatransformer.internal.util.JVMUtil;
+import java.util.ArrayList;
+import java.util.EnumSet;
 
-import java.util.*;
+import lombok.val;
+
+import com.github.javaparser.ast.Modifier;
+
+import org.minimallycorrect.javatransformer.internal.util.JVMUtil;
 
 public class AccessFlags {
 	public static final int ACC_PUBLIC = 0x0001; // class, field, method

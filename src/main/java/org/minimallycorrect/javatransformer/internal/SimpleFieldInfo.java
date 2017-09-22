@@ -1,9 +1,14 @@
 package org.minimallycorrect.javatransformer.internal;
 
-import lombok.Data;
-import org.minimallycorrect.javatransformer.api.*;
+import java.util.List;
 
-import java.util.*;
+import lombok.Data;
+
+import org.minimallycorrect.javatransformer.api.AccessFlags;
+import org.minimallycorrect.javatransformer.api.Annotation;
+import org.minimallycorrect.javatransformer.api.ClassInfo;
+import org.minimallycorrect.javatransformer.api.FieldInfo;
+import org.minimallycorrect.javatransformer.api.Type;
 
 @Data
 public class SimpleFieldInfo implements FieldInfo {

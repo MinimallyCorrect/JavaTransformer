@@ -1,6 +1,36 @@
 package org.minimallycorrect.javatransformer.internal;
 
-import lombok.*;
+import static org.minimallycorrect.javatransformer.api.code.IntermediateValue.LocationType.LOCAL;
+import static org.minimallycorrect.javatransformer.api.code.IntermediateValue.LocationType.STACK;
+
+import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import lombok.val;
+
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.InsnList;
+import org.objectweb.asm.tree.InsnNode;
+import org.objectweb.asm.tree.JumpInsnNode;
+import org.objectweb.asm.tree.LabelNode;
+import org.objectweb.asm.tree.MethodInsnNode;
+import org.objectweb.asm.tree.VarInsnNode;
+import org.objectweb.asm.tree.analysis.Frame;
+
 import org.minimallycorrect.javatransformer.api.AccessFlags;
 import org.minimallycorrect.javatransformer.api.Parameter;
 import org.minimallycorrect.javatransformer.api.Type;
@@ -12,16 +42,6 @@ import org.minimallycorrect.javatransformer.internal.asm.DebugPrinter;
 import org.minimallycorrect.javatransformer.internal.util.Cloner;
 import org.minimallycorrect.javatransformer.internal.util.CollectionUtil;
 import org.minimallycorrect.javatransformer.internal.util.JVMUtil;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.tree.*;
-import org.objectweb.asm.tree.analysis.Frame;
-
-import java.lang.reflect.*;
-import java.util.*;
-import java.util.stream.*;
-
-import static org.minimallycorrect.javatransformer.api.code.IntermediateValue.LocationType.LOCAL;
-import static org.minimallycorrect.javatransformer.api.code.IntermediateValue.LocationType.STACK;
 
 class AsmCodeFragmentGenerator implements Opcodes {
 	static Class<?> concreteImplementation(Class<?> interfaceType) {

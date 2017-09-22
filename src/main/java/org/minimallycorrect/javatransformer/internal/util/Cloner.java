@@ -1,14 +1,22 @@
 package org.minimallycorrect.javatransformer.internal.util;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import lombok.val;
+
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
-import org.minimallycorrect.javatransformer.api.TransformationException;
-import org.objectweb.asm.tree.*;
+import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.FieldNode;
+import org.objectweb.asm.tree.InsnList;
+import org.objectweb.asm.tree.LabelNode;
+import org.objectweb.asm.tree.MethodNode;
 
-import java.util.*;
+import org.minimallycorrect.javatransformer.api.TransformationException;
 
 @UtilityClass
 public class Cloner {

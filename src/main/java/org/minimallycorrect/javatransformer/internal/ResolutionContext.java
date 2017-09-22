@@ -1,14 +1,25 @@
 package org.minimallycorrect.javatransformer.internal;
 
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.val;
+
+import org.jetbrains.annotations.Nullable;
+
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
-import com.github.javaparser.ast.type.*;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.val;
-import org.jetbrains.annotations.Nullable;
+import com.github.javaparser.ast.type.ArrayType;
+import com.github.javaparser.ast.type.ClassOrInterfaceType;
+import com.github.javaparser.ast.type.PrimitiveType;
+import com.github.javaparser.ast.type.TypeParameter;
+import com.github.javaparser.ast.type.VoidType;
+
 import org.minimallycorrect.javatransformer.api.ClassPath;
 import org.minimallycorrect.javatransformer.api.TransformationException;
 import org.minimallycorrect.javatransformer.api.Type;
@@ -17,9 +28,6 @@ import org.minimallycorrect.javatransformer.internal.util.JVMUtil;
 import org.minimallycorrect.javatransformer.internal.util.Joiner;
 import org.minimallycorrect.javatransformer.internal.util.NodeUtil;
 import org.minimallycorrect.javatransformer.internal.util.Splitter;
-
-import java.util.*;
-import java.util.stream.*;
 
 @Getter
 public class ResolutionContext {

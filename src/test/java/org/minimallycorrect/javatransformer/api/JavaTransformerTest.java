@@ -1,19 +1,27 @@
 package org.minimallycorrect.javatransformer.api;
 
+import java.io.PrintStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import lombok.val;
+
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.minimallycorrect.javatransformer.api.code.CodeFragment;
 import org.omg.CORBA.BooleanHolder;
 
-import java.io.*;
-import java.nio.file.*;
-import java.util.*;
-import java.util.stream.*;
+import org.minimallycorrect.javatransformer.api.code.CodeFragment;
 
 @RunWith(Parameterized.class)
 public class JavaTransformerTest {

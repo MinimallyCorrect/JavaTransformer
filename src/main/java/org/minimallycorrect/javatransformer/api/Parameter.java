@@ -1,10 +1,16 @@
 package org.minimallycorrect.javatransformer.api;
 
-import lombok.*;
-import org.jetbrains.annotations.Nullable;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Supplier;
 
-import java.util.*;
-import java.util.function.*;
+import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.ToString;
+
+import org.jetbrains.annotations.Nullable;
 
 @EqualsAndHashCode(exclude = {"annotationSupplier", "name"})
 @Getter
