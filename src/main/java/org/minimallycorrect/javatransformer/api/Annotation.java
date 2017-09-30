@@ -82,7 +82,7 @@ public class Annotation {
 			throw new IllegalArgumentException("Class " + clazz.getName() + " is not an annotation");
 		if (!clazz.getName().equals(type.getClassName()))
 			throw new IllegalArgumentException("Type " + type + " can't be mapped to annotation class " + clazz);
-		return (T) Proxy.newProxyInstance(clazz.getClassLoader(), new Class[]{clazz}, new AnnotationProxy(clazz));
+		return (T) Proxy.newProxyInstance(clazz.getClassLoader(), new Class<?>[]{clazz}, new AnnotationProxy(clazz));
 	}
 
 	@RequiredArgsConstructor
@@ -96,6 +96,11 @@ public class Annotation {
 		@Override
 		public String toString() {
 			return '@' + annotationType.toString() + '(' + values.toString() + ')';
+		}
+
+		@Override
+		public int hashCode() {
+			return toString().hashCode();
 		}
 
 		@Override
