@@ -1,6 +1,9 @@
 package org.minimallycorrect.javatransformer.api;
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -79,19 +82,38 @@ public class Annotation {
 			throw new IllegalArgumentException("Class " + clazz.getName() + " is not an annotation");
 		if (!clazz.getName().equals(type.getClassName()))
 			throw new IllegalArgumentException("Type " + type + " can't be mapped to annotation class " + clazz);
-		val values = new HashMap<String, Object>();
-		for (val method : clazz.getDeclaredMethods()) {
+		return (T) Proxy.newProxyInstance(clazz.getClassLoader(), new Class[]{clazz}, new AnnotationProxy(clazz));
+	}
+
+	@RequiredArgsConstructor
+	private final class AnnotationProxy implements InvocationHandler, java.lang.annotation.Annotation {
+		final Class<? extends java.lang.annotation.Annotation> annotationType;
+
+		public Class<? extends java.lang.annotation.Annotation> annotationType() {
+			return annotationType;
+		}
+
+		@Override
+		public String toString() {
+			return '@' + annotationType.toString() + '(' + values.toString() + ')';
+		}
+
+		@Override
+		public boolean equals(Object other) {
+			return other != null && other.getClass() == AnnotationProxy.class && toString().equals(other);
+		}
+
+		public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 			if (!Modifier.isPublic(method.getModifiers()))
-				continue;
+				return method.invoke(this, args);
 			val key = method.getName();
 			val returnType = method.getReturnType();
-			Object value = returnType.isPrimitive() ? this.values.get(key) : get(key, returnType);
+			Object value = returnType.isPrimitive() ? values.get(key) : get(key, returnType);
 			if (value == null)
 				value = method.getDefaultValue();
-			values.put(key, value);
+			if (value == null)
+				return method.invoke(this, args);
+			return value;
 		}
-		// TODO: change this to use our own proxy instead of reusing a sun.reflect class
-		// (will still be in jdk.unsupported module in Java 9 so no rush...)
-		return (T) sun.reflect.annotation.AnnotationParser.annotationForMap(clazz, values);
 	}
 }
