@@ -3,7 +3,7 @@ buildscript {
 		jcenter()
 		maven { url "https://plugins.gradle.org/m2/" }
 	}
-	dependencies { classpath 'org.minimallycorrect.gradle:DefaultsPlugin:0.0.16' }
+	dependencies { classpath 'org.minimallycorrect.gradle:DefaultsPlugin:0.0.23' }
 }
 plugins {
 	id 'java'
@@ -16,6 +16,7 @@ group = 'org.minimallycorrect.javatransformer'
 minimallyCorrectDefaults {
 	description = "Applies transformations to .java and .class files"
 	labels = ["java-transformation", "java-source", "java-bytecode", "java"]
+	ignoreSunInternalWarnings = true
 } ()
 
 dependencies {
