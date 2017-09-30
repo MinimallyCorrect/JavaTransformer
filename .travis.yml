@@ -29,10 +29,10 @@ jdk:
 install:
   - true
 
-#Don't build tags
+#Only build master branch on push
 branches:
-  except:
-  - /^v\d/
+  only:
+  - master
 
 #Build and perform release (if needed)
 script:
