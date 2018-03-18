@@ -272,7 +272,15 @@ public class Type {
 	}
 
 	public String toString() {
-		return "Type(descriptor=" + this.descriptor + ", signature=" + this.signature + ", simpleName=" + getJavaName() + ")";
+		String simpleName;
+
+		try {
+			simpleName = getJavaName();
+		} catch (Exception e) {
+			simpleName = e.toString();
+		}
+
+		return "Type(descriptor=" + this.descriptor + ", signature=" + this.signature + ", simpleName=" + simpleName + ")";
 	}
 
 	public Type withArrayCount(int arrayCount) {
