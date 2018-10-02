@@ -1,6 +1,5 @@
 package org.minimallycorrect.javatransformer.internal.util;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -17,21 +16,16 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AnnotationNode;
 
 import com.github.javaparser.ast.expr.AnnotationExpr;
-import com.github.javaparser.ast.expr.ArrayInitializerExpr;
-import com.github.javaparser.ast.expr.BooleanLiteralExpr;
-import com.github.javaparser.ast.expr.ClassExpr;
-import com.github.javaparser.ast.expr.Expression;
-import com.github.javaparser.ast.expr.FieldAccessExpr;
 import com.github.javaparser.ast.expr.MarkerAnnotationExpr;
 import com.github.javaparser.ast.expr.MemberValuePair;
 import com.github.javaparser.ast.expr.NormalAnnotationExpr;
 import com.github.javaparser.ast.expr.SingleMemberAnnotationExpr;
-import com.github.javaparser.ast.expr.StringLiteralExpr;
 
 import org.minimallycorrect.javatransformer.api.Annotation;
 import org.minimallycorrect.javatransformer.api.TransformationException;
 import org.minimallycorrect.javatransformer.api.Type;
 import org.minimallycorrect.javatransformer.internal.ResolutionContext;
+import org.minimallycorrect.javatransformer.internal.javaparser.Expressions;
 
 @UtilityClass
 public class AnnotationParser {
@@ -61,46 +55,17 @@ public class AnnotationParser {
 	public static Annotation annotationFromAnnotationExpr(AnnotationExpr annotationExpr, ResolutionContext context) {
 		Type t = ResolutionContext.of(annotationExpr, context.getClassPath()).resolve(NodeUtil.qualifiedName(annotationExpr.getName()));
 		if (annotationExpr instanceof SingleMemberAnnotationExpr) {
-			return Annotation.of(t, expressionToValue(((SingleMemberAnnotationExpr) annotationExpr).getMemberValue(), context));
+			return Annotation.of(t, Expressions.expressionToValue(((SingleMemberAnnotationExpr) annotationExpr).getMemberValue(), context));
 		} else if (annotationExpr instanceof NormalAnnotationExpr) {
 			val map = new HashMap<String, Object>();
 			for (MemberValuePair memberValuePair : ((NormalAnnotationExpr) annotationExpr).getPairs()) {
-				map.put(memberValuePair.getName().asString(), expressionToValue(memberValuePair.getValue(), context));
+				map.put(memberValuePair.getName().asString(), Expressions.expressionToValue(memberValuePair.getValue(), context));
 			}
 			return Annotation.of(t, map);
 		} else if (annotationExpr instanceof MarkerAnnotationExpr) {
 			return Annotation.of(t);
 		}
 		throw new TransformationException("Unknown annotation type: " + annotationExpr.getClass().getCanonicalName());
-	}
-
-	private static Object expressionToValue(Expression e, ResolutionContext context) {
-		if (e instanceof StringLiteralExpr) {
-			return ((StringLiteralExpr) e).getValue();
-		} else if (e instanceof BooleanLiteralExpr) {
-			return ((BooleanLiteralExpr) e).getValue();
-		} else if (e instanceof ClassExpr) {
-			return ((ClassExpr) e).getType().asString();
-		} else if (e instanceof ArrayInitializerExpr) {
-			return arrayExpressionToArray((ArrayInitializerExpr) e, context);
-		} else if (e instanceof FieldAccessExpr) {
-			// needs to be a constant -> must be a field which is an enum constant or
-			// a public static final field of constable type
-			val fieldAccessExpre = (FieldAccessExpr) e;
-			Type t = context.resolve(fieldAccessExpre.getScope().toString());
-			if (t != null)
-				return new String[]{t.getDescriptor(), ((FieldAccessExpr) e).getNameAsString()};
-		}
-		throw new TransformationException("Unknown value: " + e + "\nClass: " + e.getClass());
-	}
-
-	private static Object[] arrayExpressionToArray(ArrayInitializerExpr expr, ResolutionContext context) {
-		val values = expr.getValues();
-		if (values.isEmpty())
-			return new Object[0];
-
-		val results = values.stream().map(it -> AnnotationParser.expressionToValue(it, context)).collect(Collectors.toList());
-		return results.toArray((Object[]) Array.newInstance(results.get(0).getClass(), 0));
 	}
 
 	private static class AnnotationVisitor extends ClassVisitor {

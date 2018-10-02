@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
 import org.minimallycorrect.javatransformer.internal.util.CollectionUtil;
@@ -38,8 +39,10 @@ public interface ClassInfo extends ClassMember {
 	@Nullable
 	Type getSuperType();
 
+	@Contract(pure = true)
 	List<Type> getInterfaceTypes();
 
+	@Contract(pure = true)
 	@Nullable
 	default ClassMember get(ClassMember member) {
 		if (member instanceof MethodInfo)
@@ -50,6 +53,7 @@ public interface ClassInfo extends ClassMember {
 			throw new TransformationException("Can't get member of type " + member.getClass().getCanonicalName() + " in " + this);
 	}
 
+	@Contract(pure = true)
 	@Nullable
 	default MethodInfo get(MethodInfo like) {
 		for (MethodInfo methodInfo : CollectionUtil.iterable(getMethods())) {
@@ -60,6 +64,7 @@ public interface ClassInfo extends ClassMember {
 		return null;
 	}
 
+	@Contract(pure = true)
 	@Nullable
 	default FieldInfo get(FieldInfo like) {
 		for (FieldInfo fieldInfo : CollectionUtil.iterable(getFields())) {
@@ -70,23 +75,33 @@ public interface ClassInfo extends ClassMember {
 		return null;
 	}
 
+	@Contract(pure = true)
 	default Type getType() {
 		return Type.of(getName());
 	}
 
+	@Contract(pure = true)
 	Stream<MethodInfo> getMethods();
 
+	@Contract(pure = true)
 	Stream<FieldInfo> getFields();
 
+	@Contract(pure = true)
 	default Stream<MethodInfo> getConstructors() {
 		return getMethods().filter(MethodInfo::isConstructor);
 	}
 
+	@Contract(pure = true)
 	default Stream<ClassMember> getMembers() {
 		return Stream.concat(getFields(), getMethods());
 	}
 
 	default void accessFlags(Function<AccessFlags, AccessFlags> c) {
 		setAccessFlags(c.apply(getAccessFlags()));
+	}
+
+	@Override
+	default ClassInfo getClassInfo() {
+		return this;
 	}
 }

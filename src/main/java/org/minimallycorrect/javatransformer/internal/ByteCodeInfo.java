@@ -148,11 +148,6 @@ public class ByteCodeInfo implements ClassInfo {
 		return stream.collect(Collectors.toList());
 	}
 
-	@Override
-	public ClassInfo getClassInfo() {
-		return this;
-	}
-
 	MethodNodeInfo wrap(MethodNode node) {
 		return new MethodNodeInfo(node);
 	}
@@ -223,8 +218,8 @@ public class ByteCodeInfo implements ClassInfo {
 	public class MethodNodeInfo implements MethodInfo {
 		public final MethodNode node;
 		private final CachingSupplier<Frame<CombinedValue>[]> stackFrames;
-		private CachingSupplier<MethodDescriptor> descriptor;
-		private CachingSupplier<CodeFragment.Body> codeFragment;
+		private final CachingSupplier<MethodDescriptor> descriptor;
+		private final CachingSupplier<CodeFragment.Body> codeFragment;
 
 		MethodNodeInfo(MethodNode node) {
 			this.node = node;
