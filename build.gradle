@@ -21,6 +21,7 @@ minimallyCorrectDefaults {
 
 dependencies {
 	testCompile "junit:junit:4.12"
+	//Can we make these dependencies optional? Reduced jar size if not using source for patching
 	compile 'org.ow2.asm:asm-debug-all:5.0.4'
-	compile 'com.github.javaparser:javaparser-core:3.2.4'
+	compile 'com.github.javaparser:javaparser-symbol-solver-core:3.6.24'
 }

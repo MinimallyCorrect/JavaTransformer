@@ -11,12 +11,12 @@ import org.jetbrains.annotations.Nullable;
 
 @EqualsAndHashCode
 @ToString
-public class CachingSupplier<T> implements Supplier<T> {
+public final class CachingSupplier<T> implements Supplier<T> {
 	@NonNull
 	private final Supplier<T> wrapped;
 	private transient T value;
 
-	protected CachingSupplier(Supplier<T> wrapped) {
+	private CachingSupplier(Supplier<T> wrapped) {
 		this.wrapped = wrapped;
 	}
 

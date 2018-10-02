@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import lombok.val;
 
@@ -38,8 +39,17 @@ public class JavaTransformerRuntimeTest {
 			holder.value = true;
 			c.accessFlags(it -> it.makeAccessible(true));
 			c.getAnnotations();
-			c.getFields();
-			c.getInterfaceTypes();
+			val fields = c.getFields().collect(Collectors.toList());
+			{
+				Assert.assertEquals(1, fields.size());
+				val field = fields.get(0);
+				Assert.assertEquals("callback", field.getName());
+				Assert.assertEquals("java.util.function.Consumer<java.lang.String>", field.getType().getJavaName());
+			}
+			val interfaceTypes = c.getInterfaceTypes();
+			{
+				Assert.assertTrue(interfaceTypes.isEmpty());
+			}
 			c.getMembers();
 			c.getConstructors();
 			c.getMethods().forEach(it -> {
@@ -47,7 +57,7 @@ public class JavaTransformerRuntimeTest {
 				Assert.assertNotNull(it + " should have a CodeFragment", cf);
 				switch (it.getName()) {
 					case "testMethodCallExpression":
-						val methodCalls = cf.findFragments(CodeFragment.MethodCall.class);
+						val methodCalls = it.findFragments(CodeFragment.MethodCall.class);
 						Assert.assertEquals(EXPECTED_METHOD_CALL_COUNT, methodCalls.size());
 						for (int i = 1; i <= EXPECTED_METHOD_CALL_COUNT; i++) {
 							System.out.println("call " + i);

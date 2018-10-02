@@ -62,6 +62,7 @@ public class JavaTransformerTest {
 		Assert.assertNull("Should skip package-info.java", new JavaTransformer().transformBytes(null, "org/example/test/package-info.java", null));
 	}
 
+	@SuppressWarnings("ResultOfMethodCallIgnored")
 	@Test
 	public void testTransform() throws Exception {
 		Path output = folder.newFolder("output").toPath();
@@ -69,13 +70,16 @@ public class JavaTransformerTest {
 		JavaTransformer transformer = new JavaTransformer();
 		transformer.getClassPath().addPaths(extraPaths);
 
+		val targetMethod = "testMethodCallExpression";
 		val targetClass = this.getClass().getName();
-		BooleanHolder holder = new BooleanHolder(false);
+		BooleanHolder hasProcessedTargetClass = new BooleanHolder(false);
+		BooleanHolder hasProcessedTargetMethod = new BooleanHolder(false);
 
 		transformer.addTransformer(c -> {
 			System.out.println("Transforming class: " + c.getName() + " of type " + c.getClass().getSimpleName());
-			if (c.getName().equals(targetClass))
-				holder.value = true;
+			val isTarget = c.getName().equals(targetClass);
+			if (isTarget)
+				hasProcessedTargetClass.value = true;
 
 			c.accessFlags(it -> it.makeAccessible(true));
 			c.getAnnotations().forEach(it -> {
@@ -84,8 +88,8 @@ public class JavaTransformerTest {
 					Assert.assertEquals(TestEnum.SECOND, contract.testEnum());
 				}
 			});
-			c.getFields().collect(Collectors.toList());
-			c.getInterfaceTypes();
+			val fields = c.getFields().collect(Collectors.toList());
+			val interfaceTypes = c.getInterfaceTypes();
 			c.getMembers().collect(Collectors.toList());
 			c.getConstructors().collect(Collectors.toList());
 			c.getMethods().forEach(it -> {
@@ -93,12 +97,9 @@ public class JavaTransformerTest {
 
 				val cf = it.getCodeFragment();
 
-				// TODO: remove once added for SourceCodeInfo
-				if (cf == null)
-					return;
-
 				Assert.assertNotNull(it + " should have a CodeFragment", cf);
-				if (it.getName().equals("testMethodCallExpression")) {
+				if (it.getName().equals(targetMethod)) {
+					hasProcessedTargetMethod.value = true;
 					val methodCalls = cf.findFragments(CodeFragment.MethodCall.class);
 					Assert.assertEquals(EXPECTED_METHOD_CALL_COUNT, methodCalls.size());
 					for (int i = 1; i <= EXPECTED_METHOD_CALL_COUNT; i++) {
@@ -107,18 +108,28 @@ public class JavaTransformerTest {
 						val inputTypes = call.getInputTypes();
 						Assert.assertNotNull("Should find inputTypes for method call expression", inputTypes);
 						Assert.assertEquals(2, inputTypes.size());
-						Assert.assertEquals(inputTypes.get(1).constantValue, String.valueOf(i));
+						Assert.assertEquals(PrintStream.class.getName(), inputTypes.get(0).type.getClassName());
+						Assert.assertEquals(String.valueOf(i), inputTypes.get(1).constantValue);
 					}
 				} else {
 					cf.insert(cf, CodeFragment.InsertionPosition.OVERWRITE);
 				}
 			});
+
+			if (isTarget) {
+				Assert.assertEquals(5, fields.size());
+				val field = fields.get(0);
+				Assert.assertEquals("EXPECTED_METHOD_CALL_COUNT", field.getName());
+				Assert.assertEquals("int", field.getType().getJavaName());
+				Assert.assertTrue(interfaceTypes.isEmpty());
+			}
 		});
 
 		System.out.println("Transforming path '" + input + "' to '" + output + "'");
 		transformer.transform(input, output);
 
-		Assert.assertTrue("Transformer must process " + targetClass, holder.value);
+		Assert.assertTrue("Transformer must process " + targetClass, hasProcessedTargetClass.value);
+		Assert.assertTrue("Transformer must process " + targetMethod, hasProcessedTargetMethod.value);
 
 		Assert.assertTrue(exists(output.resolve("org/minimallycorrect/javatransformer/api/JavaTransformerTest.")));
 	}

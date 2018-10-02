@@ -1,6 +1,7 @@
 package org.minimallycorrect.javatransformer.api;
 
 import java.util.Collections;
+import java.util.List;
 
 import lombok.val;
 
@@ -14,7 +15,7 @@ public interface HasCodeFragment {
 		return null;
 	}
 
-	default <T extends CodeFragment> Iterable<T> findFragments(Class<T> fragmentType) {
+	default <T extends CodeFragment> List<T> findFragments(Class<T> fragmentType) {
 		val fragment = getCodeFragment();
 		return fragment == null ? Collections.emptyList() : fragment.findFragments(fragmentType);
 	}
