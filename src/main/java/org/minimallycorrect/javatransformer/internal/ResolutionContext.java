@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.val;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
 import com.github.javaparser.ast.CompilationUnit;
@@ -19,15 +20,14 @@ import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.PrimitiveType;
 import com.github.javaparser.ast.type.TypeParameter;
 import com.github.javaparser.ast.type.VoidType;
+import com.github.javaparser.resolution.declarations.ResolvedValueDeclaration;
 
 import org.minimallycorrect.javatransformer.api.ClassPath;
 import org.minimallycorrect.javatransformer.api.TransformationException;
 import org.minimallycorrect.javatransformer.api.Type;
 import org.minimallycorrect.javatransformer.api.TypeVariable;
-import org.minimallycorrect.javatransformer.internal.util.JVMUtil;
-import org.minimallycorrect.javatransformer.internal.util.Joiner;
-import org.minimallycorrect.javatransformer.internal.util.NodeUtil;
-import org.minimallycorrect.javatransformer.internal.util.Splitter;
+import org.minimallycorrect.javatransformer.internal.javaparser.AsmResolvedTypes;
+import org.minimallycorrect.javatransformer.internal.util.*;
 
 @Getter
 public class ResolutionContext {
@@ -117,9 +117,6 @@ public class ResolutionContext {
 		if (t.isArrayType())
 			return new ArrayType(typeToJavaParserType(t.getArrayContainedType()));
 
-		if (t.isPrimitiveType())
-			return new PrimitiveType();
-
 		if (!t.isClassType())
 			throw new UnsupportedOperationException(t + " is not a class type");
 
@@ -137,6 +134,10 @@ public class ResolutionContext {
 	@SuppressWarnings("deprecation")
 	public static ClassOrInterfaceType nonGenericClassOrInterfaceType(String name) {
 		return new ClassOrInterfaceType(name);
+	}
+
+	public Type resolve(ResolvedValueDeclaration resolve) {
+		return AsmResolvedTypes.convertResolvedTypeToType(resolve.getType());
 	}
 
 	public Type resolve(com.github.javaparser.ast.type.Type type) {
@@ -162,11 +163,9 @@ public class ResolutionContext {
 	 * @param name Name to resolve
 	 * @return Type containing resolved name with descriptor/signature
 	 */
-	@Nullable
-	public Type resolve(String name) {
-		if (name == null)
-			return null;
-
+	@Contract(value = "!null -> !null; null -> fail", pure = true)
+	@NonNull
+	public Type resolve(@NonNull String name) {
 		int arrayCount = 0;
 		while (name.length() > 1 && name.lastIndexOf("[]") == name.length() - 2) {
 			arrayCount++;
@@ -283,11 +282,6 @@ public class ResolutionContext {
 
 	@Nullable
 	private Type resolveIfExists(String s) {
-		if (s.startsWith("java.") || s.startsWith("javax.")) {
-			try {
-				return Type.of(Class.forName(s).getName());
-			} catch (ClassNotFoundException ignored) {}
-		}
 		if (classPath.classExists(s))
 			return Type.of(s);
 		return null;

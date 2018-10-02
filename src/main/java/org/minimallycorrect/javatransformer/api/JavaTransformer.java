@@ -1,12 +1,13 @@
 package org.minimallycorrect.javatransformer.api;
 
+import static com.github.javaparser.Providers.provider;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
@@ -19,7 +20,6 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -42,17 +42,21 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
 
-import com.github.javaparser.JavaParser;
+import com.github.javaparser.*;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.TypeDeclaration;
+import com.github.javaparser.symbolsolver.JavaSymbolSolver;
+import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
 
 import org.minimallycorrect.javatransformer.internal.ByteCodeInfo;
 import org.minimallycorrect.javatransformer.internal.SourceInfo;
+import org.minimallycorrect.javatransformer.internal.asm.AsmUtil;
 import org.minimallycorrect.javatransformer.internal.asm.FilteringClassWriter;
 import org.minimallycorrect.javatransformer.internal.util.CachingSupplier;
 import org.minimallycorrect.javatransformer.internal.util.DefineClass;
 import org.minimallycorrect.javatransformer.internal.util.JVMUtil;
 import org.minimallycorrect.javatransformer.internal.util.NodeUtil;
+import org.minimallycorrect.javatransformer.internal.util.StreamUtil;
 
 @Getter
 @Setter
@@ -62,37 +66,7 @@ public class JavaTransformer {
 	private final SimpleMultiMap<String, Transformer> classTransformers = new SimpleMultiMap<>();
 	private final Map<String, byte[]> transformedFiles = new HashMap<>();
 	private final List<Consumer<JavaTransformer>> afterTransform = new ArrayList<>();
-	private ClassPath classPath = new ClassPath();
-
-	private static byte[] readFully(InputStream is) {
-		byte[] output = {};
-		int position = 0;
-		while (true) {
-			int bytesToRead;
-			if (position >= output.length) {
-				bytesToRead = output.length + 4096;
-				if (output.length < position + bytesToRead) {
-					output = Arrays.copyOf(output, position + bytesToRead);
-				}
-			} else {
-				bytesToRead = output.length - position;
-			}
-			int bytesRead;
-			try {
-				bytesRead = is.read(output, position, bytesToRead);
-			} catch (IOException e) {
-				throw new UncheckedIOException(e);
-			}
-			if (bytesRead < 0) {
-				if (output.length != position) {
-					output = Arrays.copyOf(output, position);
-				}
-				break;
-			}
-			position += bytesRead;
-		}
-		return output;
-	}
+	private ClassPath classPath = ClassPath.of();
 
 	/**
 	 * Used to get the path of the jar/folder containing a class
@@ -164,7 +138,7 @@ public class JavaTransformer {
 
 	private void loadFolder(Path input, boolean saveTransformedResults) {
 		try {
-			val searchPath = classPath.createChildWithExtraPaths(Collections.singleton(input));
+			val searchPath = ClassPath.of(classPath, input);
 			Files.walkFileTree(input, new SimpleFileVisitor<Path>() {
 				@Override
 				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
@@ -191,9 +165,9 @@ public class JavaTransformer {
 	private void loadJar(Path p, boolean saveTransformedResults) {
 		ZipEntry entry;
 		try (ZipInputStream is = new ZipInputStream(new BufferedInputStream(new FileInputStream(p.toFile())))) {
-			val searchPath = new ClassPath(Collections.singletonList(p));
+			val searchPath = ClassPath.of(classPath, p);
 			while ((entry = is.getNextEntry()) != null) {
-				saveTransformedResult(entry.getName(), transformBytes(() -> readFully(is), entry.getName(), searchPath), saveTransformedResults);
+				saveTransformedResult(entry.getName(), transformBytes(() -> StreamUtil.readFully(is), entry.getName(), searchPath), saveTransformedResults);
 			}
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
@@ -276,7 +250,13 @@ public class JavaTransformer {
 
 		CachingSupplier<TypeDeclaration<?>> supplier = CachingSupplier.of(() -> {
 			byte[] bytes = data.get();
-			CompilationUnit cu = JavaParser.parse(new ByteArrayInputStream(bytes));
+
+			val parser = new JavaParser(new ParserConfiguration().setSymbolResolver(new JavaSymbolSolver((TypeSolver) classPath)));
+			val result = parser.parse(ParseStart.COMPILATION_UNIT, provider(new ByteArrayInputStream(bytes), Charset.forName("UTF8")));
+			if (!result.isSuccessful()) {
+				throw new ParseProblemException(result.getProblems());
+			}
+			CompilationUnit cu = result.getResult().get();
 
 			List<String> tried = new ArrayList<>();
 			String packageName = NodeUtil.qualifiedName(cu.getPackageDeclaration().get().getName());
@@ -304,16 +284,8 @@ public class JavaTransformer {
 		if (!shouldTransform(name))
 			return data;
 
-		Holder<ClassReader> readerHolder = new Holder<>();
-		CachingSupplier<ClassNode> supplier = CachingSupplier.of(() -> {
-			ClassNode node = new ClassNode();
-			ClassReader reader = new ClassReader(data.get());
-			reader.accept(node, ClassReader.EXPAND_FRAMES);
-
-			readerHolder.value = reader;
-
-			return node;
-		});
+		AsmUtil.Holder<ClassReader> readerHolder = new AsmUtil.Holder<>();
+		CachingSupplier<ClassNode> supplier = CachingSupplier.of(() -> AsmUtil.getClassNode(data.get(), readerHolder));
 
 		val filters = new HashMap<String, String>();
 
@@ -409,7 +381,4 @@ public class JavaTransformer {
 		}
 	}
 
-	private static class Holder<T> {
-		public T value;
-	}
 }

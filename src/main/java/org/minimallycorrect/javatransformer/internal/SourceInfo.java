@@ -2,7 +2,6 @@ package org.minimallycorrect.javatransformer.internal;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -16,8 +15,10 @@ import lombok.val;
 import org.jetbrains.annotations.Nullable;
 
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.BodyDeclaration;
+import com.github.javaparser.ast.body.CallableDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
@@ -32,6 +33,7 @@ import com.github.javaparser.ast.expr.ObjectCreationExpr;
 import com.github.javaparser.ast.expr.SimpleName;
 import com.github.javaparser.ast.expr.TypeExpr;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
+import com.github.javaparser.ast.nodeTypes.NodeWithOptionalBlockStmt;
 import com.github.javaparser.ast.nodeTypes.NodeWithParameters;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.ThrowStmt;
@@ -47,6 +49,7 @@ import org.minimallycorrect.javatransformer.api.Parameter;
 import org.minimallycorrect.javatransformer.api.TransformationException;
 import org.minimallycorrect.javatransformer.api.Type;
 import org.minimallycorrect.javatransformer.api.TypeVariable;
+import org.minimallycorrect.javatransformer.api.code.CodeFragment;
 import org.minimallycorrect.javatransformer.internal.util.AnnotationParser;
 import org.minimallycorrect.javatransformer.internal.util.CachingSupplier;
 import org.minimallycorrect.javatransformer.internal.util.NodeUtil;
@@ -87,10 +90,15 @@ public class SourceInfo implements ClassInfo {
 		return t;
 	}
 
-	static void changeTypeContext(ResolutionContext old, ResolutionContext new_, MethodDeclaration m) {
-		m.setType(changeTypeContext(old, new_, m.getType()));
-		m.setBody(new BlockStmt(NodeList.nodeList(new ThrowStmt(new ObjectCreationExpr(null, ResolutionContext.nonGenericClassOrInterfaceType("UnsupportedOperationException"), NodeList.nodeList())))));
-		NodeUtil.forChildren(m, node -> {
+	static void changeTypeContext(ResolutionContext old, ResolutionContext new_, Node callableDeclaration) {
+		if (callableDeclaration instanceof MethodDeclaration) {
+			MethodDeclaration methodDeclaration = (MethodDeclaration) callableDeclaration;
+			methodDeclaration.setType(changeTypeContext(old, new_, methodDeclaration.getType()));
+		}
+		if (callableDeclaration instanceof NodeWithOptionalBlockStmt) {
+			((NodeWithOptionalBlockStmt) callableDeclaration).setBody(new BlockStmt(NodeList.nodeList(new ThrowStmt(new ObjectCreationExpr(null, ResolutionContext.nonGenericClassOrInterfaceType("UnsupportedOperationException"), NodeList.nodeList())))));
+		}
+		NodeUtil.forChildren(callableDeclaration, node -> {
 			Expression scope = node.getScope().orElse(null);
 			// TODO: Currently guesses that it's a type name if first character is uppercase.
 			// Should check for fields/variables which match instead
@@ -100,9 +108,9 @@ public class SourceInfo implements ClassInfo {
 					node.setScope(new NameExpr(new_.typeToString(old.resolve(name))));
 			}
 		}, MethodCallExpr.class);
-		NodeUtil.forChildren(m, node -> node.getVariable(0).setType(changeTypeContext(old, new_, node.getCommonType())), VariableDeclarationExpr.class);
-		NodeUtil.forChildren(m, node -> node.setType(changeTypeContext(old, new_, node.getType())), TypeExpr.class);
-		NodeUtil.forChildren(m, node -> node.setType(changeTypeContext(old, new_, node.getType())), com.github.javaparser.ast.body.Parameter.class);
+		NodeUtil.forChildren(callableDeclaration, node -> node.getVariable(0).setType(changeTypeContext(old, new_, node.getCommonType())), VariableDeclarationExpr.class);
+		NodeUtil.forChildren(callableDeclaration, node -> node.setType(changeTypeContext(old, new_, node.getType())), TypeExpr.class);
+		NodeUtil.forChildren(callableDeclaration, node -> node.setType(changeTypeContext(old, new_, node.getType())), com.github.javaparser.ast.body.Parameter.class);
 	}
 
 	private static List<Parameter> getParameters(NodeWithParameters<?> nodeWithParameters, Supplier<ResolutionContext> context) {
@@ -159,8 +167,8 @@ public class SourceInfo implements ClassInfo {
 	public void add(MethodInfo method) {
 		BodyDeclaration<?> declaration;
 
-		if (method instanceof MethodDeclarationWrapper) {
-			val wrapper = (MethodDeclarationWrapper) method;
+		if (method instanceof CallableDeclarationWrapper<?>) {
+			val wrapper = (CallableDeclarationWrapper<?>) method;
 			val methodDeclaration = wrapper.declaration.clone();
 			declaration = methodDeclaration;
 			methodDeclaration.setAnnotations(NodeList.nodeList());
@@ -209,12 +217,12 @@ public class SourceInfo implements ClassInfo {
 
 	@Override
 	public void remove(MethodInfo method) {
-		MethodDeclarationWrapper methodDeclarationWrapper = !(method instanceof MethodDeclarationWrapper) ? (MethodDeclarationWrapper) get(method) : (MethodDeclarationWrapper) method;
+		CallableDeclarationWrapper<?> callableDeclarationWrapper = !(method instanceof CallableDeclarationWrapper<?>) ? (CallableDeclarationWrapper<?>) get(method) : (CallableDeclarationWrapper<?>) method;
 
-		if (methodDeclarationWrapper == null)
+		if (callableDeclarationWrapper == null)
 			throw new TransformationException("Method " + method + " can not be removed as it is not present");
 
-		type.get().getMembers().remove(methodDeclarationWrapper.declaration);
+		type.get().getMembers().remove(callableDeclarationWrapper.declaration);
 	}
 
 	@Override
@@ -250,18 +258,18 @@ public class SourceInfo implements ClassInfo {
 
 	public Stream<MethodInfo> getMethods() {
 		return type.get().getMembers().stream()
-			.map(this::getMethodInfoWrapper)
-			.filter(Objects::nonNull);
+			.filter(it -> it instanceof CallableDeclaration<?>)
+			.map((it) -> this.getMethodInfoWrapper((CallableDeclaration<?>) it));
 	}
 
-	private MethodInfo getMethodInfoWrapper(BodyDeclaration<?> x) {
+	private CallableDeclarationWrapper<?> getMethodInfoWrapper(CallableDeclaration<?> x) {
 		if (x instanceof MethodDeclaration)
 			return new MethodDeclarationWrapper((MethodDeclaration) x);
 
 		if (x instanceof ConstructorDeclaration)
 			return new ConstructorDeclarationWrapper((ConstructorDeclaration) x);
 
-		return null;
+		throw new UnsupportedOperationException("Unknown subclass of CallableDeclaration: " + x.getClass());
 	}
 
 	public Stream<FieldInfo> getFields() {
@@ -289,9 +297,8 @@ public class SourceInfo implements ClassInfo {
 		return l.stream().map((it) -> AnnotationParser.annotationFromAnnotationExpr(it, getContext())).collect(Collectors.toList());
 	}
 
-	@Override
-	public ClassInfo getClassInfo() {
-		return SourceInfo.this;
+	TypeDeclaration<?> getJavaParserType() {
+		return type.get();
 	}
 
 	public class FieldDeclarationWrapper implements FieldInfo {
@@ -363,28 +370,20 @@ public class SourceInfo implements ClassInfo {
 		}
 	}
 
-	public class MethodDeclarationWrapper implements MethodInfo {
-		private final MethodDeclaration declaration;
+	public abstract class CallableDeclarationWrapper<T extends CallableDeclaration<T>> implements MethodInfo {
+		final T declaration;
 		private ResolutionContext context;
+		private final CachingSupplier<CodeFragment.Body> codeFragment;
 
-		public MethodDeclarationWrapper(MethodDeclaration declaration) {
+		public CallableDeclarationWrapper(T declaration) {
 			this.declaration = declaration;
+			codeFragment = CachingSupplier.of(() -> getBody() == null ? null : new JavaParserCodeFragmentGenerator.CallableDeclarationCodeFragment(this));
 		}
 
-		private ResolutionContext getContext() {
+		protected ResolutionContext getContext() {
 			if (context != null)
 				return context;
 			return context = ResolutionContext.of(declaration, SourceInfo.this.type.get(), classPath);
-		}
-
-		@Override
-		public Type getReturnType() {
-			return getContext().resolve(declaration.getType());
-		}
-
-		@Override
-		public void setReturnType(Type type) {
-			declaration.setType(setType(type, declaration.getType()));
 		}
 
 		@Override
@@ -446,23 +445,22 @@ public class SourceInfo implements ClassInfo {
 
 		@Override
 		@SuppressWarnings("MethodDoesntCallSuperMethod")
-		public MethodDeclarationWrapper clone() {
-			return new MethodDeclarationWrapper(declaration.clone());
+		public CallableDeclarationWrapper<T> clone() {
+			return (CallableDeclarationWrapper<T>) getMethodInfoWrapper(declaration.clone());
 		}
+
+		@Override
+		public CodeFragment.Body getCodeFragment() {
+			return codeFragment.get();
+		}
+
+		@Nullable
+		public abstract BlockStmt getBody();
 	}
 
-	public class ConstructorDeclarationWrapper implements MethodInfo {
-		private final ConstructorDeclaration declaration;
-		private ResolutionContext context;
-
+	public class ConstructorDeclarationWrapper extends CallableDeclarationWrapper<ConstructorDeclaration> {
 		public ConstructorDeclarationWrapper(ConstructorDeclaration declaration) {
-			this.declaration = declaration;
-		}
-
-		private ResolutionContext getContext() {
-			if (context != null)
-				return context;
-			return context = ResolutionContext.of(declaration, SourceInfo.this.type.get(), classPath);
+			super(declaration);
 		}
 
 		@Override
@@ -477,67 +475,29 @@ public class SourceInfo implements ClassInfo {
 		}
 
 		@Override
-		public List<Parameter> getParameters() {
-			return SourceInfo.getParameters(declaration, this::getContext);
+		public BlockStmt getBody() {
+			return declaration.getBody();
+		}
+	}
+
+	public class MethodDeclarationWrapper extends CallableDeclarationWrapper<MethodDeclaration> {
+		public MethodDeclarationWrapper(MethodDeclaration declaration) {
+			super(declaration);
 		}
 
 		@Override
-		public void setParameters(List<Parameter> parameters) {
-			val javaParserParameters = parameters.stream().map(p -> new com.github.javaparser.ast.body.Parameter(ResolutionContext.typeToJavaParserType(p.type), p.name)).collect(Collectors.toList());
-			declaration.setParameters(NodeList.nodeList(javaParserParameters));
+		public Type getReturnType() {
+			return getContext().resolve(declaration.getType());
 		}
 
 		@Override
-		public String getName() {
-			return "<init>";
+		public void setReturnType(Type type) {
+			declaration.setType(setType(type, declaration.getType()));
 		}
 
 		@Override
-		public void setName(String name) {
-			if (!name.equals("<init>"))
-				throw new UnsupportedOperationException("Can't setName of constructor");
-		}
-
-		@Override
-		public AccessFlags getAccessFlags() {
-			return new AccessFlags(declaration.getModifiers());
-		}
-
-		@Override
-		public void setAccessFlags(AccessFlags accessFlags) {
-			declaration.setModifiers(accessFlags.toJavaParserModifierSet());
-		}
-
-		@Override
-		public List<Annotation> getAnnotations() {
-			return SourceInfo.this.getAnnotationsInternal(declaration.getAnnotations());
-		}
-
-		@Override
-		public SourceInfo getClassInfo() {
-			return SourceInfo.this;
-		}
-
-		@Override
-		public String toString() {
-			return SimpleMethodInfo.toString(this);
-		}
-
-		@Override
-		public List<TypeVariable> getTypeVariables() {
-			return Collections.emptyList();
-		}
-
-		@Override
-		public void setTypeVariables(List<TypeVariable> typeVariables) {
-			if (!typeVariables.isEmpty())
-				throw new UnsupportedOperationException("Can't set type variables on a constructor");
-		}
-
-		@Override
-		@SuppressWarnings("MethodDoesntCallSuperMethod")
-		public ConstructorDeclarationWrapper clone() {
-			return new ConstructorDeclarationWrapper(declaration.clone());
+		public BlockStmt getBody() {
+			return declaration.getBody().orElse(null);
 		}
 	}
 }

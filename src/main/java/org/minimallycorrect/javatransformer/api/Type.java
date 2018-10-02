@@ -49,6 +49,11 @@ import org.minimallycorrect.javatransformer.internal.util.TypeUtil;
 public class Type {
 	public static final Type UNKNOWN = new Type("Ljava/lang/Object;", "Tunknown;");
 	public static final Type OBJECT = Type.of("java.lang.Object");
+	public static final Type BOOLEAN = new Type("Z");
+	public static final Type DOUBLE = new Type("D");
+	public static final Type FLOAT = new Type("F");
+	public static final Type INT = new Type("I");
+	public static final Type LONG = new Type("L");
 
 	/**
 	 * A descriptor represents the real part of a type
@@ -109,6 +114,10 @@ public class Type {
 
 		// TODO: check this handles Map<Map<a, b>, Map<b, d>> correctly?
 		return type.withTypeArguments(CollectionUtil.stream(Splitter.commaSplitter.splitIterable(genericType)).map(Type::of).collect(Collectors.toList()));
+	}
+
+	public static Type of(Class<?> clazz) {
+		return of(clazz.getName());
 	}
 
 	public static List<Type> listOf(String desc, @Nullable String signature) {

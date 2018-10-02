@@ -8,6 +8,9 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import javax.annotation.Nonnull;
+
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.UtilityClass;
 import lombok.val;
 
@@ -17,6 +20,16 @@ public class CollectionUtil {
 	@SuppressWarnings("varargs")
 	public static <T> Stream<T> union(Collection<T>... collections) {
 		return union(Arrays.asList(collections));
+	}
+
+	@SafeVarargs
+	@SuppressWarnings({"varargs", "unchecked"})
+	public static <T> Iterator<T> union(Iterable<T>... iterables) {
+		Iterator<T>[] iterators = (Iterator<T>[]) new Iterator<?>[iterables.length];
+		for (int i = 0; i < iterators.length; i++) {
+			iterators[i] = iterables[i].iterator();
+		}
+		return new IteratorIterator<>(iterators);
 	}
 
 	public static <T> Stream<T> union(Collection<Collection<T>> collections) {
@@ -83,6 +96,29 @@ public class CollectionUtil {
 			} finally {
 				next = supplier.get();
 			}
+		}
+	}
+
+	@RequiredArgsConstructor
+	private static class IteratorIterator<T> implements Iterator<T> {
+		@Nonnull
+		private final Iterator<T>[] iterators;
+		private int current;
+
+		@Override
+		public boolean hasNext() {
+			while (current < iterators.length && !iterators[current].hasNext())
+				current++;
+
+			return current < iterators.length;
+		}
+
+		@Override
+		public T next() {
+			if (!hasNext())
+				throw new NoSuchElementException();
+
+			return iterators[current].next();
 		}
 	}
 }

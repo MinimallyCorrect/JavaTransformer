@@ -40,17 +40,16 @@ import org.minimallycorrect.javatransformer.internal.asm.AsmInstructions;
 import org.minimallycorrect.javatransformer.internal.asm.CombinedValue;
 import org.minimallycorrect.javatransformer.internal.asm.DebugPrinter;
 import org.minimallycorrect.javatransformer.internal.util.Cloner;
+import org.minimallycorrect.javatransformer.internal.util.CodeFragmentUtil;
 import org.minimallycorrect.javatransformer.internal.util.CollectionUtil;
 import org.minimallycorrect.javatransformer.internal.util.JVMUtil;
 
 class AsmCodeFragmentGenerator implements Opcodes {
 	static Class<?> concreteImplementation(Class<?> interfaceType) {
-		if (interfaceType == CodeFragment.class)
+		if (interfaceType == CodeFragment.Body.class)
 			return MethodNodeInfoCodeFragment.class;
 		if (interfaceType == CodeFragment.MethodCall.class)
 			return MethodCall.class;
-		if (interfaceType == CodeFragment.FieldAccess.class)
-			return CodeFragment.FieldAccess.class;
 		throw new UnsupportedOperationException("No ASM implementation for " + interfaceType);
 	}
 
@@ -220,11 +219,10 @@ class AsmCodeFragmentGenerator implements Opcodes {
 
 		@Override
 		public void insert(@NonNull CodeFragment fragmentOfAnyType, @NonNull InsertionPosition position, @NonNull InsertionOptions insertionOptions) {
-			if (this.equals(fragmentOfAnyType)) {
-				if (position == InsertionPosition.OVERWRITE)
-					return;
-				throw new UnsupportedOperationException("Can't insert a CodeFragment into itself");
+			if (CodeFragmentUtil.validateInsert(this, fragmentOfAnyType, position, insertionOptions)) {
+				return;
 			}
+
 			if (!(fragmentOfAnyType instanceof AsmCodeFragment))
 				throw new TypeMismatchException(AsmCodeFragment.class, fragmentOfAnyType);
 
@@ -483,7 +481,7 @@ class AsmCodeFragmentGenerator implements Opcodes {
 		@SuppressWarnings({"JavaReflectionMemberAccess", "unchecked"})
 		@SneakyThrows
 		public <T extends CodeFragment> List<T> findFragments(Class<T> fragmentType) {
-			if (fragmentType.isAssignableFrom(this.getClass()))
+			if (fragmentType.isInstance(this))
 				return Collections.singletonList((T) this);
 
 			val constructor = (Constructor<T>) concreteImplementation(fragmentType).getDeclaredConstructors()[0];

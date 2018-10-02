@@ -22,7 +22,7 @@ public class NodeUtil {
 	@SuppressWarnings("unchecked")
 	public static <T> void forChildren(Node node, Consumer<T> nodeConsumer, Class<T> ofClass) {
 		for (Node child : node.getChildNodes()) {
-			if (ofClass.isAssignableFrom(child.getClass()))
+			if (ofClass.isInstance(child))
 				nodeConsumer.accept((T) child);
 
 			forChildren(child, nodeConsumer, ofClass);
