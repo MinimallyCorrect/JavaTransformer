@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
-import lombok.experimental.Wither;
+import lombok.With;
 
 import org.minimallycorrect.javatransformer.api.TransformationException;
 import org.minimallycorrect.javatransformer.api.Type;
@@ -95,7 +95,7 @@ public interface CodeFragment {
 	@AllArgsConstructor
 	@Getter
 	@NoArgsConstructor
-	@Wither
+	@With
 	class InsertionOptions {
 		public static InsertionOptions DEFAULT = new InsertionOptions();
 		public boolean convertReturnToOutputTypes = true;
