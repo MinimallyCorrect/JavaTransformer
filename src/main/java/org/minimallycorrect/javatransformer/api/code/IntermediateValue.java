@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
-import lombok.experimental.Wither;
+import lombok.With;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -12,7 +12,7 @@ import org.minimallycorrect.javatransformer.api.Type;
 
 @RequiredArgsConstructor
 @ToString
-@Wither
+@With
 public final class IntermediateValue {
 	public final static UNKNOWN_CONSTANT UNKNOWN = new UNKNOWN_CONSTANT();
 	@NonNull
