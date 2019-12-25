@@ -5,6 +5,8 @@ import java.io.IOError;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.management.ManagementFactory;
+import java.net.URI;
+import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -14,8 +16,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
+import java.util.zip.ZipFile;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -52,27 +53,77 @@ public class ClassPaths {
 		public static final ClassPath SYSTEM_CLASS_PATH = makeSystemJarClassPath();
 
 		private static ClassPath makeSystemJarClassPath() {
-			// TODO: handle java 9 JRT (jrt:// path)
-			// Easy solution: delegate to system classloader
-
 			// only scan java/ files in boot class path
 			// avoid JVM/JDK internals
-			val paths = Splitter.pathSplitter.split(ManagementFactory.getRuntimeMXBean().getBootClassPath())
-				.map(it -> Paths.get(it)).filter(it -> it.getFileName().toString().equals("rt.jar"))
-				.collect(Collectors.toList());
-			return new FileClassPath(null, paths);
+			try {
+				val paths = Splitter.pathSplitter.split(ManagementFactory.getRuntimeMXBean().getBootClassPath())
+					.map(it -> Paths.get(it)).filter(it -> it.getFileName().toString().equals("rt.jar"))
+					.collect(Collectors.toList());
+				return new FileClassPath(null, paths);
+			} catch (UnsupportedOperationException ignored) {
+				val fs = FileSystems.getFileSystem(URI.create("jrt:/"));
+				return new FileClassPath(null, Collections.singletonList(fs.getPath("modules/java.base/")));
+			}
 		}
 	}
 
-	static class FileClassPath implements ClassPath, TypeSolver {
+	private static abstract class ClassPathSolver implements ClassPath, TypeSolver {
 		@Nullable
 		final ClassPath parent;
+
+		ClassPathSolver(@Nullable ClassPath parent) {
+			this.parent = parent;
+		}
+
+		@Override
+		public TypeSolver getParent() {
+			return parent instanceof TypeSolver ? (TypeSolver) parent : null;
+		}
+
+		@Override
+		public void setParent(TypeSolver parent) {
+			throw new UnsupportedOperationException("TODO");
+		}
+
+		static Path normalise(Path path) {
+			return path.toAbsolutePath().normalize();
+		}
+
+		@NonNull
+		@Override
+		public SymbolReference<ResolvedReferenceTypeDeclaration> tryToSolveType(String name) {
+			val ci = getClassInfo(name);
+			if (ci == null) {
+				return SymbolReference.unsolved(ResolvedReferenceTypeDeclaration.class);
+			}
+			return SymbolReference.solved(getResolvedReferenceTypeDeclarationForClassInfo(ci));
+		}
+
+		private ResolvedReferenceTypeDeclaration getResolvedReferenceTypeDeclarationForClassInfo(ClassInfo ci) {
+			if (ci instanceof SourceInfo) {
+				val jpType = ((SourceInfo) ci).getJavaParserType();
+				if (jpType.isClassOrInterfaceDeclaration()) {
+					return new JavaParserClassDeclaration(jpType.asClassOrInterfaceDeclaration(), this);
+				} else if (jpType.isEnumDeclaration()) {
+					return new JavaParserEnumDeclaration(jpType.asEnumDeclaration(), this);
+				} else if (jpType.isAnnotationDeclaration()) {
+					return new JavaParserAnnotationDeclaration(jpType.asAnnotationDeclaration(), this);
+				}
+			}
+			if (ci instanceof ByteCodeInfo) {
+				return AsmResolvedTypes.fromByteCodeInfo(this, (ByteCodeInfo) ci);
+			}
+			throw new UnsupportedOperationException("TODO " + ci);
+		}
+	}
+
+	static class FileClassPath extends ClassPathSolver {
 		private final Map<String, ClassInfo> entries = new HashMap<>();
 		private final Collection<Path> paths;
 		private boolean initialised;
 
 		public FileClassPath(@Nullable ClassPath parent, Collection<Path> paths) {
-			this.parent = parent;
+			super(parent);
 			this.paths = paths;
 		}
 
@@ -88,10 +139,6 @@ public class ClassPaths {
 			if (!initialised)
 				initialise();
 			return entries.get(className);
-		}
-
-		private static Path normalise(Path path) {
-			return path.toAbsolutePath().normalize();
 		}
 
 		@Override
@@ -131,11 +178,8 @@ public class ClassPaths {
 				}
 
 			if (entryName.endsWith(".class")) {
-				try (val is = iss.get()) {
-					String name = JVMUtil.fileNameToClassName(entryName);
-					val classNode = AsmUtil.getClassNode(StreamUtil.readFully(is), null);
-					entries.put(name, new ByteCodeInfo(() -> classNode, name, Collections.emptyMap()));
-				}
+				String name = JVMUtil.fileNameToClassName(entryName);
+				entries.put(name, new ByteCodeInfo(() -> AsmUtil.getClassNode(StreamUtil.readFully(iss.get()), null), name, Collections.emptyMap()));
 			}
 		}
 
@@ -176,67 +220,23 @@ public class ClassPaths {
 					}
 				});
 			else if (Files.isRegularFile(path))
-				try (val zis = new ZipInputStream(Files.newInputStream(path))) {
-					ZipEntry e;
-					val is = new InputStream() {
-						public int read(@NonNull byte[] b, int off, int len) throws IOException {
-							return zis.read(b, off, len);
-						}
-
-						public void close() throws IOException {
-							// don't allow closing this ZIS
-						}
-
-						public int read() throws IOException {
-							return zis.read();
-						}
-					};
-					while ((e = zis.getNextEntry()) != null) {
-						try {
-							findPaths(e.getName(), () -> is);
-						} finally {
-							zis.closeEntry();
-						}
+				try (val zf = new ZipFile(path.toFile())) {
+					val e$ = zf.entries();
+					while (e$.hasMoreElements()) {
+						val ze = e$.nextElement();
+						val name = ze.getName();
+						findPaths(name, () -> {
+							try {
+								val zff = new ZipFile(path.toFile());
+								return zff.getInputStream(zff.getEntry(name));
+							} catch (IOException e) {
+								throw new IOError(e);
+							}
+						});
 					}
 				}
 		}
 
-		@Override
-		public TypeSolver getParent() {
-			return null;
-		}
-
-		@Override
-		public void setParent(TypeSolver parent) {
-			throw new UnsupportedOperationException("TODO");
-		}
-
-		@NonNull
-		@Override
-		public SymbolReference<ResolvedReferenceTypeDeclaration> tryToSolveType(String name) {
-			val ci = getClassInfo(name);
-			if (ci == null) {
-				return SymbolReference.unsolved(ResolvedReferenceTypeDeclaration.class);
-			}
-			return SymbolReference.solved(getResolvedReferenceTypeDeclarationForClassInfo(ci));
-		}
-
-		private ResolvedReferenceTypeDeclaration getResolvedReferenceTypeDeclarationForClassInfo(ClassInfo ci) {
-			if (ci instanceof SourceInfo) {
-				val jpType = ((SourceInfo) ci).getJavaParserType();
-				if (jpType.isClassOrInterfaceDeclaration()) {
-					return new JavaParserClassDeclaration(jpType.asClassOrInterfaceDeclaration(), this);
-				} else if (jpType.isEnumDeclaration()) {
-					return new JavaParserEnumDeclaration(jpType.asEnumDeclaration(), this);
-				} else if (jpType.isAnnotationDeclaration()) {
-					return new JavaParserAnnotationDeclaration(jpType.asAnnotationDeclaration(), this);
-				}
-			}
-			if (ci instanceof ByteCodeInfo) {
-				return AsmResolvedTypes.fromByteCodeInfo(this, (ByteCodeInfo) ci);
-			}
-			throw new UnsupportedOperationException("TODO " + ci);
-		}
 	}
 
 	/*
