@@ -8,13 +8,13 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import lombok.val;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.omg.CORBA.BooleanHolder;
 
 import org.minimallycorrect.javatransformer.api.code.CodeFragment;
 import org.minimallycorrect.javatransformer.internal.ByteCodeInfo;
@@ -32,11 +32,11 @@ public class JavaTransformerRuntimeTest {
 		JavaTransformer transformer = new JavaTransformer();
 
 		val targetClass = this.getClass().getName();
-		BooleanHolder holder = new BooleanHolder(false);
+		AtomicBoolean check = new AtomicBoolean(false);
 
 		transformer.addTransformer(name, c -> {
 			Assert.assertEquals(name, c.getName());
-			holder.value = true;
+			check.set(true);
 			c.accessFlags(it -> it.makeAccessible(true));
 			c.getAnnotations();
 			val fields = c.getFields().collect(Collectors.toList());
@@ -95,7 +95,7 @@ public class JavaTransformerRuntimeTest {
 		transformer.load(input);
 		val clazz = transformer.defineClass(this.getClass().getClassLoader(), name);
 		Assert.assertEquals(name, clazz.getName());
-		Assert.assertTrue("Transformer must process " + targetClass, holder.value);
+		Assert.assertTrue("Transformer must process " + targetClass, check.get());
 
 		val list = new ArrayList<String>();
 		val codeFragmentTesting = new CodeFragmentTesting(list::add);

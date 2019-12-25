@@ -22,6 +22,18 @@ minimallyCorrectDefaults {
 dependencies {
 	testCompile "junit:junit:4.12"
 	//Can we make these dependencies optional? Reduced jar size if not using source for patching
-	compile 'org.ow2.asm:asm-debug-all:5.0.4'
+	compile 'org.ow2.asm:asm:6.2.1'
+	compile 'org.ow2.asm:asm-util:6.2.1'
+	compile 'org.ow2.asm:asm-tree:6.2.1'
 	compile 'com.github.javaparser:javaparser-symbol-solver-core:3.6.24'
+}
+
+tasks.withType(JavaCompile) {
+	sourceCompatibility = 8
+	targetCompatibility = 8
+	options.with {
+		deprecation = true
+		encoding = 'UTF-8'
+		compilerArgs << "-Xlint:all" << "-Xlint:-path" << "-Xlint:-processing" << "-Xlint:-options"
+	}
 }

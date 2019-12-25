@@ -47,6 +47,12 @@ public class FilteringClassWriter extends ClassWriter {
 	}
 
 	@Override
+	public int newHandle(int tag, String owner, String name, String descriptor, boolean isInterface) {
+		return super.newHandle(tag, replace(owner), name, descriptor, isInterface);
+	}
+
+	@Override
+	@SuppressWarnings("deprecation")
 	public int newHandle(int tag, String owner, String name, String desc) {
 		return super.newHandle(tag, replace(owner), name, desc);
 	}
