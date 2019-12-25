@@ -12,11 +12,9 @@ import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class DefineClass {
-	private static final sun.misc.Unsafe $ = UnsafeAccess.$;
 	private static final MethodHandles.Lookup $L = UnsafeAccess.IMPL_LOOKUP;
 	private static final ProtectionDomain PROTECTION_DOMAIN = AccessController.doPrivileged((PrivilegedAction<ProtectionDomain>) DefineClass.class::getProtectionDomain);
 	private static final MethodHandle defineClassHandle = getDefineClassHandle();
-	private static final boolean useUnsafe = $ != null && (defineClassHandle == null || System.getProperty("org.minimallycorrect.javatransformer.internal.util.DefineClass.useUnsafe", "false").equalsIgnoreCase("true"));
 
 	private static MethodHandle getDefineClassHandle() {
 		try {
@@ -30,9 +28,6 @@ public class DefineClass {
 	@SneakyThrows
 	@SuppressWarnings("unchecked")
 	public static Class<?> defineClass(ClassLoader classLoader, String name, byte[] bytes) {
-		if (useUnsafe) {
-			return $.defineClass(name, bytes, 0, bytes.length, classLoader, PROTECTION_DOMAIN);
-		}
 		return (Class<?>) defineClassHandle.invokeExact(classLoader, name, bytes, 0, bytes.length, PROTECTION_DOMAIN);
 	}
 }

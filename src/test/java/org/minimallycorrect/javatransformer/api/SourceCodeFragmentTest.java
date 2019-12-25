@@ -4,6 +4,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import lombok.SneakyThrows;
@@ -13,7 +14,6 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.omg.CORBA.BooleanHolder;
 
 import org.minimallycorrect.javatransformer.api.code.CodeFragment;
 
@@ -28,17 +28,17 @@ public class SourceCodeFragmentTest {
 		val output = folder.newFolder("output").toPath();
 		val jt = new JavaTransformer();
 		jt.getClassPath().addPath(input);
-		val hasRan = new BooleanHolder();
+		val hasRan = new AtomicBoolean();
 		val clazz = "org.minimallycorrect.javatransformer.transform.codefragments.InsertBeforeTest";
 		jt.addTransformer(clazz, (cI) -> {
 			List<MethodInfo> methods = cI.getMethods().collect(Collectors.toList());
 			MethodInfo testMethod = methods.stream().filter((MethodInfo it) -> it.getName().equals("testMethod")).findFirst().get();
 			MethodInfo toInsert = methods.stream().filter((MethodInfo it) -> it.getName().equals("toInsert")).findFirst().get();
 			testMethod.getCodeFragment().insert(toInsert.getCodeFragment(), CodeFragment.InsertionPosition.BEFORE);
-			hasRan.value = true;
+			hasRan.set(true);
 		});
 		jt.transform(input, output);
-		Assert.assertTrue("Must have transformed class", hasRan.value);
+		Assert.assertTrue("Must have transformed class", hasRan.get());
 		assertFilesEqual(input.resolve(clazz.replace(".", "/") + ".java_patched"),
 			output.resolve(clazz.replace(".", "/") + ".java"));
 	}

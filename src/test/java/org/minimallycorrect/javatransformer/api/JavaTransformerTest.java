@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import lombok.val;
@@ -19,7 +20,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.omg.CORBA.BooleanHolder;
 
 import org.minimallycorrect.javatransformer.api.code.CodeFragment;
 
@@ -72,14 +72,14 @@ public class JavaTransformerTest {
 
 		val targetMethod = "testMethodCallExpression";
 		val targetClass = this.getClass().getName();
-		BooleanHolder hasProcessedTargetClass = new BooleanHolder(false);
-		BooleanHolder hasProcessedTargetMethod = new BooleanHolder(false);
+		AtomicBoolean hasProcessedTargetClass = new AtomicBoolean(false);
+		AtomicBoolean hasProcessedTargetMethod = new AtomicBoolean(false);
 
 		transformer.addTransformer(c -> {
 			System.out.println("Transforming class: " + c.getName() + " of type " + c.getClass().getSimpleName());
 			val isTarget = c.getName().equals(targetClass);
 			if (isTarget)
-				hasProcessedTargetClass.value = true;
+				hasProcessedTargetClass.set(true);
 
 			c.accessFlags(it -> it.makeAccessible(true));
 			c.getAnnotations().forEach(it -> {
@@ -99,7 +99,7 @@ public class JavaTransformerTest {
 
 				Assert.assertNotNull(it + " should have a CodeFragment", cf);
 				if (it.getName().equals(targetMethod)) {
-					hasProcessedTargetMethod.value = true;
+					hasProcessedTargetMethod.set(true);
 					val methodCalls = cf.findFragments(CodeFragment.MethodCall.class);
 					Assert.assertEquals(EXPECTED_METHOD_CALL_COUNT, methodCalls.size());
 					for (int i = 1; i <= EXPECTED_METHOD_CALL_COUNT; i++) {
@@ -128,8 +128,8 @@ public class JavaTransformerTest {
 		System.out.println("Transforming path '" + input + "' to '" + output + "'");
 		transformer.transform(input, output);
 
-		Assert.assertTrue("Transformer must process " + targetClass, hasProcessedTargetClass.value);
-		Assert.assertTrue("Transformer must process " + targetMethod, hasProcessedTargetMethod.value);
+		Assert.assertTrue("Transformer must process " + targetClass, hasProcessedTargetClass.get());
+		Assert.assertTrue("Transformer must process " + targetMethod, hasProcessedTargetMethod.get());
 
 		Assert.assertTrue(exists(output.resolve("org/minimallycorrect/javatransformer/api/JavaTransformerTest.")));
 	}
