@@ -1,5 +1,6 @@
 package org.minimallycorrect.javatransformer.internal;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
@@ -393,7 +394,12 @@ public class SourceInfo implements ClassInfo {
 
 		@Override
 		public void setParameters(List<Parameter> parameters) {
-			val javaParserParameters = parameters.stream().map(p -> new com.github.javaparser.ast.body.Parameter(ResolutionContext.typeToJavaParserType(p.type), p.name)).collect(Collectors.toList());
+			val javaParserParameters = new ArrayList<com.github.javaparser.ast.body.Parameter>(parameters.size());
+			for (int i = 0; i < parameters.size(); i++) {
+				val p = parameters.get(i);
+				val name = p.name == null ? "p" + i : p.name;
+				javaParserParameters.add(new com.github.javaparser.ast.body.Parameter(ResolutionContext.typeToJavaParserType(p.type), name));
+			}
 			declaration.setParameters(NodeList.nodeList(javaParserParameters));
 		}
 
