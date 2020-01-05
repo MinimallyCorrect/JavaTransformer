@@ -93,7 +93,7 @@ public class JavaTransformerTest {
 			c.getMembers().collect(Collectors.toList());
 			c.getConstructors().collect(Collectors.toList());
 			c.getMethods().forEach(it -> {
-				it.getReturnType();
+				val rt = it.getReturnType();
 
 				val cf = it.getCodeFragment();
 
