@@ -246,7 +246,13 @@ public class ResolutionContext {
 			// inner class in imported class
 			if (preDotName != null && importName.endsWith(preDotName)) {
 				String fullName = importName + postDotName;
+				// TODO: we can either resolve with $ or . here depending on if in source or byte code
+				// should make consistent by always using $ for inner class names
 				Type type = resolveIfExists(fullName);
+				if (type != null) {
+					return type;
+				}
+				type = resolveIfExists(importName + postDotName.replace('.', '$'));
 				if (type != null) {
 					return type;
 				}

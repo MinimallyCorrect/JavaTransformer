@@ -137,6 +137,9 @@ public class JVMUtil {
 				case "synthetic":
 					a |= AccessFlags.ACC_SYNTHETIC;
 					break;
+				case "final":
+					a |= AccessFlags.ACC_FINAL;
+					break;
 				default:
 					throw new TransformationException("Unknown access string " + access);
 			}
