@@ -26,7 +26,7 @@ public class CompilationUnitInfo {
 			sourceInfos.add(new SourceInfo(() -> typeDeclaration, packageName + typeDeclaration.getName(), classPath));
 			// suppressed deprecation warning for now
 			// https://github.com/javaparser/javaparser/issues/1472#issuecomment-424327421
-			getSourceInfos(typeDeclaration.getChildNodesByType((Class<TypeDeclaration<?>>) (Object) TypeDeclaration.class), classPath, sourceInfos, packageName + typeDeclaration.getNameAsString() + '.');
+			getSourceInfos(typeDeclaration.getChildNodesByType((Class<TypeDeclaration<?>>) (Object) TypeDeclaration.class), classPath, sourceInfos, packageName + typeDeclaration.getNameAsString() + '$');
 		}
 	}
 }
