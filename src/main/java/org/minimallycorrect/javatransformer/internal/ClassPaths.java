@@ -45,7 +45,7 @@ import org.minimallycorrect.javatransformer.internal.util.*;
 
 @UtilityClass
 public class ClassPaths {
-	public static ClassPath of(ClassPath systemClassPath, Path[] paths) {
+	public static ClassPath of(ClassPath systemClassPath, Path... paths) {
 		return new FileClassPath(systemClassPath, new ArrayList<>(Arrays.asList(paths)));
 	}
 
@@ -237,6 +237,15 @@ public class ClassPaths {
 				}
 		}
 
+		@Override
+		public String toString() {
+			return "FileClassPath{" +
+				"entries.size()=" + entries.size() +
+				", paths=" + paths +
+				", initialised=" + initialised +
+				", parent=" + parent +
+				'}';
+		}
 	}
 
 	/*

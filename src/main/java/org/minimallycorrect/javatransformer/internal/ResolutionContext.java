@@ -190,6 +190,7 @@ public class ResolutionContext {
 			throw new TransformationException("Couldn't resolve name: " + name +
 				"\nFound real type: " + type +
 				"\nGeneric types: " + genericTypes +
+				"\nPackage: " + packageName +
 				"\nImports:" + imports.stream().map(ResolutionContext::toString).collect(Collectors.toList()) +
 				"\nClassPath: " + classPath);
 

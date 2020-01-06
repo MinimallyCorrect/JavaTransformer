@@ -2,6 +2,8 @@ package org.minimallycorrect.javatransformer.transform;
 
 import java.lang.invoke.MethodHandles;
 
+import org.minimallycorrect.javatransformer.api.code.CodeFragment;
+
 public class InnerClassReferencer {
 	public InnerClassExample.Inner test1() {
 		throw new UnsupportedOperationException();
@@ -12,11 +14,11 @@ public class InnerClassReferencer {
 	}
 
 	public AnnotationInnerClassExample.TestEnum test3() {
-		throw new UnsupportedOperationException();
+		return AnnotationInnerClassExample.TestEnum.ONE;
 	}
 
 	public org.minimallycorrect.javatransformer.transform.AnnotationInnerClassExample.TestEnum test4() {
-		throw new UnsupportedOperationException();
+		return org.minimallycorrect.javatransformer.transform.AnnotationInnerClassExample.TestEnum.TWO;
 	}
 
 	public MethodHandles.Lookup test5() {
@@ -25,5 +27,13 @@ public class InnerClassReferencer {
 
 	public java.lang.invoke.MethodHandles.Lookup test6() {
 		throw new UnsupportedOperationException();
+	}
+
+	public CodeFragment.InsertionOptions test7() {
+		return org.minimallycorrect.javatransformer.api.code.CodeFragment.InsertionOptions.DEFAULT;
+	}
+
+	public org.minimallycorrect.javatransformer.api.code.CodeFragment.InsertionOptions test8() {
+		return CodeFragment.InsertionOptions.DEFAULT;
 	}
 }
