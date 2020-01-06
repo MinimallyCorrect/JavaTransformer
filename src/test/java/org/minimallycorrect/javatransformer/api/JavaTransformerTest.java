@@ -40,7 +40,7 @@ public class JavaTransformerTest {
 
 	@Parameterized.Parameters
 	public static Collection<List<Path>> paths() {
-		return Arrays.asList(getClassPath(), getSourcePath());
+		return Arrays.asList(getClassPath(), getSourcePath(), getMixPath());
 	}
 
 	private static List<Path> getClassPath() {
@@ -49,6 +49,10 @@ public class JavaTransformerTest {
 
 	private static List<Path> getSourcePath() {
 		return new ArrayList<>(Arrays.asList(Paths.get("src/test/java/"), Paths.get("src/main/java")));
+	}
+
+	private static List<Path> getMixPath() {
+		return new ArrayList<>(Arrays.asList(Paths.get("src/test/java/"), JavaTransformer.pathFromClass((JavaTransformer.class))));
 	}
 
 	private static boolean exists(Path p) {
@@ -94,6 +98,7 @@ public class JavaTransformerTest {
 			c.getConstructors().collect(Collectors.toList());
 			c.getMethods().forEach(it -> {
 				val rt = it.getReturnType();
+				Assert.assertNotNull(it + " should have a return type", rt);
 
 				val cf = it.getCodeFragment();
 
