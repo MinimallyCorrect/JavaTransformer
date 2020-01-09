@@ -3,10 +3,11 @@ buildscript {
 		jcenter()
 		maven { url "https://plugins.gradle.org/m2/" }
 	}
-	dependencies { classpath 'org.minimallycorrect.gradle:DefaultsPlugin:0.0.44' }
+	dependencies { classpath 'org.minimallycorrect.gradle:DefaultsPlugin:0.0.45' }
 }
 plugins {
 	id 'java'
+	id 'java-library'
 	id 'maven'
 }
 apply plugin: 'org.minimallycorrect.gradle.DefaultsPlugin'
@@ -20,17 +21,16 @@ minimallyCorrectDefaults {
 } ()
 
 dependencies {
-	testCompile "junit:junit:4.12"
+	testImplementation "junit:junit:4.12"
 	//Can we make these dependencies optional? Reduced jar size if not using source for patching
-	compile 'org.ow2.asm:asm:6.2.1'
-	compile 'org.ow2.asm:asm-util:6.2.1'
-	compile 'org.ow2.asm:asm-tree:6.2.1'
-	compile 'com.github.javaparser:javaparser-symbol-solver-core:3.6.24'
+	implementation 'org.ow2.asm:asm:7.2'
+	implementation 'org.ow2.asm:asm-util:7.2'
+	implementation 'org.ow2.asm:asm-tree:7.2'
+	implementation 'com.github.javaparser:javaparser-symbol-solver-core:3.6.24'
 }
 
 tasks.withType(JavaCompile) {
-	sourceCompatibility = 8
-	targetCompatibility = 8
+	targetCompatibility = sourceCompatibility = JavaVersion.VERSION_1_8
 	options.with {
 		deprecation = true
 		encoding = 'UTF-8'
