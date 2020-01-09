@@ -55,6 +55,7 @@ public class ClassPaths {
 		private static ClassPath makeSystemJarClassPath() {
 			// only scan java/ files in boot class path
 			// avoid JVM/JDK internals
+			// TODO: self-test, if we can't load JDK classes with current asm version fall back to reflection
 			try {
 				val paths = Splitter.pathSplitter.split(ManagementFactory.getRuntimeMXBean().getBootClassPath())
 					.map(it -> Paths.get(it)).filter(it -> it.getFileName().toString().equals("rt.jar"))
