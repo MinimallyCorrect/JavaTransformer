@@ -45,8 +45,6 @@ import org.objectweb.asm.tree.ClassNode;
 import com.github.javaparser.*;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.TypeDeclaration;
-import com.github.javaparser.symbolsolver.JavaSymbolSolver;
-import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
 
 import org.minimallycorrect.javatransformer.internal.ByteCodeInfo;
 import org.minimallycorrect.javatransformer.internal.SourceInfo;
@@ -251,7 +249,7 @@ public class JavaTransformer {
 		CachingSupplier<TypeDeclaration<?>> supplier = CachingSupplier.of(() -> {
 			byte[] bytes = data.get();
 
-			val parser = new JavaParser(new ParserConfiguration().setSymbolResolver(new JavaSymbolSolver((TypeSolver) classPath)));
+			val parser = new JavaParser();
 			val result = parser.parse(ParseStart.COMPILATION_UNIT, provider(new ByteArrayInputStream(bytes), Charset.forName("UTF8")));
 			if (!result.isSuccessful()) {
 				throw new ParseProblemException(result.getProblems());

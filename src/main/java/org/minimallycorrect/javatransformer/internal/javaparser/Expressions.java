@@ -10,9 +10,15 @@ import lombok.val;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
-import com.github.javaparser.ast.expr.*;
-import com.github.javaparser.resolution.Resolvable;
-import com.github.javaparser.resolution.declarations.ResolvedValueDeclaration;
+import com.github.javaparser.ast.expr.ArrayInitializerExpr;
+import com.github.javaparser.ast.expr.BooleanLiteralExpr;
+import com.github.javaparser.ast.expr.ClassExpr;
+import com.github.javaparser.ast.expr.Expression;
+import com.github.javaparser.ast.expr.FieldAccessExpr;
+import com.github.javaparser.ast.expr.NameExpr;
+import com.github.javaparser.ast.expr.NullLiteralExpr;
+import com.github.javaparser.ast.expr.StringLiteralExpr;
+import com.github.javaparser.ast.nodeTypes.NodeWithScope;
 
 import org.minimallycorrect.javatransformer.api.TransformationException;
 import org.minimallycorrect.javatransformer.api.Type;
@@ -22,7 +28,7 @@ import org.minimallycorrect.javatransformer.internal.ResolutionContext;
 @UtilityClass
 public class Expressions {
 	@Contract(value = "null, _, _ -> fail; _, null, _ -> fail; _, _, true -> !null", pure = true)
-	@Nullable
+	@NonNull
 	@SuppressWarnings({"Contract", "unchecked"}) // Not violated, @NonNull adds null checks
 	public static Type expressionToType(@NonNull Expression e, @NonNull ResolutionContext context, boolean failIfUnknown) {
 		if (e instanceof StringLiteralExpr) {
@@ -30,27 +36,38 @@ public class Expressions {
 		} else if (e instanceof BooleanLiteralExpr) {
 			return Type.BOOLEAN;
 		} else if (e instanceof ClassExpr) {
+			// TODO: Class<T>
 			return Type.of(Class.class);
+		} else if (e instanceof NameExpr) {
+			// TODO locals and fields of current class
+			val ne = ((NameExpr) e).getName();
+			//ne.
 		} else if (e instanceof ArrayInitializerExpr) {
 			// TODO
 		} else if (e instanceof FieldAccessExpr) {
-			/*
-			// needs to be a constant -> must be a field which is an enum constant or
-			// a public static final field of constable type
-			val fieldAccessExpre = (FieldAccessExpr) e;
-			Type t = context.resolve(Objects.requireNonNull(fieldAccessExpre.getScope().toString()));
-			if (t != null)
-				return t;
-				*/
+			val scope = ((FieldAccessExpr) e).getScope();
+			Type scopeType = expressionToType(scope, context, false);
+			if (scopeType == Type.UNKNOWN) {
+				scopeType = context.resolve(scope.toString());
+			}
+
+			val clazzInfo = context.getClassPath().getClassInfo(scopeType.getClassName());
+			val fieldName = ((FieldAccessExpr) e).getNameAsString();
+
+			// TODO: we assume compiling against a class with non duplicate field names
+			// there might be dupes for valid bytecode if obfuscated or from non-java language?
+			val field = clazzInfo.getFields().filter(it -> it.getName().equals(fieldName)).findFirst().orElse(null);
+
+			return field.getType();
 		}
 
-		if (e instanceof Resolvable) {
-			return AsmResolvedTypes.convertResolvedTypeToType(((Resolvable<ResolvedValueDeclaration>) e).resolve().getType());
+		if (failIfUnknown) {
+			if (e instanceof NodeWithScope) {
+				System.err.println(((NodeWithScope) e).getScope().getClass());
+			}
+			throw new TransformationException("Unknown value {" + e + "}\nClass: " + e.getClass());
 		}
 
-		if (failIfUnknown)
-			throw new TransformationException("Unknown value: " + e + "\nClass: " + e.getClass());
-		//noinspection Contract - Not violated, @NonNull adds null checks
 		return Type.UNKNOWN;
 	}
 
@@ -78,8 +95,7 @@ public class Expressions {
 			// TODO: handle public static final fields properly? currently treated as enum
 			val fieldAccessExpr = (FieldAccessExpr) e;
 			Type t = context.resolve(fieldAccessExpr.getScope().toString());
-			if (t != null)
-				return new String[]{t.getDescriptor(), ((FieldAccessExpr) e).getNameAsString()};
+			return new String[]{t.getDescriptor(), ((FieldAccessExpr) e).getNameAsString()};
 		} else if (e instanceof NullLiteralExpr) {
 			return null;
 		}

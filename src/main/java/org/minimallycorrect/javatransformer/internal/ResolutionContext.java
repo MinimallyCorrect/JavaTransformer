@@ -20,13 +20,11 @@ import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.PrimitiveType;
 import com.github.javaparser.ast.type.TypeParameter;
 import com.github.javaparser.ast.type.VoidType;
-import com.github.javaparser.resolution.declarations.ResolvedValueDeclaration;
 
 import org.minimallycorrect.javatransformer.api.ClassPath;
 import org.minimallycorrect.javatransformer.api.TransformationException;
 import org.minimallycorrect.javatransformer.api.Type;
 import org.minimallycorrect.javatransformer.api.TypeVariable;
-import org.minimallycorrect.javatransformer.internal.javaparser.AsmResolvedTypes;
 import org.minimallycorrect.javatransformer.internal.util.*;
 
 @Getter
@@ -134,10 +132,6 @@ public class ResolutionContext {
 	@SuppressWarnings("deprecation")
 	public static ClassOrInterfaceType nonGenericClassOrInterfaceType(String name) {
 		return new ClassOrInterfaceType(name);
-	}
-
-	public Type resolve(ResolvedValueDeclaration resolve) {
-		return AsmResolvedTypes.convertResolvedTypeToType(resolve.getType());
 	}
 
 	public Type resolve(com.github.javaparser.ast.type.Type type) {
