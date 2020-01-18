@@ -31,7 +31,7 @@ public class ClassPathTest {
 	public void checkClassesInClassPath() {
 		val classPath = ClassPath.of();
 		boolean foundObject = false;
-		for (val clazz : classPath) {
+		for (ClassInfo clazz : classPath) {
 			if (clazz.getName().equals("java.lang.Object")) {
 				foundObject = true;
 				break;

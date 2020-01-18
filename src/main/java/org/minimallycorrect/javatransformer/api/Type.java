@@ -54,6 +54,11 @@ public class Type {
 	public static final Type FLOAT = new Type("F");
 	public static final Type INT = new Type("I");
 	public static final Type LONG = new Type("L");
+	public static final Type STRING = Type.of("java.lang.String");
+	public static final Type STATIC_META_CLASS = new Type("Ljvm/STATIC;", "Ljvm/STATIC;");
+	public static final Type ANNOTATION = Type.of("java.lang.annotation.Annotation");
+	public static final Type CLAZZ = Type.of("java.lang.Class");
+	public static final Type LAMBDA = Type.of("Ljvm/LAMBDA;");
 
 	/**
 	 * A descriptor represents the real part of a type
@@ -100,6 +105,10 @@ public class Type {
 		val after = signature.charAt(lastBracket + 1);
 		if (after != ';' && after != '>')
 			throw new TransformationException("Invalid signature '" + signature + "'. After generic bracket should either be '>' or ';'");
+	}
+
+	public static Type staticMetaclassOf(Type type) {
+		return STATIC_META_CLASS.withTypeArgument(type);
 	}
 
 	public static Type of(String fullClassName) {
@@ -311,9 +320,13 @@ public class Type {
 		return new Type(descriptor, signature);
 	}
 
-	public boolean isAssignableFrom(Type type) {
-		return descriptor.equals(type.descriptor) ||
-			(isClassType() && getClassName().equals("java.lang.Object") && (type.isArrayType() || type.isClassType()));
+	public static boolean isAssignableFrom(Type to, Type from) {
+		return to.descriptor.equals(from.descriptor) ||
+			(to.isClassType() && to.getClassName().equals("java.lang.Object") && (from.isArrayType() || from.isClassType()));
+	}
+
+	public boolean isStaticMetaClass() {
+		return descriptor == STATIC_META_CLASS.descriptor;
 	}
 
 	@AllArgsConstructor
@@ -366,6 +379,22 @@ public class Type {
 					return BOOLEAN;
 			}
 			throw new UnknownDescriptorTypeException("Unknnown descriptor type '" + c + "'");
+		}
+
+		@Nullable
+		public Integer getByteWidth() {
+			switch (this) {
+				case BYTE:
+					return 1;
+				case CHAR:
+				case SHORT:
+					return 2;
+				case INT:
+					return 4;
+				case LONG:
+					return 8;
+			}
+			return null;
 		}
 
 		private static class UnknownDescriptorTypeException extends RuntimeException {

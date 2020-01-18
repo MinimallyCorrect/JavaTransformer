@@ -17,13 +17,11 @@ group = 'org.minimallycorrect.javatransformer'
 minimallyCorrectDefaults {
 	description = "Applies transformations to .java and .class files"
 	labels = ["java-transformation", "java-source", "java-bytecode", "java"]
-	ignoreSunInternalWarnings = true
 	configureProject(project)
 }
 
 dependencies {
 	testImplementation "junit:junit:4.12"
-	//Can we make these dependencies optional? Reduced jar size if not using source for patching
 	implementation 'org.ow2.asm:asm:7.2'
 	implementation 'org.ow2.asm:asm-util:7.2'
 	implementation 'org.ow2.asm:asm-tree:7.2'

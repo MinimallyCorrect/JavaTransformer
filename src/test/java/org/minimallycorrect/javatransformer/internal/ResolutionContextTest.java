@@ -16,7 +16,7 @@ import org.minimallycorrect.javatransformer.api.Type;
 
 public class ResolutionContextTest {
 	private ResolutionContext context() {
-		return ResolutionContext.of("org.example", Collections.emptyList(), Arrays.asList(new TypeParameter("A"), new TypeParameter("B")), ClassPath.of());
+		return new ResolutionContext("org.example", Collections.emptyList(), Arrays.asList(new TypeParameter("A"), new TypeParameter("B")), ClassPath.of(), null);
 	}
 
 	@Test

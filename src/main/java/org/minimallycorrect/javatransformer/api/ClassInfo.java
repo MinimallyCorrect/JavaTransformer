@@ -1,7 +1,6 @@
 package org.minimallycorrect.javatransformer.api;
 
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.jetbrains.annotations.Contract;
@@ -94,10 +93,6 @@ public interface ClassInfo extends ClassMember {
 	@Contract(pure = true)
 	default Stream<ClassMember> getMembers() {
 		return Stream.concat(getFields(), getMethods());
-	}
-
-	default void accessFlags(Function<AccessFlags, AccessFlags> c) {
-		setAccessFlags(c.apply(getAccessFlags()));
 	}
 
 	@Override

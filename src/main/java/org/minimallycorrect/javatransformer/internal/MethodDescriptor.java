@@ -60,14 +60,21 @@ public class MethodDescriptor {
 		val list = new ArrayList<TypeVariable>();
 		int pos = 0;
 		int start = 0;
-		while (pos < typeArguments.length()) {
+		val len = typeArguments.length();
+		while (pos < len) {
 			char c = typeArguments.charAt(pos++);
 			switch (c) {
 				case ':':
 					String name = typeArguments.substring(start, pos);
+					if (typeArguments.charAt(pos) == ':') {
+						pos++;
+					}
 					String bounds = TypeUtil.readType(typeArguments, pos, true);
 					pos += bounds.length();
 					list.add(new TypeVariable(name, Type.ofSignature(bounds)));
+					if (pos < len && typeArguments.charAt(pos) != ':') {
+						start = pos;
+					}
 			}
 		}
 

@@ -120,7 +120,11 @@ public class ByteCodeInfo implements ClassInfo {
 
 	@Override
 	public Type getSuperType() {
-		return new Type("L" + node.get().superName + ";");
+		val superName = node.get().superName;
+		if (superName == null) {
+			return null;
+		}
+		return new Type("L" + superName + ";");
 	}
 
 	@Override

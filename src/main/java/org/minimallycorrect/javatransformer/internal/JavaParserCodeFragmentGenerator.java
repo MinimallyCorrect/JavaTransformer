@@ -1,7 +1,6 @@
 package org.minimallycorrect.javatransformer.internal;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -116,13 +115,10 @@ public class JavaParserCodeFragmentGenerator {
 
 			val constructor = (Constructor<T>) concreteImplementation(fragmentType).getDeclaredConstructors()[0];
 			val list = new ArrayList<T>();
-			NodeUtil.forChildren(getContainingBody(), it -> {
-				try {
-					list.add(constructor.newInstance(containingWrapper, it));
-				} catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-					throw new RuntimeException(e);
-				}
-			}, constructor.getParameterTypes()[1]);
+			for (Node node : NodeUtil.findWithinMethodScope((Class<? extends Node>) constructor.getParameterTypes()[1], getContainingBody())) {
+				list.add(constructor.newInstance(containingWrapper, node));
+			}
+
 			return list;
 		}
 	}
@@ -165,18 +161,7 @@ public class JavaParserCodeFragmentGenerator {
 		@NonNull
 		@Override
 		public List<IntermediateValue> getInputTypes() {
-			val list = new ArrayList<IntermediateValue>();
-			// TODO: constant values
-			// this
-			{
-				list.add(Expressions.expressionToIntermediateValue(expr.getScope().get(), containingWrapper.getContext()));
-			}
-
-			for (val it : expr.getArguments()) {
-				list.add(Expressions.expressionToIntermediateValue(it, containingWrapper.getContext()));
-			}
-
-			return list;
+			return Expressions.getMethodCallInputIVs(expr, containingWrapper.getContext());
 		}
 
 		@NonNull

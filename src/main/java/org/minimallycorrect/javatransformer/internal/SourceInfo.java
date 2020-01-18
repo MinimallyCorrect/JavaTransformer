@@ -18,6 +18,8 @@ import org.jetbrains.annotations.Nullable;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
+import com.github.javaparser.ast.body.AnnotationDeclaration;
+import com.github.javaparser.ast.body.AnnotationMemberDeclaration;
 import com.github.javaparser.ast.body.BodyDeclaration;
 import com.github.javaparser.ast.body.CallableDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
@@ -34,8 +36,10 @@ import com.github.javaparser.ast.expr.ObjectCreationExpr;
 import com.github.javaparser.ast.expr.SimpleName;
 import com.github.javaparser.ast.expr.TypeExpr;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
+import com.github.javaparser.ast.nodeTypes.NodeWithModifiers;
 import com.github.javaparser.ast.nodeTypes.NodeWithOptionalBlockStmt;
 import com.github.javaparser.ast.nodeTypes.NodeWithParameters;
+import com.github.javaparser.ast.nodeTypes.NodeWithSimpleName;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.ThrowStmt;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
@@ -116,7 +120,10 @@ public class SourceInfo implements ClassInfo {
 
 	private static List<Parameter> getParameters(NodeWithParameters<?> nodeWithParameters, Supplier<ResolutionContext> context) {
 		return nodeWithParameters.getParameters().stream()
-			.map((parameter) -> Parameter.of(context.get().resolve(parameter.getType()), parameter.getName().asString(), CachingSupplier.of(() -> parameter.getAnnotations().stream().map(it -> AnnotationParser.annotationFromAnnotationExpr(it, context.get())).collect(Collectors.toList()))))
+			.map((parameter) -> {
+				val type = context.get().resolve(parameter.getType());
+				return Parameter.of(parameter.isVarArgs() ? type.withArrayCount(1) : type, parameter.getName().asString(), CachingSupplier.of(() -> parameter.getAnnotations().stream().map(it -> AnnotationParser.annotationFromAnnotationExpr(it, context.get())).collect(Collectors.toList())));
+			})
 			.collect(Collectors.toList());
 	}
 
@@ -131,7 +138,7 @@ public class SourceInfo implements ClassInfo {
 	}
 
 	private ResolutionContext getContextInternal() {
-		return ResolutionContext.of(type.get(), classPath);
+		return ResolutionContext.of(type.get(), type.get(), classPath, this);
 	}
 
 	@Override
@@ -149,14 +156,22 @@ public class SourceInfo implements ClassInfo {
 		}
 	}
 
+	private int requiredFlags() {
+		val cif = getClassOrInterfaceDeclaration();
+		if (cif != null && cif.isInterface()) {
+			return AccessFlags.ACC_ABSTRACT | AccessFlags.ACC_INTERFACE;
+		}
+		return 0;
+	}
+
 	@Override
 	public AccessFlags getAccessFlags() {
-		return new AccessFlags(type.get().getModifiers());
+		return new AccessFlags(type.get().getModifiers()).with(requiredFlags());
 	}
 
 	@Override
 	public void setAccessFlags(AccessFlags accessFlags) {
-		type.get().setModifiers(accessFlags.toJavaParserModifierSet());
+		type.get().setModifiers(accessFlags.without(requiredFlags()).toJavaParserModifierSet());
 	}
 
 	@Override
@@ -239,9 +254,14 @@ public class SourceInfo implements ClassInfo {
 	@Nullable
 	@Override
 	public Type getSuperType() {
-		val declaration = getClassOrInterfaceDeclaration();
-		if (declaration == null)
+		if (getType().equals(Type.OBJECT)) {
 			return null;
+		}
+
+		val declaration = getClassOrInterfaceDeclaration();
+		if (declaration == null || declaration.isInterface()) {
+			return Type.OBJECT;
+		}
 
 		val extends_ = declaration.getExtendedTypes();
 
@@ -253,22 +273,41 @@ public class SourceInfo implements ClassInfo {
 
 	@Override
 	public List<Type> getInterfaceTypes() {
+		if (this.type.get() instanceof AnnotationDeclaration) {
+			return Collections.singletonList(Type.ANNOTATION);
+		}
 		val declaration = getClassOrInterfaceDeclaration();
-		return declaration == null ? Collections.emptyList() : declaration.getImplementedTypes().stream().map(getContext()::resolve).collect(Collectors.toList());
+		if (declaration == null) {
+			return Collections.emptyList();
+		}
+		val results = new ArrayList<Type>();
+		if (declaration.isInterface()) {
+			for (ClassOrInterfaceType extendedType : declaration.getExtendedTypes()) {
+				results.add(getContext().resolve(extendedType));
+			}
+		}
+		for (ClassOrInterfaceType implementedType : declaration.getImplementedTypes()) {
+			results.add(getContext().resolve(implementedType));
+		}
+		return results;
 	}
 
 	public Stream<MethodInfo> getMethods() {
 		return type.get().getMembers().stream()
-			.filter(it -> it instanceof CallableDeclaration<?>)
-			.map((it) -> this.getMethodInfoWrapper((CallableDeclaration<?>) it));
+			.filter(it -> it instanceof CallableDeclaration<?> || it instanceof AnnotationMemberDeclaration)
+			.map(this::getMethodInfoWrapper);
 	}
 
-	private CallableDeclarationWrapper<?> getMethodInfoWrapper(CallableDeclaration<?> x) {
+	private BodyDeclarationWrapper<?> getMethodInfoWrapper(BodyDeclaration<?> x) {
 		if (x instanceof MethodDeclaration)
 			return new MethodDeclarationWrapper((MethodDeclaration) x);
 
 		if (x instanceof ConstructorDeclaration)
 			return new ConstructorDeclarationWrapper((ConstructorDeclaration) x);
+
+		if (x instanceof AnnotationMemberDeclaration) {
+			return new AnnotationDeclarationWrapper((AnnotationMemberDeclaration) x);
+		}
 
 		throw new UnsupportedOperationException("Unknown subclass of CallableDeclaration: " + x.getClass());
 	}
@@ -316,7 +355,7 @@ public class SourceInfo implements ClassInfo {
 		private ResolutionContext getContext() {
 			if (context != null)
 				return context;
-			return context = ResolutionContext.of(declaration, SourceInfo.this.type.get(), classPath);
+			return context = ResolutionContext.of(declaration, SourceInfo.this.type.get(), classPath, this);
 		}
 
 		@Override
@@ -371,20 +410,68 @@ public class SourceInfo implements ClassInfo {
 		}
 	}
 
-	public abstract class CallableDeclarationWrapper<T extends CallableDeclaration<T>> implements MethodInfo {
+	public abstract class BodyDeclarationWrapper<T extends BodyDeclaration<T> & NodeWithSimpleName<T> & NodeWithModifiers<T>> implements MethodInfo {
 		final T declaration;
+
+		protected BodyDeclarationWrapper(T declaration) {
+			this.declaration = declaration;
+		}
+
+		@Override
+		public String getName() {
+			return declaration.getNameAsString();
+		}
+
+		@Override
+		public void setName(String name) {
+			declaration.setName(name);
+		}
+
+		@Override
+		public ClassInfo getClassInfo() {
+			return SourceInfo.this;
+		}
+
+		@Override
+		public String toString() {
+			return SimpleMethodInfo.toString(this);
+		}
+
+		@Override
+		public AccessFlags getAccessFlags() {
+			return new AccessFlags(declaration.getModifiers());
+		}
+
+		@Override
+		public void setAccessFlags(AccessFlags accessFlags) {
+			declaration.setModifiers(accessFlags.toJavaParserModifierSet());
+		}
+
+		@Override
+		public List<Annotation> getAnnotations() {
+			return SourceInfo.this.getAnnotationsInternal(declaration.getAnnotations());
+		}
+
+		@Override
+		@SuppressWarnings("MethodDoesntCallSuperMethod")
+		public BodyDeclarationWrapper<T> clone() {
+			return (BodyDeclarationWrapper<T>) getMethodInfoWrapper(declaration.clone());
+		}
+	}
+
+	public abstract class CallableDeclarationWrapper<T extends CallableDeclaration<T>> extends BodyDeclarationWrapper<T> implements MethodInfo {
 		private ResolutionContext context;
 		private final CachingSupplier<CodeFragment.Body> codeFragment;
 
 		public CallableDeclarationWrapper(T declaration) {
-			this.declaration = declaration;
+			super(declaration);
 			codeFragment = CachingSupplier.of(() -> getBody() == null ? null : new JavaParserCodeFragmentGenerator.CallableDeclarationCodeFragment(this));
 		}
 
 		protected ResolutionContext getContext() {
 			if (context != null)
 				return context;
-			return context = ResolutionContext.of(declaration, SourceInfo.this.type.get(), classPath);
+			return context = ResolutionContext.of(declaration, SourceInfo.this.type.get(), classPath, this);
 		}
 
 		@Override
@@ -404,41 +491,6 @@ public class SourceInfo implements ClassInfo {
 		}
 
 		@Override
-		public String getName() {
-			return declaration.getName().asString();
-		}
-
-		@Override
-		public void setName(String name) {
-			declaration.setName(name);
-		}
-
-		@Override
-		public AccessFlags getAccessFlags() {
-			return new AccessFlags(declaration.getModifiers());
-		}
-
-		@Override
-		public void setAccessFlags(AccessFlags accessFlags) {
-			declaration.setModifiers(accessFlags.toJavaParserModifierSet());
-		}
-
-		@Override
-		public List<Annotation> getAnnotations() {
-			return SourceInfo.this.getAnnotationsInternal(declaration.getAnnotations());
-		}
-
-		@Override
-		public SourceInfo getClassInfo() {
-			return SourceInfo.this;
-		}
-
-		@Override
-		public String toString() {
-			return SimpleMethodInfo.toString(this);
-		}
-
-		@Override
 		public List<TypeVariable> getTypeVariables() {
 			return declaration.getTypeParameters().stream().map(getContext()::resolveTypeVariable).collect(Collectors.toList());
 		}
@@ -447,12 +499,6 @@ public class SourceInfo implements ClassInfo {
 		public void setTypeVariables(List<TypeVariable> typeVariables) {
 			declaration.setTypeParameters(NodeList.nodeList(typeVariables.stream().map(getContext()::unresolveTypeVariable).collect(Collectors.toList())));
 			context = null;
-		}
-
-		@Override
-		@SuppressWarnings("MethodDoesntCallSuperMethod")
-		public CallableDeclarationWrapper<T> clone() {
-			return (CallableDeclarationWrapper<T>) getMethodInfoWrapper(declaration.clone());
 		}
 
 		@Override
@@ -504,6 +550,52 @@ public class SourceInfo implements ClassInfo {
 		@Override
 		public BlockStmt getBody() {
 			return declaration.getBody().orElse(null);
+		}
+	}
+
+	public class AnnotationDeclarationWrapper extends BodyDeclarationWrapper<AnnotationMemberDeclaration> {
+		public AnnotationDeclarationWrapper(AnnotationMemberDeclaration declaration) {
+			super(declaration);
+		}
+
+		@Override
+		public Type getReturnType() {
+			return getContext().resolve(declaration.getType());
+		}
+
+		@Override
+		public void setReturnType(Type type) {
+			declaration.setType(setType(type, declaration.getType()));
+		}
+
+		@Override
+		public List<Parameter> getParameters() {
+			return Collections.emptyList();
+		}
+
+		@Override
+		public void setParameters(List<Parameter> parameters) {
+			throw new UnsupportedOperationException("Annotation member methods can't have params");
+		}
+
+		@Override
+		public List<TypeVariable> getTypeVariables() {
+			return Collections.emptyList();
+		}
+
+		@Override
+		public void setTypeVariables(List<TypeVariable> typeVariables) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public String getName() {
+			return declaration.getNameAsString();
+		}
+
+		@Override
+		public void setName(String name) {
+			declaration.setName(name);
 		}
 	}
 }

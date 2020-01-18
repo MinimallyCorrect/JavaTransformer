@@ -146,7 +146,10 @@ public class CombinedAnalyzer<V extends Value> implements Opcodes {
 					}
 				}
 			} catch (Exception e) {
-				throw new AnalyzerException(e instanceof AnalyzerException ? ((AnalyzerException) e).node : insnNode, "Error at instruction " + insn + " " + e.getClass().getName() + ": " + e.getMessage(), e);
+				val errorNode = e instanceof AnalyzerException ? ((AnalyzerException) e).node : insnNode;
+				val opCode = insnNode == null ? -1 : insnNode.getOpcode();
+				val message = "Error at instruction " + insn + " " + opCode + " " + e.getClass().getName() + ": " + e.getMessage();
+				throw new AnalyzerException(errorNode, message, e);
 			}
 		}
 
