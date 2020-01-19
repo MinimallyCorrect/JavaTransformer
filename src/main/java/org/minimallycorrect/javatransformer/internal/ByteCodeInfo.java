@@ -156,6 +156,20 @@ public class ByteCodeInfo implements ClassInfo {
 		return new MethodNodeInfo(node);
 	}
 
+	@Override
+	public List<TypeVariable> getTypeVariables() {
+		/*
+		Test<T, D> gets signature:
+		<T:Ljava/lang/Object;D:Ljava/lang/Object;>
+		 */
+		return Signature.getTypeVariables(node.get().signature);
+	}
+
+	@Override
+	public void setTypeVariables(List<TypeVariable> typeVariables) {
+		throw new UnsupportedOperationException(); // TODO
+	}
+
 	public class FieldNodeInfo implements FieldInfo {
 		final FieldNode node;
 		private Type type;

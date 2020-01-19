@@ -24,6 +24,8 @@ import com.github.javaparser.ast.body.BodyDeclaration;
 import com.github.javaparser.ast.body.CallableDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
+import com.github.javaparser.ast.body.EnumConstantDeclaration;
+import com.github.javaparser.ast.body.EnumDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
@@ -43,6 +45,7 @@ import com.github.javaparser.ast.nodeTypes.NodeWithSimpleName;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.ThrowStmt;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
+import com.github.javaparser.ast.type.TypeParameter;
 
 import org.minimallycorrect.javatransformer.api.AccessFlags;
 import org.minimallycorrect.javatransformer.api.Annotation;
@@ -266,7 +269,7 @@ public class SourceInfo implements ClassInfo {
 		val extends_ = declaration.getExtendedTypes();
 
 		if (extends_ == null || extends_.isEmpty())
-			return null;
+			return Type.OBJECT;
 
 		return getContext().resolve(extends_.get(0));
 	}
@@ -313,9 +316,16 @@ public class SourceInfo implements ClassInfo {
 	}
 
 	public Stream<FieldInfo> getFields() {
-		return type.get().getMembers().stream()
+		Stream<FieldInfo> fields = type.get().getMembers().stream()
 			.filter(x -> x instanceof FieldDeclaration)
 			.map(x -> new FieldDeclarationWrapper((FieldDeclaration) x));
+		if (type.get() instanceof EnumDeclaration) {
+			fields = Stream.concat(type.get().getChildNodes().stream()
+				.filter(it -> it instanceof EnumConstantDeclaration)
+				.map(node -> new SimpleFieldInfo(new AccessFlags(AccessFlags.ACC_STATIC | AccessFlags.ACC_PUBLIC), ((EnumConstantDeclaration) node).getNameAsString(), getType(), Collections.emptyList(), this)),
+				fields);
+		}
+		return fields;
 	}
 
 	private com.github.javaparser.ast.type.Type setType(Type newType, com.github.javaparser.ast.type.Type currentType) {
@@ -339,6 +349,21 @@ public class SourceInfo implements ClassInfo {
 
 	TypeDeclaration<?> getJavaParserType() {
 		return type.get();
+	}
+
+	@Override
+	public List<TypeVariable> getTypeVariables() {
+		val result = new ArrayList<TypeVariable>();
+		for (TypeParameter typeParameter : NodeUtil.getTypeParameters(type.get())) {
+			// TODO: bounds
+			result.add(new TypeVariable(typeParameter.getNameAsString()));
+		}
+		return result;
+	}
+
+	@Override
+	public void setTypeVariables(List<TypeVariable> typeVariables) {
+		throw new UnsupportedOperationException(); // TODO
 	}
 
 	public class FieldDeclarationWrapper implements FieldInfo {
@@ -437,14 +462,18 @@ public class SourceInfo implements ClassInfo {
 			return SimpleMethodInfo.toString(this);
 		}
 
+		protected int requiredFlags() {
+			return 0;
+		}
+
 		@Override
 		public AccessFlags getAccessFlags() {
-			return new AccessFlags(declaration.getModifiers());
+			return new AccessFlags(declaration.getModifiers()).with(requiredFlags());
 		}
 
 		@Override
 		public void setAccessFlags(AccessFlags accessFlags) {
-			declaration.setModifiers(accessFlags.toJavaParserModifierSet());
+			declaration.setModifiers(accessFlags.without(requiredFlags()).toJavaParserModifierSet());
 		}
 
 		@Override
@@ -477,6 +506,15 @@ public class SourceInfo implements ClassInfo {
 		@Override
 		public List<Parameter> getParameters() {
 			return SourceInfo.getParameters(declaration, this::getContext);
+		}
+
+		@Override
+		protected int requiredFlags() {
+			val params = declaration.getParameters();
+			if (params.size() > 0 && params.get(params.size() - 1).isVarArgs()) {
+				return AccessFlags.ACC_VARARGS;
+			}
+			return 0;
 		}
 
 		@Override

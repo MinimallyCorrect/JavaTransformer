@@ -16,7 +16,10 @@ import com.github.javaparser.ast.expr.ArrayCreationExpr;
 import com.github.javaparser.ast.expr.ArrayInitializerExpr;
 import com.github.javaparser.ast.expr.BinaryExpr;
 import com.github.javaparser.ast.expr.BooleanLiteralExpr;
+import com.github.javaparser.ast.expr.CastExpr;
+import com.github.javaparser.ast.expr.CharLiteralExpr;
 import com.github.javaparser.ast.expr.ClassExpr;
+import com.github.javaparser.ast.expr.EnclosedExpr;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.FieldAccessExpr;
 import com.github.javaparser.ast.expr.IntegerLiteralExpr;
@@ -32,6 +35,7 @@ import com.github.javaparser.ast.expr.ThisExpr;
 import com.github.javaparser.ast.nodeTypes.NodeWithScope;
 
 import org.minimallycorrect.javatransformer.api.AccessFlags;
+import org.minimallycorrect.javatransformer.api.MethodInfo;
 import org.minimallycorrect.javatransformer.api.TransformationException;
 import org.minimallycorrect.javatransformer.api.Type;
 import org.minimallycorrect.javatransformer.api.code.IntermediateValue;
@@ -44,8 +48,18 @@ public class Expressions {
 	@NonNull
 	@SuppressWarnings({"Contract", "unchecked"}) // Not violated, @NonNull adds null checks
 	public static Type expressionToType(@NonNull Expression e, @NonNull ResolutionContext context, boolean failIfUnknown) {
+		if (e instanceof EnclosedExpr) {
+			e = ((EnclosedExpr) e).getInner();
+		}
+
+		if (e instanceof CastExpr) {
+			return context.resolve(((CastExpr) e).getType());
+		}
 		if (e instanceof StringLiteralExpr) {
-			return Type.of(String.class);
+			return Type.STRING;
+		}
+		if (e instanceof CharLiteralExpr) {
+			return Type.CHAR;
 		} else if (e instanceof BooleanLiteralExpr) {
 			return Type.BOOLEAN;
 		} else if (e instanceof IntegerLiteralExpr) {
@@ -73,14 +87,13 @@ public class Expressions {
 			val scope = ((FieldAccessExpr) e).getScope();
 			Type scopeType = expressionToType(scope, context, false);
 
-			return context.resolveFieldType(scopeType, ((FieldAccessExpr) e).getNameAsString());
+			val type = context.resolveFieldType(scopeType, ((FieldAccessExpr) e).getNameAsString());
+			if (type != Type.UNKNOWN) {
+				return type;
+			}
+			return Type.STATIC_META_CLASS.withTypeArgument(context.resolve(e.toString()));
 		} else if (e instanceof MethodCallExpr) {
 			val mce = (MethodCallExpr) e;
-
-			/*// FIXME special case for getClass
-			if (name.equals("getClass")) {
-				return Type.CLAZZ.withTypeArgument(context.resolveNameInExpressionContext("this"));
-			}*/
 
 			val scope = mce.getScope().orElse(new ThisExpr());
 			val scopeType = expressionToType(scope, context, false);
@@ -94,10 +107,23 @@ public class Expressions {
 
 						// TODO this isn't generic at all
 						// needs to be able to recurse deeper
+						if (scopeType.hasTypeArguments()) {
+							val typeArgs = method.getClassInfo().getTypeVariables();
+							val scopeTypeArgs = scopeType.getTypeArguments();
+							for (int i = 0; i < typeArgs.size(); i++) {
+								if (typeArgs.get(i).getName().equals(type.getTypeParameterName())) {
+									return scopeTypeArgs.get(i);
+								}
+							}
+						}
+
 						for (int i = 0; i < params.size(); i++) {
 							val pType = params.get(i).type;
 							if (pType.isTypeParameter() && pType.getTypeParameterName().equals(type.getTypeParameterName())) {
 								return inputUsedTypes.get().get(i);
+							}
+							if (!pType.hasTypeArguments()) {
+								continue;
 							}
 							val tas = pType.getTypeArguments();
 							for (int j = 0; j < tas.size(); j++) {
@@ -112,6 +138,7 @@ public class Expressions {
 					return type;
 				}
 			}
+			System.err.println("Couldn't find method {" + mce.getNameAsString() + "} in {" + scopeType + "}");
 		} else if (e instanceof LambdaExpr) {
 			return Type.LAMBDA;
 		}
@@ -149,7 +176,7 @@ public class Expressions {
 			// a public static final field of constable type
 			// TODO: handle public static final fields properly? currently treated as enum
 			val fieldAccessExpr = (FieldAccessExpr) e;
-			Type t = context.resolve(fieldAccessExpr.getScope().toString());
+			Type t = expressionToType(fieldAccessExpr, context, false);
 			return new String[]{t.getDescriptor(), ((FieldAccessExpr) e).getNameAsString()};
 		} else if (e instanceof NullLiteralExpr) {
 			return null;
@@ -179,17 +206,7 @@ public class Expressions {
 	}
 
 	@NonNull
-	public static List<IntermediateValue> getMethodCallInputIVs(MethodCallExpr expr, ResolutionContext context) {
-		val scope = expr.getScope().orElse(new ThisExpr());
-		val name = expr.getNameAsString();
-
-		val scopeType = expressionToType(scope, context, true);
-		val methodInfo = context.resolveMethodCallType(scopeType, name, CachingSupplier.of(() -> getMethodCallInputTypes(expr, context)));
-
-		if (methodInfo == null) {
-			throw new TransformationException("Couldn't find method {" + name + "} on {" + scopeType + "} for {" + expr + "} with params {" + getMethodCallInputTypes(expr, context) + "}");
-		}
-
+	public static List<IntermediateValue> getMethodCallInputIVs(MethodCallExpr expr, ResolutionContext context, CachingSupplier<List<Type>> inputTypes, MethodInfo methodInfo) {
 		val parameters = methodInfo.getParameters();
 
 		val list = new ArrayList<IntermediateValue>();
@@ -200,9 +217,24 @@ public class Expressions {
 				new IntermediateValue.Location(IntermediateValue.LocationType.STACK, -1, "argument")));
 		}
 
-		int index = 0;
-		for (val it : expr.getArguments()) {
-			list.add(new IntermediateValue(parameters.get(index++).type, expressionToValue(it, context, false),
+		val args = expr.getArguments();
+		int maxArgs = parameters.size();
+		boolean applyVarargs = false;
+		if (methodInfo.getAccessFlags().has(AccessFlags.ACC_VARARGS)) {
+			val its = inputTypes.get();
+			if (its.size() == 0 || its.size() != maxArgs || !its.get(its.size() - 1).isArrayType()) {
+				applyVarargs = true;
+				maxArgs--;
+			}
+		}
+		for (int i = 0; i < maxArgs; i++) {
+			val it = args.get(i);
+			list.add(new IntermediateValue(parameters.get(i).type, expressionToValue(it, context, false),
+				new IntermediateValue.Location(IntermediateValue.LocationType.STACK, -1, "argument")));
+		}
+		if (applyVarargs) {
+			// TODO: varargs values always unknown
+			list.add(new IntermediateValue(parameters.get(maxArgs).type, IntermediateValue.UNKNOWN,
 				new IntermediateValue.Location(IntermediateValue.LocationType.STACK, -1, "argument")));
 		}
 

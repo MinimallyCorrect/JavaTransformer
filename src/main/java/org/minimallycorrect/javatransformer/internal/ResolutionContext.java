@@ -18,6 +18,7 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
+import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.ast.type.ArrayType;
@@ -27,6 +28,7 @@ import com.github.javaparser.ast.type.TypeParameter;
 import com.github.javaparser.ast.type.VoidType;
 
 import org.minimallycorrect.javatransformer.api.AccessFlags;
+import org.minimallycorrect.javatransformer.api.ClassInfo;
 import org.minimallycorrect.javatransformer.api.ClassMember;
 import org.minimallycorrect.javatransformer.api.ClassPath;
 import org.minimallycorrect.javatransformer.api.FieldInfo;
@@ -169,6 +171,10 @@ public class ResolutionContext {
 	@Contract(value = "!null -> !null; null -> fail", pure = true)
 	@NonNull
 	public Type resolve(@NonNull String name) {
+		if (name.equals("?")) {
+			return Type.WILDCARD;
+		}
+
 		int arrayCount = 0;
 		if (name.endsWith("...")) {
 			arrayCount++;
@@ -304,7 +310,7 @@ public class ResolutionContext {
 		}
 
 		for (MethodInfo potential : potentials) {
-			if (paramTypesMatch(potential.getParameters(), usedTypes.get())) {
+			if (paramTypesMatch(potential.getParameters(), usedTypes.get(), potential.getAccessFlags().has(AccessFlags.ACC_VARARGS))) {
 				return potential;
 			}
 		}
@@ -326,10 +332,10 @@ public class ResolutionContext {
 				ci.getMethods().filter(it -> it.getName().equals(name)).forEach(potentials::add);
 			}
 
-			if (ci.getAccessFlags().has(AccessFlags.ACC_ABSTRACT) || ci.getAccessFlags().has(AccessFlags.ACC_INTERFACE)) {
-				for (Type interfaceType : ci.getInterfaceTypes()) {
-					visitMethods(interfaceType, name, potentials, staticContext);
-				}
+			// since default interface methods got added, always have to look in interfaces
+			// if (ci.getAccessFlags().has(AccessFlags.ACC_ABSTRACT) || ci.getAccessFlags().has(AccessFlags.ACC_INTERFACE)) {
+			for (Type interfaceType : ci.getInterfaceTypes()) {
+				visitMethods(interfaceType, name, potentials, staticContext);
 			}
 
 			val superType = ci.getSuperType();
@@ -342,12 +348,11 @@ public class ResolutionContext {
 		}
 	}
 
-	private boolean paramTypesMatch(List<Parameter> parameters, List<Type> types) {
+	private boolean paramTypesMatch(List<Parameter> parameters, List<Type> types, boolean allowVarargs) {
 		int params = parameters.size();
 
 		boolean canVarargs = false;
-		if (params > 0 && types.size() >= params - 1) {
-			// TODO: we implicitly allow varargs for all array types here, shouldn't
+		if (allowVarargs && params > 0 && types.size() >= params - 1) {
 			val lastType = parameters.get(params - 1).type;
 			if (lastType.isArrayType()) {
 				canVarargs = true;
@@ -385,6 +390,10 @@ public class ResolutionContext {
 
 		while (true) {
 			val ci = getClassPath().getClassInfo(scope.getClassName());
+
+			if (ci == null) {
+				throw new TransformationException("Couldn't get ClassInfo for {" + scope.getClassName() + "} while searching for field {" + name + "} on {" + scope + "}");
+			}
 
 			FieldInfo field;
 			if (staticContext) {
@@ -493,6 +502,39 @@ public class ResolutionContext {
 			postDotName = name.substring(index);
 		} else {
 			dotName = '.' + name;
+		}
+
+		// inner class in current class
+		if (preDotName == null && classMember != null) {
+			ClassInfo ci = classMember.getClassInfo();
+
+			if (ci instanceof SourceInfo) {
+				TypeDeclaration<?> node = ((SourceInfo) ci).getJavaParserType();
+				while (node != null) {
+					Type type = resolveIfExists(packageName + '.' + node.getNameAsString() + '$' + name);
+					if (type != null) {
+						return type;
+					}
+					node = NodeUtil.getParentNode(node, TypeDeclaration.class);
+				}
+			}
+
+			/*
+			boolean continueToNextType = true;
+			while (true) {
+				Type type = resolveIfExists(ci.getType().getClassName() + '$' + name);
+				if (type != null) {
+					return type;
+				}
+				if (!continueToNextType) {
+					break;
+				}
+				ci = getClassPath().getClassInfo(ci.getSuperType().getClassName());
+				if (ci == null || !ci.getType().getClassName().contains("$")) {
+					continueToNextType = false;
+				}
+			}
+			 */
 		}
 
 		for (ImportDeclaration anImport : imports) {

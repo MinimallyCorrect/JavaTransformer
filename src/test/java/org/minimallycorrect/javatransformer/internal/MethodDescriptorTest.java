@@ -41,7 +41,7 @@ public class MethodDescriptorTest {
 	}
 
 	@org.junit.Test
-	public <TEST, BEST> void testParametersWithTypeParam2() throws Exception {
+	public void testParametersWithTypeParam2() throws Exception {
 		/*
 		org.minimallycorrect.javatransformer.api.TransformationException: Failed to parse method parameters in unmodifiableMap:
 		name: unmodifiableMap
@@ -51,9 +51,12 @@ public class MethodDescriptorTest {
 		MethodDescriptor d = new MethodDescriptor("(Ljava/util/Map;)Ljava/util/Map;", "<K:Ljava/lang/Object;V:Ljava/lang/Object;>(Ljava/util/Map<+TK;+TV;>;)Ljava/util/Map<TK;TV;>;");
 		Parameter first = d.getParameters().get(0);
 
-		Assert.assertEquals("java.lang.Class", first.type.getClassName());
+		Assert.assertEquals("java.util.Map", first.type.getClassName());
+		// TODO: +TK; = ? extends K
+		/*
 		Assert.assertEquals("T", first.type.getTypeArguments().get(0).getTypeParameterName());
-
+		
 		Assert.assertEquals("T", d.getReturnType().getTypeParameterName());
+		 */
 	}
 }

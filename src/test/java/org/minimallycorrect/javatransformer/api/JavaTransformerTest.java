@@ -20,6 +20,9 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.objectweb.asm.tree.ClassNode;
+
+import com.github.javaparser.JavaParser;
 
 import org.minimallycorrect.javatransformer.api.code.CodeFragment;
 
@@ -73,7 +76,7 @@ public class JavaTransformerTest {
 
 		JavaTransformer transformer = new JavaTransformer();
 		transformer.getClassPath().addPaths(extraPaths);
-		transformer.getClassPath().addPaths(Collections.singletonList(JavaTransformer.pathFromClass(Assert.class)));
+		transformer.getClassPath().addPaths(Arrays.asList(JavaTransformer.pathFromClass(Assert.class), JavaTransformer.pathFromClass(ClassNode.class), JavaTransformer.pathFromClass(JavaParser.class)));
 
 		val targetMethod = "testMethodCallExpression";
 		val targetClass = this.getClass().getName();

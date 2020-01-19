@@ -1,9 +1,8 @@
 package org.minimallycorrect.javatransformer.internal.util;
 
-import static org.junit.Assert.assertArrayEquals;
-
 import java.util.ArrayList;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 public class SplitterTest {
@@ -18,7 +17,7 @@ public class SplitterTest {
 	}
 
 	private void testSplitter(char on, String input, String... expected) {
-		assertArrayEquals(expected, toArray(Splitter.on(on).splitIterable(input)));
+		Assert.assertArrayEquals(expected, toArray(Splitter.on(on).splitIterable(input)));
 	}
 
 	private String[] toArray(Iterable<String> split) {

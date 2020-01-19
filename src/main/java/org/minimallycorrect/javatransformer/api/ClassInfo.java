@@ -8,7 +8,7 @@ import org.jetbrains.annotations.Nullable;
 
 import org.minimallycorrect.javatransformer.internal.util.CollectionUtil;
 
-public interface ClassInfo extends ClassMember {
+public interface ClassInfo extends ClassMember, HasTypeVariable {
 	default void add(ClassMember member) {
 		if (member instanceof MethodInfo)
 			add((MethodInfo) member);

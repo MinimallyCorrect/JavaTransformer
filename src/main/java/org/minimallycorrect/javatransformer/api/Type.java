@@ -48,12 +48,14 @@ import org.minimallycorrect.javatransformer.internal.util.TypeUtil;
 @Data
 public class Type {
 	public static final Type UNKNOWN = new Type("Ljava/lang/Object;", "Tunknown;");
+	public static final Type WILDCARD = new Type("Ljava/lang/Object;", "*");
 	public static final Type OBJECT = Type.of("java.lang.Object");
 	public static final Type BOOLEAN = new Type("Z");
 	public static final Type DOUBLE = new Type("D");
 	public static final Type FLOAT = new Type("F");
 	public static final Type INT = new Type("I");
 	public static final Type LONG = new Type("L");
+	public static final Type CHAR = new Type("C");
 	public static final Type STRING = Type.of("java.lang.String");
 	public static final Type STATIC_META_CLASS = new Type("Ljvm/STATIC;", "Ljvm/STATIC;");
 	public static final Type ANNOTATION = Type.of("java.lang.annotation.Annotation");

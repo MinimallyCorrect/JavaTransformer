@@ -41,6 +41,7 @@ import org.minimallycorrect.javatransformer.api.ClassInfo;
 import org.minimallycorrect.javatransformer.api.ClassPath;
 import org.minimallycorrect.javatransformer.internal.asm.AsmUtil;
 import org.minimallycorrect.javatransformer.internal.javaparser.CompilationUnitInfo;
+import org.minimallycorrect.javatransformer.internal.util.CachingSupplier;
 import org.minimallycorrect.javatransformer.internal.util.CollectionUtil;
 import org.minimallycorrect.javatransformer.internal.util.JVMUtil;
 import org.minimallycorrect.javatransformer.internal.util.Splitter;
@@ -146,7 +147,7 @@ public class ClassPaths {
 
 			if (entryName.endsWith(".class")) {
 				String name = JVMUtil.fileNameToClassName(entryName);
-				entries.put(name, new ByteCodeInfo(() -> AsmUtil.getClassNode(StreamUtil.readFully(iss.get()), null), name, Collections.emptyMap()));
+				entries.put(name, new ByteCodeInfo(CachingSupplier.of(() -> AsmUtil.getClassNode(StreamUtil.readFully(iss.get()), null)), name, Collections.emptyMap()));
 			}
 		}
 
