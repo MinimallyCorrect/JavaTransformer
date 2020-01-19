@@ -20,6 +20,9 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.objectweb.asm.tree.ClassNode;
+
+import com.github.javaparser.JavaParser;
 
 import org.minimallycorrect.javatransformer.api.code.CodeFragment;
 
@@ -73,6 +76,7 @@ public class JavaTransformerTest {
 
 		JavaTransformer transformer = new JavaTransformer();
 		transformer.getClassPath().addPaths(extraPaths);
+		transformer.getClassPath().addPaths(Arrays.asList(JavaTransformer.pathFromClass(Assert.class), JavaTransformer.pathFromClass(ClassNode.class), JavaTransformer.pathFromClass(JavaParser.class)));
 
 		val targetMethod = "testMethodCallExpression";
 		val targetClass = this.getClass().getName();
@@ -102,7 +106,10 @@ public class JavaTransformerTest {
 
 				val cf = it.getCodeFragment();
 
-				Assert.assertNotNull(it + " should have a CodeFragment", cf);
+				if (!c.getInterfaceTypes().contains(Type.ANNOTATION)) {
+					Assert.assertNotNull(it + " should have a CodeFragment", cf);
+				}
+
 				if (it.getName().equals(targetMethod)) {
 					hasProcessedTargetMethod.set(true);
 					val methodCalls = cf.findFragments(CodeFragment.MethodCall.class);
@@ -116,7 +123,14 @@ public class JavaTransformerTest {
 						Assert.assertEquals(PrintStream.class.getName(), inputTypes.get(0).type.getClassName());
 						Assert.assertEquals(String.valueOf(i), inputTypes.get(1).constantValue);
 					}
-				} else {
+				} else if (cf != null) {
+					val methodCalls = cf.findFragments(CodeFragment.MethodCall.class);
+					for (val call : methodCalls) {
+						Assert.assertNotNull(call.getContainingClassType());
+						val inputTypes = call.getInputTypes();
+						Assert.assertNotNull("Should find inputTypes for method call expression", inputTypes);
+					}
+
 					cf.insert(cf, CodeFragment.InsertionPosition.OVERWRITE);
 				}
 			});

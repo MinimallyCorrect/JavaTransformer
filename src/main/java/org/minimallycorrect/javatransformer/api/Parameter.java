@@ -8,13 +8,11 @@ import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.ToString;
 
 import org.jetbrains.annotations.Nullable;
 
 @EqualsAndHashCode(exclude = {"annotationSupplier", "name"})
 @Getter
-@ToString
 public class Parameter implements Annotated {
 	@Nullable
 	public final String name;
@@ -38,5 +36,9 @@ public class Parameter implements Annotated {
 		if (annotationSupplier == null)
 			return Collections.emptyList();
 		return annotationSupplier.get();
+	}
+
+	public String toString() {
+		return "Parameter(name=" + this.getName() + ", type=" + this.getType() + ")";
 	}
 }

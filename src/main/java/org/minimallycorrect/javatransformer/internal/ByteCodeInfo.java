@@ -120,7 +120,11 @@ public class ByteCodeInfo implements ClassInfo {
 
 	@Override
 	public Type getSuperType() {
-		return new Type("L" + node.get().superName + ";");
+		val superName = node.get().superName;
+		if (superName == null) {
+			return null;
+		}
+		return new Type("L" + superName + ";");
 	}
 
 	@Override
@@ -150,6 +154,20 @@ public class ByteCodeInfo implements ClassInfo {
 
 	MethodNodeInfo wrap(MethodNode node) {
 		return new MethodNodeInfo(node);
+	}
+
+	@Override
+	public List<TypeVariable> getTypeVariables() {
+		/*
+		Test<T, D> gets signature:
+		<T:Ljava/lang/Object;D:Ljava/lang/Object;>
+		 */
+		return Signature.getTypeVariables(node.get().signature);
+	}
+
+	@Override
+	public void setTypeVariables(List<TypeVariable> typeVariables) {
+		throw new UnsupportedOperationException(); // TODO
 	}
 
 	public class FieldNodeInfo implements FieldInfo {

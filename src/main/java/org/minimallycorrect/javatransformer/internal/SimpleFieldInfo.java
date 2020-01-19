@@ -2,6 +2,7 @@ package org.minimallycorrect.javatransformer.internal;
 
 import java.util.List;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import org.minimallycorrect.javatransformer.api.AccessFlags;
@@ -11,11 +12,13 @@ import org.minimallycorrect.javatransformer.api.FieldInfo;
 import org.minimallycorrect.javatransformer.api.Type;
 
 @Data
+@AllArgsConstructor
 public class SimpleFieldInfo implements FieldInfo {
 	public AccessFlags accessFlags;
 	public String name;
 	public Type type;
 	public List<Annotation> annotations;
+	public ClassInfo owner;
 
 	public SimpleFieldInfo(AccessFlags accessFlags, Type type, String name) {
 		this.accessFlags = accessFlags;

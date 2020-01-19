@@ -1,6 +1,5 @@
 package org.minimallycorrect.javatransformer.internal.asm;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -124,7 +123,8 @@ public class CombinedInterpreter extends Interpreter<CombinedValue> implements O
 	@Nullable
 	@Override
 	public CombinedValue ternaryOperation(final AbstractInsnNode insn, final CombinedValue value1, final CombinedValue value2, final CombinedValue value3) throws AnalyzerException {
-		return naryOperation(insn, Arrays.asList(value1, value2, value3));
+		return null;
+		//return naryOperation(insn, Arrays.asList(value1, value2, value3));
 	}
 
 	@Nullable
@@ -195,7 +195,7 @@ public class CombinedInterpreter extends Interpreter<CombinedValue> implements O
 					} else if (sort == Type.METHOD) {
 						return CombinedValue.of(Type.getObjectType("java/lang/invoke/MethodType"), insn);
 					} else {
-						throw new IllegalArgumentException("Illegal LDC constant " + cst);
+						throw new IllegalArgumentException("Illegal LDC constant " + cst + " with unknown sort " + sort);
 					}
 				} else if (cst instanceof Handle) {
 					return CombinedValue.of(Type.getObjectType("java/lang/invoke/MethodHandle"), insn);

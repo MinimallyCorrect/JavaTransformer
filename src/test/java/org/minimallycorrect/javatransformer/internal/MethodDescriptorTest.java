@@ -28,4 +28,35 @@ public class MethodDescriptorTest {
 		Assert.assertEquals("java.util.ArrayList", second.type.getClassName());
 		Assert.assertEquals("A", second.type.getTypeParameterName());
 	}
+
+	@org.junit.Test
+	public void testParametersWithTypeParamInSignature() throws Exception {
+		MethodDescriptor d = new MethodDescriptor("(Ljava/lang/Class;)Ljava/lang/annotation/Annotation;", "<T::Ljava/lang/annotation/Annotation;>(Ljava/lang/Class<TT;>;)TT;");
+		Parameter first = d.getParameters().get(0);
+
+		Assert.assertEquals("java.lang.Class", first.type.getClassName());
+		Assert.assertEquals("T", first.type.getTypeArguments().get(0).getTypeParameterName());
+
+		Assert.assertEquals("T", d.getReturnType().getTypeParameterName());
+	}
+
+	@org.junit.Test
+	public void testParametersWithTypeParam2() throws Exception {
+		/*
+		org.minimallycorrect.javatransformer.api.TransformationException: Failed to parse method parameters in unmodifiableMap:
+		name: unmodifiableMap
+		descriptor: (Ljava/util/Map;)Ljava/util/Map;
+		signature:<K:Ljava/lang/Object;V:Ljava/lang/Object;>(Ljava/util/Map<+TK;+TV;>;)Ljava/util/Map<TK;TV;>;
+		 */
+		MethodDescriptor d = new MethodDescriptor("(Ljava/util/Map;)Ljava/util/Map;", "<K:Ljava/lang/Object;V:Ljava/lang/Object;>(Ljava/util/Map<+TK;+TV;>;)Ljava/util/Map<TK;TV;>;");
+		Parameter first = d.getParameters().get(0);
+
+		Assert.assertEquals("java.util.Map", first.type.getClassName());
+		// TODO: +TK; = ? extends K
+		/*
+		Assert.assertEquals("T", first.type.getTypeArguments().get(0).getTypeParameterName());
+		
+		Assert.assertEquals("T", d.getReturnType().getTypeParameterName());
+		 */
+	}
 }

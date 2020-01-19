@@ -6,10 +6,13 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import lombok.experimental.UtilityClass;
+import lombok.val;
 
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
+import com.github.javaparser.ast.expr.LambdaExpr;
 import com.github.javaparser.ast.expr.Name;
+import com.github.javaparser.ast.expr.ObjectCreationExpr;
 import com.github.javaparser.ast.nodeTypes.NodeWithTypeParameters;
 import com.github.javaparser.ast.type.TypeParameter;
 
@@ -89,5 +92,24 @@ public class NodeUtil {
 
 	public static String qualifiedName(Name name) {
 		return name.asString();
+	}
+
+	public static <T extends Node> List<T> findWithinMethodScope(Class<T> clazz, Node node) {
+		val list = new ArrayList<T>();
+		findScopedLocals(clazz, node, list);
+		return list;
+	}
+
+	@SuppressWarnings("unchecked")
+	private static <T> void findScopedLocals(Class<T> clazz, Node node, List<T> results) {
+		for (Node childNode : node.getChildNodes()) {
+			if (childNode instanceof LambdaExpr || childNode instanceof ObjectCreationExpr) {
+				continue;
+			}
+			if (clazz.isAssignableFrom(childNode.getClass())) {
+				results.add((T) childNode);
+			}
+			findScopedLocals(clazz, childNode, results);
+		}
 	}
 }

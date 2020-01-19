@@ -31,9 +31,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
 import lombok.ToString;
 import lombok.val;
 
@@ -42,11 +40,11 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
 
-import com.github.javaparser.*;
+import com.github.javaparser.JavaParser;
+import com.github.javaparser.ParseProblemException;
+import com.github.javaparser.ParseStart;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.TypeDeclaration;
-import com.github.javaparser.symbolsolver.JavaSymbolSolver;
-import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
 
 import org.minimallycorrect.javatransformer.internal.ByteCodeInfo;
 import org.minimallycorrect.javatransformer.internal.SourceInfo;
@@ -58,8 +56,6 @@ import org.minimallycorrect.javatransformer.internal.util.JVMUtil;
 import org.minimallycorrect.javatransformer.internal.util.NodeUtil;
 import org.minimallycorrect.javatransformer.internal.util.StreamUtil;
 
-@Getter
-@Setter
 @ToString
 public class JavaTransformer {
 	private final List<Transformer> transformers = new ArrayList<>();
@@ -251,7 +247,7 @@ public class JavaTransformer {
 		CachingSupplier<TypeDeclaration<?>> supplier = CachingSupplier.of(() -> {
 			byte[] bytes = data.get();
 
-			val parser = new JavaParser(new ParserConfiguration().setSymbolResolver(new JavaSymbolSolver((TypeSolver) classPath)));
+			val parser = new JavaParser();
 			val result = parser.parse(ParseStart.COMPILATION_UNIT, provider(new ByteArrayInputStream(bytes), Charset.forName("UTF8")));
 			if (!result.isSuccessful()) {
 				throw new ParseProblemException(result.getProblems());
@@ -344,6 +340,26 @@ public class JavaTransformer {
 	public Class<?> defineClass(ClassLoader classLoader, String name) {
 		byte[] result = Objects.requireNonNull(transformedFiles.get(JVMUtil.classNameToFileName(name)));
 		return DefineClass.defineClass(classLoader, name, result);
+	}
+
+	public List<Transformer> getTransformers() {
+		return this.transformers;
+	}
+
+	public Map<String, byte[]> getTransformedFiles() {
+		return this.transformedFiles;
+	}
+
+	public List<Consumer<JavaTransformer>> getAfterTransform() {
+		return this.afterTransform;
+	}
+
+	public ClassPath getClassPath() {
+		return this.classPath;
+	}
+
+	public void setClassPath(ClassPath classPath) {
+		this.classPath = classPath;
 	}
 
 	private enum PathType {
