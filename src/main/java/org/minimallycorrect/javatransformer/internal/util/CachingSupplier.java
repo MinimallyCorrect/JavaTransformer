@@ -16,11 +16,14 @@ public final class CachingSupplier<T> implements Supplier<T> {
 	private final Supplier<T> wrapped;
 	private transient T value;
 
-	private CachingSupplier(Supplier<T> wrapped) {
+	private CachingSupplier(@NonNull Supplier<T> wrapped) {
 		this.wrapped = wrapped;
 	}
 
 	public static <T> CachingSupplier<T> of(Supplier<T> wrapped) {
+		if (wrapped instanceof CachingSupplier<?>) {
+			return (CachingSupplier<T>) wrapped;
+		}
 		return new CachingSupplier<>(wrapped);
 	}
 
@@ -30,8 +33,10 @@ public final class CachingSupplier<T> implements Supplier<T> {
 
 		if (value == null) {
 			synchronized (this) {
-				if (this.value == null)
+				value = this.value;
+				if (value == null) {
 					this.value = value = Objects.requireNonNull(wrapped.get());
+				}
 			}
 		}
 

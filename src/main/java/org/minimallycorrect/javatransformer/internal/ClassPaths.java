@@ -13,7 +13,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.zip.ZipFile;
@@ -21,7 +28,6 @@ import java.util.zip.ZipFile;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import lombok.val;
@@ -30,18 +36,16 @@ import org.jetbrains.annotations.NotNull;
 
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.resolution.declarations.*;
-import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserAnnotationDeclaration;
-import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserClassDeclaration;
-import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserEnumDeclaration;
-import com.github.javaparser.symbolsolver.model.resolution.SymbolReference;
-import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
 
-import org.minimallycorrect.javatransformer.api.*;
+import org.minimallycorrect.javatransformer.api.ClassInfo;
+import org.minimallycorrect.javatransformer.api.ClassPath;
 import org.minimallycorrect.javatransformer.internal.asm.AsmUtil;
-import org.minimallycorrect.javatransformer.internal.javaparser.AsmResolvedTypes;
 import org.minimallycorrect.javatransformer.internal.javaparser.CompilationUnitInfo;
-import org.minimallycorrect.javatransformer.internal.util.*;
+import org.minimallycorrect.javatransformer.internal.util.CachingSupplier;
+import org.minimallycorrect.javatransformer.internal.util.CollectionUtil;
+import org.minimallycorrect.javatransformer.internal.util.JVMUtil;
+import org.minimallycorrect.javatransformer.internal.util.Splitter;
+import org.minimallycorrect.javatransformer.internal.util.StreamUtil;
 
 @UtilityClass
 public class ClassPaths {
@@ -68,7 +72,7 @@ public class ClassPaths {
 		}
 	}
 
-	private static abstract class ClassPathSolver implements ClassPath, TypeSolver {
+	private static abstract class ClassPathSolver implements ClassPath {
 		@Nullable
 		final ClassPath parent;
 
@@ -76,45 +80,8 @@ public class ClassPaths {
 			this.parent = parent;
 		}
 
-		@Override
-		public TypeSolver getParent() {
-			return parent instanceof TypeSolver ? (TypeSolver) parent : null;
-		}
-
-		@Override
-		public void setParent(TypeSolver parent) {
-			throw new UnsupportedOperationException("TODO");
-		}
-
 		static Path normalise(Path path) {
 			return path.toAbsolutePath().normalize();
-		}
-
-		@NonNull
-		@Override
-		public SymbolReference<ResolvedReferenceTypeDeclaration> tryToSolveType(String name) {
-			val ci = getClassInfo(name);
-			if (ci == null) {
-				return SymbolReference.unsolved(ResolvedReferenceTypeDeclaration.class);
-			}
-			return SymbolReference.solved(getResolvedReferenceTypeDeclarationForClassInfo(ci));
-		}
-
-		private ResolvedReferenceTypeDeclaration getResolvedReferenceTypeDeclarationForClassInfo(ClassInfo ci) {
-			if (ci instanceof SourceInfo) {
-				val jpType = ((SourceInfo) ci).getJavaParserType();
-				if (jpType.isClassOrInterfaceDeclaration()) {
-					return new JavaParserClassDeclaration(jpType.asClassOrInterfaceDeclaration(), this);
-				} else if (jpType.isEnumDeclaration()) {
-					return new JavaParserEnumDeclaration(jpType.asEnumDeclaration(), this);
-				} else if (jpType.isAnnotationDeclaration()) {
-					return new JavaParserAnnotationDeclaration(jpType.asAnnotationDeclaration(), this);
-				}
-			}
-			if (ci instanceof ByteCodeInfo) {
-				return AsmResolvedTypes.fromByteCodeInfo(this, (ByteCodeInfo) ci);
-			}
-			throw new UnsupportedOperationException("TODO " + ci);
 		}
 	}
 
@@ -180,7 +147,7 @@ public class ClassPaths {
 
 			if (entryName.endsWith(".class")) {
 				String name = JVMUtil.fileNameToClassName(entryName);
-				entries.put(name, new ByteCodeInfo(() -> AsmUtil.getClassNode(StreamUtil.readFully(iss.get()), null), name, Collections.emptyMap()));
+				entries.put(name, new ByteCodeInfo(CachingSupplier.of(() -> AsmUtil.getClassNode(StreamUtil.readFully(iss.get()), null)), name, Collections.emptyMap()));
 			}
 		}
 

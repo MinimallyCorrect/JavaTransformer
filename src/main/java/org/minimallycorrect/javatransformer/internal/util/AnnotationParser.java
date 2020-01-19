@@ -53,7 +53,7 @@ public class AnnotationParser {
 	}
 
 	public static Annotation annotationFromAnnotationExpr(AnnotationExpr annotationExpr, ResolutionContext context) {
-		Type t = ResolutionContext.of(annotationExpr, context.getClassPath()).resolve(NodeUtil.qualifiedName(annotationExpr.getName()));
+		Type t = context.resolve(NodeUtil.qualifiedName(annotationExpr.getName()));
 		if (annotationExpr instanceof SingleMemberAnnotationExpr) {
 			return Annotation.of(t, Expressions.expressionToValue(((SingleMemberAnnotationExpr) annotationExpr).getMemberValue(), context));
 		} else if (annotationExpr instanceof NormalAnnotationExpr) {

@@ -1,7 +1,10 @@
 package org.minimallycorrect.javatransformer.internal;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import lombok.Getter;
@@ -15,19 +18,30 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
+import com.github.javaparser.ast.body.TypeDeclaration;
+import com.github.javaparser.ast.body.VariableDeclarator;
+import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.ast.type.ArrayType;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.PrimitiveType;
 import com.github.javaparser.ast.type.TypeParameter;
 import com.github.javaparser.ast.type.VoidType;
-import com.github.javaparser.resolution.declarations.ResolvedValueDeclaration;
 
+import org.minimallycorrect.javatransformer.api.AccessFlags;
+import org.minimallycorrect.javatransformer.api.ClassInfo;
+import org.minimallycorrect.javatransformer.api.ClassMember;
 import org.minimallycorrect.javatransformer.api.ClassPath;
+import org.minimallycorrect.javatransformer.api.FieldInfo;
+import org.minimallycorrect.javatransformer.api.MethodInfo;
+import org.minimallycorrect.javatransformer.api.Parameter;
 import org.minimallycorrect.javatransformer.api.TransformationException;
 import org.minimallycorrect.javatransformer.api.Type;
 import org.minimallycorrect.javatransformer.api.TypeVariable;
-import org.minimallycorrect.javatransformer.internal.javaparser.AsmResolvedTypes;
-import org.minimallycorrect.javatransformer.internal.util.*;
+import org.minimallycorrect.javatransformer.internal.javaparser.Expressions;
+import org.minimallycorrect.javatransformer.internal.util.JVMUtil;
+import org.minimallycorrect.javatransformer.internal.util.Joiner;
+import org.minimallycorrect.javatransformer.internal.util.NodeUtil;
+import org.minimallycorrect.javatransformer.internal.util.Splitter;
 
 @Getter
 public class ResolutionContext {
@@ -39,28 +53,23 @@ public class ResolutionContext {
 	private final Iterable<TypeParameter> typeParameters;
 	@NonNull
 	private final ClassPath classPath;
+	@Nullable
+	private final ClassMember classMember;
 
-	private ResolutionContext(String packageName, List<ImportDeclaration> imports, Iterable<TypeParameter> typeParameters, ClassPath classPath) {
+	public ResolutionContext(@NonNull String packageName, @NonNull List<ImportDeclaration> imports, @NonNull Iterable<TypeParameter> typeParameters, @NonNull ClassPath classPath, @Nullable ClassMember classMember) {
 		this.packageName = packageName;
 		this.imports = imports;
 		this.typeParameters = typeParameters;
 		this.classPath = classPath;
+		this.classMember = classMember;
 	}
 
-	public static ResolutionContext of(String packageName, List<ImportDeclaration> imports, Iterable<TypeParameter> typeParameters, ClassPath classPath) {
-		return new ResolutionContext(packageName, imports, typeParameters, classPath);
-	}
-
-	public static ResolutionContext of(Node targetNode, Node outerClassNode, ClassPath classPath) {
+	public static ResolutionContext of(Node targetNode, Node outerClassNode, ClassPath classPath, ClassMember classMember) {
 		CompilationUnit cu = NodeUtil.getParentNode(outerClassNode, CompilationUnit.class);
 		String packageName = NodeUtil.qualifiedName(cu.getPackageDeclaration().get().getName());
 		List<TypeParameter> typeParameters = NodeUtil.getTypeParameters(targetNode);
 
-		return new ResolutionContext(packageName, cu.getImports(), typeParameters, classPath);
-	}
-
-	public static ResolutionContext of(Node node, ClassPath classPath) {
-		return of(node, node, classPath);
+		return new ResolutionContext(packageName, cu.getImports(), typeParameters, classPath, classMember);
 	}
 
 	private static boolean hasPackages(String name) {
@@ -136,10 +145,6 @@ public class ResolutionContext {
 		return new ClassOrInterfaceType(name);
 	}
 
-	public Type resolve(ResolvedValueDeclaration resolve) {
-		return AsmResolvedTypes.convertResolvedTypeToType(resolve.getType());
-	}
-
 	public Type resolve(com.github.javaparser.ast.type.Type type) {
 		if (type instanceof PrimitiveType) {
 			return new Type(JVMUtil.primitiveTypeToDescriptor(((PrimitiveType) type).getType().name().toLowerCase()));
@@ -166,7 +171,15 @@ public class ResolutionContext {
 	@Contract(value = "!null -> !null; null -> fail", pure = true)
 	@NonNull
 	public Type resolve(@NonNull String name) {
+		if (name.equals("?")) {
+			return Type.WILDCARD;
+		}
+
 		int arrayCount = 0;
+		if (name.endsWith("...")) {
+			arrayCount++;
+			name = name.substring(0, name.length() - 3);
+		}
 		while (name.length() > 1 && name.lastIndexOf("[]") == name.length() - 2) {
 			arrayCount++;
 			name = name.substring(0, name.length() - 2);
@@ -205,6 +218,262 @@ public class ResolutionContext {
 		return sanityCheck(type);
 	}
 
+	/**
+	 * super -> super class type this -> this class type local variable -> local var's type field -> field type
+	 *
+	 * @param name
+	 * @return
+	 */
+	public Type resolveNameInExpressionContext(String name) {
+		switch (name) {
+			case "super":
+				return classMember.getClassInfo().getSuperType();
+			case "this":
+				// TODO special case in this class to skip going via ClassPath when getting class info matching ClassMember
+				return classMember.getClassInfo().getType();
+		}
+
+		// TODO look for locals
+		if (classMember instanceof SourceInfo.CallableDeclarationWrapper<?>) {
+			val cd = (SourceInfo.CallableDeclarationWrapper<?>) classMember;
+
+			for (Parameter parameter : cd.getParameters()) {
+				if (parameter.name != null && parameter.name.equals(name)) {
+					return parameter.type;
+				}
+			}
+
+			// TODO: direct node access here feels messy, abstraction? eh probably not needed
+			// TODO: don't support local type inference (val or var)
+			val body = cd.getBody();
+			if (body != null) {
+				for (VariableDeclarationExpr variableDeclarationExpr : NodeUtil.findWithinMethodScope(VariableDeclarationExpr.class, cd.getBody())) {
+					for (VariableDeclarator variable : variableDeclarationExpr.getVariables()) {
+						if (variable.getNameAsString().equals(name)) {
+							if (variable.getType().isVarType()) {
+								return Expressions.expressionToType(variable.getInitializer().get(), this, true);
+							}
+							val type = resolve(variable.getType());
+							if (type.equals(Type.of("lombok.val"))) {
+								val initializer = variable.getInitializer().orElse(null);
+								if (initializer != null) {
+									return Expressions.expressionToType(initializer, this, true);
+								}
+							}
+							return type;
+						}
+					}
+				}
+			}
+		}
+
+		{
+			Type fieldType = resolveFieldType(classMember.getClassInfo().getType(), name);
+			if (fieldType != Type.UNKNOWN) {
+				return fieldType;
+			}
+		}
+
+		{
+			Type importedType = resolve(name);
+			if (importedType != Type.UNKNOWN) {
+				return Type.staticMetaclassOf(importedType);
+			}
+		}
+
+		return Type.UNKNOWN;
+	}
+
+	@Nullable
+	public MethodInfo resolveMethodCallType(Type scope, String name, Supplier<List<Type>> usedTypes) {
+		boolean staticContext = false;
+		if (scope.isStaticMetaClass()) {
+			scope = scope.getTypeArguments().get(0);
+			staticContext = true;
+		}
+
+		if (name.equals("getClass") && !staticContext) {
+			val smi = SimpleMethodInfo.of(
+				new AccessFlags(AccessFlags.ACC_PUBLIC),
+				Collections.emptyList(),
+				Type.CLAZZ.withTypeArgument(resolveNameInExpressionContext("this")),
+				"getClass",
+				Collections.emptyList());
+			smi.classInfo = getClassPath().getClassInfo(scope.getClassName());
+			return smi;
+		}
+
+		List<MethodInfo> potentials = new ArrayList<>();
+		visitMethods(scope, name, potentials, staticContext);
+		if (potentials.size() == 1) {
+			return potentials.get(0);
+		}
+
+		for (MethodInfo potential : potentials) {
+			if (paramTypesMatch(potential.getParameters(), usedTypes.get(), potential.getAccessFlags().has(AccessFlags.ACC_VARARGS))) {
+				return potential;
+			}
+		}
+
+		return null;
+	}
+
+	private void visitMethods(Type scope, String name, List<MethodInfo> potentials, boolean staticContext) {
+		while (true) {
+			val ci = getClassPath().getClassInfo(scope.getClassName());
+
+			if (ci == null) {
+				throw new TransformationException("Couldn't get ClassInfo for {" + scope.getClassName() + "} while searching for method {" + name + "} on {" + scope + "}");
+			}
+
+			if (staticContext) {
+				ci.getMethods().filter(it -> it.getName().equals(name) && it.getAccessFlags().has(AccessFlags.ACC_STATIC)).forEach(potentials::add);
+			} else {
+				ci.getMethods().filter(it -> it.getName().equals(name)).forEach(potentials::add);
+			}
+
+			// since default interface methods got added, always have to look in interfaces
+			// if (ci.getAccessFlags().has(AccessFlags.ACC_ABSTRACT) || ci.getAccessFlags().has(AccessFlags.ACC_INTERFACE)) {
+			for (Type interfaceType : ci.getInterfaceTypes()) {
+				visitMethods(interfaceType, name, potentials, staticContext);
+			}
+
+			val superType = ci.getSuperType();
+
+			if (superType == null) {
+				return;
+			}
+
+			scope = superType;
+		}
+	}
+
+	private boolean paramTypesMatch(List<Parameter> parameters, List<Type> types, boolean allowVarargs) {
+		int params = parameters.size();
+
+		boolean canVarargs = false;
+		if (allowVarargs && params > 0 && types.size() >= params - 1) {
+			val lastType = parameters.get(params - 1).type;
+			if (lastType.isArrayType()) {
+				canVarargs = true;
+				val contained = lastType.getArrayContainedType();
+				for (int i = params - 1; i < types.size(); i++) {
+					if (!isAssignableFrom(types.get(i), contained)) {
+						canVarargs = false;
+						break;
+					}
+				}
+				if (canVarargs) {
+					params--;
+				}
+			}
+		}
+
+		if (types.size() != params && !canVarargs) {
+			return false;
+		}
+
+		for (int i = 0; i < params; i++) {
+			if (!isAssignableFrom(types.get(i), parameters.get(i).type)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	public Type resolveFieldType(Type scope, String name) {
+		boolean staticContext = false;
+		if (scope.isStaticMetaClass()) {
+			scope = scope.getTypeArguments().get(0);
+			staticContext = true;
+		}
+
+		while (true) {
+			val ci = getClassPath().getClassInfo(scope.getClassName());
+
+			if (ci == null) {
+				throw new TransformationException("Couldn't get ClassInfo for {" + scope.getClassName() + "} while searching for field {" + name + "} on {" + scope + "}");
+			}
+
+			FieldInfo field;
+			if (staticContext) {
+				field = ci.getFields().filter(it -> it.getName().equals(name) && it.getAccessFlags().has(AccessFlags.ACC_STATIC)).findFirst().orElse(null);
+			} else {
+				field = ci.getFields().filter(it -> it.getName().equals(name)).findFirst().orElse(null);
+			}
+
+			if (field != null) {
+				return field.getType();
+			}
+
+			val superType = ci.getSuperType();
+
+			if (superType == null) {
+				return Type.UNKNOWN;
+			}
+
+			scope = superType;
+		}
+	}
+
+	public boolean isAssignableFrom(Type from, Type to) {
+		if (to.descriptor.equals(from.descriptor) ||
+		// auto-boxing -> anything to object is okay?
+			(to.isClassType() && to.getClassName().equals("java.lang.Object"))) {
+			return true;
+		}
+
+		if (from == Type.LAMBDA) {
+			// TODO need to get params to this point and match properly
+			return true;
+		}
+
+		if (from.isArrayType() && to.isArrayType() && isAssignableFrom(from.getArrayContainedType(), to.getArrayContainedType())) {
+			return true;
+		}
+
+		if (from.isPrimitiveType() && to.isPrimitiveType()) {
+			val fromWidth = from.getDescriptorType().getByteWidth();
+			val toWidth = to.getDescriptorType().getByteWidth();
+			if (toWidth != null && fromWidth != null && toWidth >= fromWidth) {
+				return true;
+			}
+
+			if (to.equals(Type.DOUBLE) && from.equals(Type.FLOAT)) {
+				return true;
+			}
+		}
+
+		if (from.isClassType()) {
+			for (Type extendedType : allExtendedTypes(from)) {
+				if (extendedType.descriptor.equals(to.descriptor)) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	private List<Type> allExtendedTypes(Type type) {
+		val results = new ArrayList<Type>();
+
+		Type current = type;
+		while (current != null && !current.equals(Type.OBJECT)) {
+			results.add(current);
+
+			val ci = getClassPath().getClassInfo(current.getClassName());
+
+			for (Type interfaceType : ci.getInterfaceTypes()) {
+				results.addAll(allExtendedTypes(interfaceType));
+			}
+
+			current = ci.getSuperType();
+		}
+
+		return results;
+	}
+
 	@Nullable
 	private Type resolveReal(String name) {
 		String primitive = JVMUtil.primitiveTypeToDescriptor(name, true);
@@ -233,6 +502,39 @@ public class ResolutionContext {
 			postDotName = name.substring(index);
 		} else {
 			dotName = '.' + name;
+		}
+
+		// inner class in current class
+		if (preDotName == null && classMember != null) {
+			ClassInfo ci = classMember.getClassInfo();
+
+			if (ci instanceof SourceInfo) {
+				TypeDeclaration<?> node = ((SourceInfo) ci).getJavaParserType();
+				while (node != null) {
+					Type type = resolveIfExists(packageName + '.' + node.getNameAsString() + '$' + name);
+					if (type != null) {
+						return type;
+					}
+					node = NodeUtil.getParentNode(node, TypeDeclaration.class);
+				}
+			}
+
+			/*
+			boolean continueToNextType = true;
+			while (true) {
+				Type type = resolveIfExists(ci.getType().getClassName() + '$' + name);
+				if (type != null) {
+					return type;
+				}
+				if (!continueToNextType) {
+					break;
+				}
+				ci = getClassPath().getClassInfo(ci.getSuperType().getClassName());
+				if (ci == null || !ci.getType().getClassName().contains("$")) {
+					continueToNextType = false;
+				}
+			}
+			 */
 		}
 
 		for (ImportDeclaration anImport : imports) {
@@ -305,10 +607,7 @@ public class ResolutionContext {
 
 				if (bounds != null && !bounds.isEmpty()) {
 					if (bounds.size() == 1) {
-						ClassOrInterfaceType scope = bounds.get(0).getScope().orElse(null);
-						if (scope != null) {
-							extends_ = resolve(scope.getName().asString()).descriptor;
-						}
+						extends_ = resolve(bounds.get(0)).descriptor;
 					} else {
 						throw new TransformationException("Bounds must have one object, found: " + bounds);
 					}

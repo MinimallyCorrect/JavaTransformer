@@ -24,6 +24,8 @@ public class SimpleMethodInfo implements MethodInfo {
 	public String name;
 	public List<Parameter> parameters;
 	public List<Annotation> annotations;
+	@Nullable
+	public ClassInfo classInfo;
 
 	private SimpleMethodInfo(AccessFlags accessFlags, List<TypeVariable> typeVariables, Type returnType, String name, List<Parameter> parameters) {
 		this.accessFlags = accessFlags;
@@ -33,7 +35,7 @@ public class SimpleMethodInfo implements MethodInfo {
 		this.parameters = new ArrayList<>(parameters);
 	}
 
-	public static MethodInfo of(AccessFlags accessFlags, List<TypeVariable> typeVariables, Type returnType, String name, List<Parameter> parameters) {
+	public static SimpleMethodInfo of(AccessFlags accessFlags, List<TypeVariable> typeVariables, Type returnType, String name, List<Parameter> parameters) {
 		return new SimpleMethodInfo(accessFlags, typeVariables, returnType, name, parameters);
 	}
 
@@ -43,12 +45,6 @@ public class SimpleMethodInfo implements MethodInfo {
 
 	public List<Parameter> getParameters() {
 		return Collections.unmodifiableList(parameters);
-	}
-
-	@Nullable
-	@Override
-	public ClassInfo getClassInfo() {
-		return null;
 	}
 
 	@Override

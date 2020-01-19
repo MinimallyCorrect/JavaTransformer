@@ -1,7 +1,8 @@
 package org.minimallycorrect.javatransformer.internal;
 
+import static org.minimallycorrect.javatransformer.internal.javaparser.Expressions.getMethodCallInputTypes;
+
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -15,15 +16,19 @@ import lombok.val;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.expr.ThisExpr;
 import com.github.javaparser.ast.nodeTypes.NodeWithBlockStmt;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.ExpressionStmt;
 import com.github.javaparser.ast.stmt.Statement;
 
+import org.minimallycorrect.javatransformer.api.MethodInfo;
+import org.minimallycorrect.javatransformer.api.TransformationException;
 import org.minimallycorrect.javatransformer.api.Type;
 import org.minimallycorrect.javatransformer.api.code.CodeFragment;
 import org.minimallycorrect.javatransformer.api.code.IntermediateValue;
 import org.minimallycorrect.javatransformer.internal.javaparser.Expressions;
+import org.minimallycorrect.javatransformer.internal.util.CachingSupplier;
 import org.minimallycorrect.javatransformer.internal.util.CodeFragmentUtil;
 import org.minimallycorrect.javatransformer.internal.util.NodeUtil;
 
@@ -116,13 +121,10 @@ public class JavaParserCodeFragmentGenerator {
 
 			val constructor = (Constructor<T>) concreteImplementation(fragmentType).getDeclaredConstructors()[0];
 			val list = new ArrayList<T>();
-			NodeUtil.forChildren(getContainingBody(), it -> {
-				try {
-					list.add(constructor.newInstance(containingWrapper, it));
-				} catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-					throw new RuntimeException(e);
-				}
-			}, constructor.getParameterTypes()[1]);
+			for (Node node : NodeUtil.findWithinMethodScope((Class<? extends Node>) constructor.getParameterTypes()[1], getContainingBody())) {
+				list.add(constructor.newInstance(containingWrapper, node));
+			}
+
 			return list;
 		}
 	}
@@ -151,10 +153,23 @@ public class JavaParserCodeFragmentGenerator {
 
 	public static class MethodCall extends JavaParserCodeFragment implements CodeFragment.MethodCall {
 		final MethodCallExpr expr;
+		final CachingSupplier<List<Type>> inputTypes;
+		final CachingSupplier<MethodInfo> methodInfo;
 
 		public MethodCall(SourceInfo.CallableDeclarationWrapper<?> containingWrapper, MethodCallExpr methodCallExpr) {
 			super(containingWrapper);
 			this.expr = methodCallExpr;
+			inputTypes = CachingSupplier.of(() -> getMethodCallInputTypes(expr, containingWrapper.getContext()));
+			methodInfo = CachingSupplier.of(() -> {
+				val context = containingWrapper.getContext();
+				val name = getName();
+				val scopeType = Expressions.expressionToType(expr.getScope().orElse(new ThisExpr()), context, true);
+				val mi = context.resolveMethodCallType(scopeType, name, inputTypes);
+				if (mi == null) {
+					throw new TransformationException("Couldn't find method {" + name + "} on {" + scopeType + "} for {" + expr + "} with params {" + getMethodCallInputTypes(expr, context) + "}");
+				}
+				return mi;
+			});
 		}
 
 		@Override
@@ -165,18 +180,7 @@ public class JavaParserCodeFragmentGenerator {
 		@NonNull
 		@Override
 		public List<IntermediateValue> getInputTypes() {
-			val list = new ArrayList<IntermediateValue>();
-			// TODO: constant values
-			// this
-			{
-				list.add(Expressions.expressionToIntermediateValue(expr.getScope().get(), containingWrapper.getContext()));
-			}
-
-			for (val it : expr.getArguments()) {
-				list.add(Expressions.expressionToIntermediateValue(it, containingWrapper.getContext()));
-			}
-
-			return list;
+			return Expressions.getMethodCallInputIVs(expr, containingWrapper.getContext(), inputTypes, methodInfo.get());
 		}
 
 		@NonNull
@@ -188,8 +192,7 @@ public class JavaParserCodeFragmentGenerator {
 		@NonNull
 		@Override
 		public Type getContainingClassType() {
-			val containingScope = expr.getScope().orElse(null);
-			return Expressions.expressionToType(containingScope, containingWrapper.getContext(), true);
+			return methodInfo.get().getClassInfo().getType();
 		}
 
 		@NonNull

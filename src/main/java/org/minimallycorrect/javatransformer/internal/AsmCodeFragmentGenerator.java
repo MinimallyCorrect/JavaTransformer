@@ -345,8 +345,9 @@ class AsmCodeFragmentGenerator implements Opcodes {
 					continue;
 				}
 				val input = movedInputTypes.get(index++);
-				if (!iv.type.isAssignableFrom(input.type))
-					throw new UnsupportedOperationException();
+				// TODO this needs context to work properly maybe we should disable the check?
+				//				if (!Type.isAssignableFrom(iv.type, input.type))
+				//					throw new UnsupportedOperationException();
 				switch (iv.location.type) {
 					case STACK:
 						val var = new VarInsnNode(AsmInstructions.getLoadInstructionForType(iv), input.location.index);
@@ -488,6 +489,12 @@ class AsmCodeFragmentGenerator implements Opcodes {
 
 			val result = new ArrayList<T>();
 			AbstractInsnNode insn = getFirstInstruction();
+
+			// FIXME: null for abstract methods, shouldn't get here
+			if (insn == null) {
+				return result;
+			}
+
 			val last = getLastInstruction();
 			while (true) {
 				if (constructor.getParameterTypes()[1].isAssignableFrom(insn.getClass()))
@@ -564,7 +571,8 @@ class AsmCodeFragmentGenerator implements Opcodes {
 		@NonNull
 		@Override
 		public Type getContainingClassType() {
-			return new Type('L' + instruction.owner + ';');
+			val owner = instruction.owner;
+			return new Type(owner.charAt(0) == '[' ? owner : 'L' + owner + ';');
 		}
 
 		@NonNull
