@@ -5,9 +5,10 @@ import java.util.EnumSet;
 
 import lombok.val;
 
+import org.intellij.lang.annotations.MagicConstant;
+
 import com.github.javaparser.ast.Modifier;
 
-import org.intellij.lang.annotations.MagicConstant;
 import org.minimallycorrect.javatransformer.internal.util.JVMUtil;
 
 public class AccessFlags {

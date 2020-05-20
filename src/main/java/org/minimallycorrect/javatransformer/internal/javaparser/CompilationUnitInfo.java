@@ -3,16 +3,13 @@ package org.minimallycorrect.javatransformer.internal.javaparser;
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.experimental.UtilityClass;
-
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.TypeDeclaration;
 
 import org.minimallycorrect.javatransformer.api.ClassPath;
 import org.minimallycorrect.javatransformer.internal.SourceInfo;
 
-@UtilityClass
-public class CompilationUnitInfo {
+public final class CompilationUnitInfo {
 	public static List<SourceInfo> getSourceInfos(CompilationUnit compilationUnit, ClassPath classPath) {
 		List<SourceInfo> sourceInfos = new ArrayList<>();
 		String packageName = compilationUnit.getPackageDeclaration().map(it -> it.getNameAsString() + '.').orElse("");

@@ -9,11 +9,12 @@ import lombok.val;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
+
 import org.minimallycorrect.javatransformer.api.AccessFlags;
 import org.minimallycorrect.javatransformer.api.AccessFlags.AccessFlagsConstant;
 import org.minimallycorrect.javatransformer.api.TransformationException;
 
-public class JVMUtil {
+public final class JVMUtil {
 	private static final Splitter dotSplitter = Splitter.on('.');
 
 	public static String getDescriptor(Class<?> clazz) {

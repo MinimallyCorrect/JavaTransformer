@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import lombok.experimental.UtilityClass;
 import lombok.val;
 
 import org.jetbrains.annotations.Nullable;
@@ -20,8 +19,7 @@ import org.minimallycorrect.javatransformer.internal.util.AnnotationParser;
 import org.minimallycorrect.javatransformer.internal.util.CachingSupplier;
 import org.minimallycorrect.javatransformer.internal.util.TypeUtil;
 
-@UtilityClass
-public class Signature {
+public final class Signature {
 	private static String before(char c, String in) {
 		int index = in.indexOf(c);
 

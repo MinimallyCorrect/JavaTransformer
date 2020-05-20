@@ -11,11 +11,9 @@ import java.util.stream.StreamSupport;
 import javax.annotation.Nonnull;
 
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.UtilityClass;
 import lombok.val;
 
-@UtilityClass
-public class CollectionUtil {
+public final class CollectionUtil {
 	@SafeVarargs
 	@SuppressWarnings("varargs")
 	public static <T> Stream<T> union(Collection<T>... collections) {

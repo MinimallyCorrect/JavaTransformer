@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import lombok.experimental.UtilityClass;
 import lombok.val;
 
 import com.github.javaparser.ast.Node;
@@ -16,8 +15,7 @@ import com.github.javaparser.ast.expr.ObjectCreationExpr;
 import com.github.javaparser.ast.nodeTypes.NodeWithTypeParameters;
 import com.github.javaparser.ast.type.TypeParameter;
 
-@UtilityClass
-public class NodeUtil {
+public final class NodeUtil {
 	public static void forChildren(Node node, Consumer<Node> nodeConsumer) {
 		forChildren(node, nodeConsumer, Node.class);
 	}
