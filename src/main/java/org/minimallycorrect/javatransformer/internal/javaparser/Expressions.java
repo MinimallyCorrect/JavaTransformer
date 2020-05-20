@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import lombok.NonNull;
-import lombok.experimental.UtilityClass;
 import lombok.val;
 
 import org.jetbrains.annotations.Contract;
@@ -42,8 +41,7 @@ import org.minimallycorrect.javatransformer.api.code.IntermediateValue;
 import org.minimallycorrect.javatransformer.internal.ResolutionContext;
 import org.minimallycorrect.javatransformer.internal.util.CachingSupplier;
 
-@UtilityClass
-public class Expressions {
+public final class Expressions {
 	@Contract(value = "null, _, _ -> fail; _, null, _ -> fail; _, _, true -> !null", pure = true)
 	@NonNull
 	@SuppressWarnings({"Contract", "unchecked"}) // Not violated, @NonNull adds null checks

@@ -4,10 +4,8 @@ import java.io.InputStream;
 import java.util.Arrays;
 
 import lombok.SneakyThrows;
-import lombok.experimental.UtilityClass;
 
-@UtilityClass
-public class StreamUtil {
+public final class StreamUtil {
 	@SneakyThrows
 	public static byte[] readFully(InputStream is) {
 		byte[] output = {};
