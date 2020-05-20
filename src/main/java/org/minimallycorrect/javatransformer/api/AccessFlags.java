@@ -7,6 +7,7 @@ import lombok.val;
 
 import com.github.javaparser.ast.Modifier;
 
+import org.intellij.lang.annotations.MagicConstant;
 import org.minimallycorrect.javatransformer.internal.util.JVMUtil;
 
 public class AccessFlags {
@@ -29,9 +30,10 @@ public class AccessFlags {
 	public static final int ACC_ANNOTATION = 0x2000; // class
 	public static final int ACC_ENUM = 0x4000; // class(?) field inner
 	public static final int ACC_MANDATED = 0x8000; // parameter
+	@AccessFlagsConstant
 	public final int access;
 
-	public AccessFlags(int access) {
+	public AccessFlags(@AccessFlagsConstant int access) {
 		this.access = access;
 	}
 
@@ -39,6 +41,7 @@ public class AccessFlags {
 		this(accessFor(modifiers));
 	}
 
+	@AccessFlagsConstant
 	private static int accessFor(EnumSet<Modifier> modifiers) {
 		int access = 0;
 		if (modifiers.contains(Modifier.PUBLIC))
@@ -110,7 +113,7 @@ public class AccessFlags {
 		return access;
 	}
 
-	public boolean has(int flag) {
+	public boolean has(@AccessFlagsConstant int flag) {
 		return (access & flag) == flag;
 	}
 
@@ -118,11 +121,14 @@ public class AccessFlags {
 		return new AccessFlags(JVMUtil.makeAccess(access, needsPublic));
 	}
 
-	public AccessFlags with(int flag) {
+	public AccessFlags with(@AccessFlagsConstant int flag) {
 		return new AccessFlags(access | flag);
 	}
 
-	public AccessFlags without(int flag) {
+	public AccessFlags without(@AccessFlagsConstant int flag) {
 		return new AccessFlags(access & ~flag);
 	}
+
+	@MagicConstant(flagsFromClass = AccessFlags.class)
+	public @interface AccessFlagsConstant {}
 }

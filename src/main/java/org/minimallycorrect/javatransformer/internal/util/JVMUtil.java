@@ -5,13 +5,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import lombok.experimental.UtilityClass;
 import lombok.val;
 
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.Nullable;
 import org.minimallycorrect.javatransformer.api.AccessFlags;
+import org.minimallycorrect.javatransformer.api.AccessFlags.AccessFlagsConstant;
 import org.minimallycorrect.javatransformer.api.TransformationException;
 
-@UtilityClass
 public class JVMUtil {
 	private static final Splitter dotSplitter = Splitter.on('.');
 
@@ -51,6 +52,8 @@ public class JVMUtil {
 		return primitiveTypeToDescriptor(primitive, false);
 	}
 
+	@Nullable
+	@Contract("_, false -> !null")
 	public static String primitiveTypeToDescriptor(String primitive, boolean allowMissing) {
 		switch (primitive) {
 			case "byte":
@@ -97,7 +100,7 @@ public class JVMUtil {
 		return parameters.toString();
 	}
 
-	public static String accessIntToString(int access) {
+	public static String accessIntToString(@AccessFlagsConstant int access) {
 		StringBuilder result = new StringBuilder();
 
 		if (hasFlag(access, AccessFlags.ACC_PUBLIC))
@@ -118,6 +121,7 @@ public class JVMUtil {
 		return result.toString().trim();
 	}
 
+	@AccessFlagsConstant
 	public static int accessStringToInt(String access) {
 		int a = 0;
 		for (String accessPart : Splitter.on(' ').splitIterable(access)) {
@@ -174,7 +178,8 @@ public class JVMUtil {
 		return (access & flag) != 0;
 	}
 
-	public static int replaceFlag(int in, int from, int to) {
+	@AccessFlagsConstant
+	public static int replaceFlag(@AccessFlagsConstant int in, @AccessFlagsConstant int from, @AccessFlagsConstant int to) {
 		if ((in & from) != 0) {
 			in &= ~from;
 			in |= to;
@@ -182,7 +187,8 @@ public class JVMUtil {
 		return in;
 	}
 
-	public static int makeAccess(int access, boolean makePublic) {
+	@AccessFlagsConstant
+	public static int makeAccess(@AccessFlagsConstant int access, boolean makePublic) {
 		access = makeAtLeastProtected(access);
 		if (makePublic) {
 			access = replaceFlag(access, AccessFlags.ACC_PROTECTED, AccessFlags.ACC_PUBLIC);
@@ -190,7 +196,8 @@ public class JVMUtil {
 		return access;
 	}
 
-	public static int makeAtLeastProtected(int access) {
+	@AccessFlagsConstant
+	public static int makeAtLeastProtected(@AccessFlagsConstant int access) {
 		if (hasFlag(access, AccessFlags.ACC_PUBLIC) || hasFlag(access, AccessFlags.ACC_PROTECTED)) {
 			// already protected or public
 			return access;
