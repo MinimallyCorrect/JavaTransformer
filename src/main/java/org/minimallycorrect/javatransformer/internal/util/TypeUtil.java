@@ -6,7 +6,6 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import lombok.NonNull;
-import lombok.experimental.UtilityClass;
 import lombok.val;
 
 import org.jetbrains.annotations.Contract;
@@ -14,8 +13,7 @@ import org.jetbrains.annotations.Nullable;
 
 import org.minimallycorrect.javatransformer.api.TransformationException;
 
-@UtilityClass
-public class TypeUtil {
+public final class TypeUtil {
 	@Contract("null, _ -> null; !null, true -> _; !null, false -> !null")
 	@Nullable
 	public static List<String> splitTypes(@Nullable final String signature, boolean isSignature) {

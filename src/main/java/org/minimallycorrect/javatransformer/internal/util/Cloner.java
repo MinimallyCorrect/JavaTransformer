@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 
 import lombok.NonNull;
-import lombok.experimental.UtilityClass;
 import lombok.val;
 
 import org.jetbrains.annotations.Contract;
@@ -18,9 +17,8 @@ import org.objectweb.asm.tree.MethodNode;
 
 import org.minimallycorrect.javatransformer.api.TransformationException;
 
-@UtilityClass
-public class Cloner {
-	public FieldNode clone(FieldNode other) {
+public final class Cloner {
+	public static FieldNode clone(FieldNode other) {
 		val node = new FieldNode(other.access, other.name, other.desc, other.signature, other.value);
 		node.attrs = other.attrs;
 		node.invisibleAnnotations = other.invisibleAnnotations;
@@ -30,7 +28,7 @@ public class Cloner {
 		return node;
 	}
 
-	public MethodNode clone(MethodNode other) {
+	public static MethodNode clone(MethodNode other) {
 		val node = new MethodNode();
 		node.desc = other.desc;
 		node.signature = other.signature;
@@ -55,7 +53,7 @@ public class Cloner {
 		return node;
 	}
 
-	public MethodNode deepClone(MethodNode other) {
+	public static MethodNode deepClone(MethodNode other) {
 		val node = new MethodNode();
 		node.desc = other.desc;
 		node.signature = other.signature;

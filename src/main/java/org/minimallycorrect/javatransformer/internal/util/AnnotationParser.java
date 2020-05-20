@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import lombok.experimental.UtilityClass;
 import lombok.val;
 
 import org.objectweb.asm.ClassReader;
@@ -27,8 +26,7 @@ import org.minimallycorrect.javatransformer.api.Type;
 import org.minimallycorrect.javatransformer.internal.ResolutionContext;
 import org.minimallycorrect.javatransformer.internal.javaparser.Expressions;
 
-@UtilityClass
-public class AnnotationParser {
+public final class AnnotationParser {
 	public static List<Annotation> parseAnnotations(byte[] bytes) {
 		ClassReader cr = new ClassReader(bytes);
 		AnnotationVisitor cv = new AnnotationVisitor();

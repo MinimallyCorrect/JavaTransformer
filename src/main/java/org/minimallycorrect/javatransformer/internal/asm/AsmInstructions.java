@@ -1,6 +1,5 @@
 package org.minimallycorrect.javatransformer.internal.asm;
 
-import lombok.experimental.UtilityClass;
 import lombok.val;
 
 import org.jetbrains.annotations.Nullable;
@@ -22,8 +21,7 @@ import org.minimallycorrect.javatransformer.api.code.IntermediateValue;
  * THANKS!!!!!
  */
 @SuppressWarnings("Duplicates")
-@UtilityClass
-public class AsmInstructions implements Opcodes {
+public final class AsmInstructions implements Opcodes {
 	@Nullable
 	public static Object getConstant(AbstractInsnNode insn) {
 		switch (insn.getOpcode()) {

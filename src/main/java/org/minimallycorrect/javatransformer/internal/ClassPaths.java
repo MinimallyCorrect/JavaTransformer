@@ -29,7 +29,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import lombok.SneakyThrows;
-import lombok.experimental.UtilityClass;
 import lombok.val;
 
 import org.jetbrains.annotations.NotNull;
@@ -47,8 +46,7 @@ import org.minimallycorrect.javatransformer.internal.util.JVMUtil;
 import org.minimallycorrect.javatransformer.internal.util.Splitter;
 import org.minimallycorrect.javatransformer.internal.util.StreamUtil;
 
-@UtilityClass
-public class ClassPaths {
+public final class ClassPaths {
 	public static ClassPath of(ClassPath systemClassPath, Path... paths) {
 		return new FileClassPath(systemClassPath, new ArrayList<>(Arrays.asList(paths)));
 	}

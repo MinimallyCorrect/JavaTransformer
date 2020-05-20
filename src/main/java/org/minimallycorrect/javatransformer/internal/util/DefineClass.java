@@ -8,10 +8,8 @@ import java.security.PrivilegedAction;
 import java.security.ProtectionDomain;
 
 import lombok.SneakyThrows;
-import lombok.experimental.UtilityClass;
 
-@UtilityClass
-public class DefineClass {
+public final class DefineClass {
 	private static final MethodHandles.Lookup $L = UnsafeAccess.IMPL_LOOKUP;
 	private static final ProtectionDomain PROTECTION_DOMAIN = AccessController.doPrivileged((PrivilegedAction<ProtectionDomain>) DefineClass.class::getProtectionDomain);
 	private static final MethodHandle defineClassHandle = getDefineClassHandle();
