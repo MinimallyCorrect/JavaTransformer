@@ -28,7 +28,7 @@ minimallyCorrectDefaults {
 dependencies {
 	val lombok = "org.projectlombok:lombok:1.18.18"
 
-	testImplementation("junit:junit:4.12")
+	testImplementation("junit:junit:4.13.2")
 	implementation("org.ow2.asm:asm:9.1")
 	implementation("org.ow2.asm:asm-util:9.1")
 	implementation("org.ow2.asm:asm-tree:9.1")
