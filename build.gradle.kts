@@ -2,7 +2,7 @@ plugins {
 	id("java")
 	id("java-library")
 	id("maven-publish")
-	id("dev.minco.gradle.defaults-plugin") version "0.2.4"
+	id("dev.minco.gradle.defaults-plugin") version "0.2.5"
 }
 
 apply(from = "properties.gradle")
