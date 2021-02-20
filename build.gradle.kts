@@ -54,3 +54,24 @@ dependencies {
 tasks.withType<JavaCompile>().configureEach {
 	options.compilerArgs.add("-Xlint:-options")
 }
+
+publishing {
+	repositories {
+		System.getenv("DEPLOYMENT_REPO_PASSWORD")?.let { deploymentRepoPassword ->
+			maven {
+				url = if (releasing) {
+					name = "minco.dev_releases"
+					uri(System.getenv("DEPLOYMENT_REPO_URL_RELEASE"))
+				} else {
+					name = "minco.dev_snapshots"
+					uri(System.getenv("DEPLOYMENT_REPO_URL_SNAPSHOT"))
+				}
+				credentials {
+					username = System.getenv("DEPLOYMENT_REPO_USERNAME")
+					password = deploymentRepoPassword
+				}
+			}
+		}
+	}
+}
+
