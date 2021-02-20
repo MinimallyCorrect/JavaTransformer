@@ -35,7 +35,6 @@ jobs:
               uses: actions/setup-java@v1
               with:
                   java-version: ${{ matrix.jdk }}
-            - run: chmod +x gradlew
             - run: ./gradlew build --stacktrace --warning-mode all
 
     release:
@@ -45,6 +44,7 @@ jobs:
         if: github.event_name == 'push'
             && github.ref == 'refs/heads/main'
             && github.repository == 'MinimallyCorrect/JavaTransformer'
+            && !contains(toJSON(github.event.commits.*.message), '[skip ci]')
             && !contains(toJSON(github.event.commits.*.message), '[skip release]')
 
         steps:
@@ -59,11 +59,9 @@ jobs:
                   java-version: 11
 
             - name: Build and publish to github
-              run: ./gradlew -P releasing publish publishPlugins githubRelease -s
+              run: ./gradlew -P releasing build publish githubRelease -s
               env:
                   GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-                  GRADLE_PUBLISH_KEY: ${{secrets.GRADLE_PUBLISH_KEY}}
-                  GRADLE_PUBLISH_SECRET: ${{secrets.GRADLE_PUBLISH_SECRET}}
                   DEPLOYMENT_REPO_URL_RELEASE: ${{secrets.DEPLOYMENT_REPO_URL_RELEASE}}
                   DEPLOYMENT_REPO_URL_SNAPSHOT: ${{secrets.DEPLOYMENT_REPO_URL_SNAPSHOT}}
                   DEPLOYMENT_REPO_USERNAME: ${{secrets.DEPLOYMENT_REPO_USERNAME}}
