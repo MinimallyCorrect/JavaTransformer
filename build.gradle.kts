@@ -56,6 +56,12 @@ tasks.withType<JavaCompile>().configureEach {
 }
 
 publishing {
+	publications {
+		create<MavenPublication>("maven") {
+			from(components["java"])
+		}
+	}
+
 	repositories {
 		System.getenv("DEPLOYMENT_REPO_PASSWORD")?.let { deploymentRepoPassword ->
 			maven {
