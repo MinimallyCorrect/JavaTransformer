@@ -1,1 +1,1 @@
-rootProject.name = "JavaTransformer"
+rootProject.name = "java-transformer"

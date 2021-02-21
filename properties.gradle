@@ -1,4 +1,4 @@
-group = "org.minimallycorrect.javatransformer"
+group = "dev.minco"
 description = "Applies transformations to .java and .class files"
 
 ext.githubOwner = 'MinimallyCorrect'
