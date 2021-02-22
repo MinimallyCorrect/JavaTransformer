@@ -4,7 +4,7 @@ description = "Applies transformations to .java and .class files"
 ext.githubOwner = 'MinimallyCorrect'
 ext.githubProject = 'JavaTransformer'
 ext.tags = ['java-transformation', 'java-source', 'java-bytecode', 'java']
-ext.licenses = ['AGPL']
+ext.licenses = ['LGPL-3.0']
 
 ext.githubOwnerProject = "${ext.githubOwner}/${ext.githubProject}".toString()
 ext.githubUrl = "https://github.com/${ext.githubOwnerProject}".toString()
