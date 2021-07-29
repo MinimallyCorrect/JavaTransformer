@@ -40,7 +40,7 @@ dependencies {
 	api("com.google.code.findbugs:jsr305:3.0.2")
 	api("org.jetbrains:annotations:20.1.0")
 
-	val asmVer = "9.1"
+	val asmVer = "9.2"
 	implementation("org.ow2.asm:asm:$asmVer")
 	implementation("org.ow2.asm:asm-util:$asmVer")
 	implementation("org.ow2.asm:asm-tree:$asmVer")
