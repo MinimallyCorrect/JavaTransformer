@@ -38,7 +38,7 @@ dependencies {
 	testImplementation("junit:junit:4.13.2")
 	implementation("com.github.javaparser:javaparser-core:3.6.24")
 	api("com.google.code.findbugs:jsr305:3.0.2")
-	api("org.jetbrains:annotations:20.1.0")
+	api("org.jetbrains:annotations:22.0.0")
 
 	val asmVer = "9.2"
 	implementation("org.ow2.asm:asm:$asmVer")
