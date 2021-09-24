@@ -35,7 +35,6 @@ minimallyCorrectDefaults.languageLevel = JavaVersion.VERSION_11
 minimallyCorrectDefaults.configureProject(project)
 
 dependencies {
-	testImplementation("junit:junit:4.13.2")
 	implementation("com.github.javaparser:javaparser-core:3.23.0")
 	api("com.google.code.findbugs:jsr305:3.0.2")
 	api("org.jetbrains:annotations:22.0.0")
@@ -50,6 +49,16 @@ dependencies {
 	testCompileOnly(lombok)
 	annotationProcessor(lombok)
 	testAnnotationProcessor(lombok)
+
+	testImplementation(platform("org.junit:junit-bom:5.8.1"))
+	testImplementation("org.junit.jupiter:junit-jupiter")
+	testImplementation("junit:junit:4.13.2")
+	testRuntimeOnly("org.junit.vintage:junit-vintage-engine")
+	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+tasks.withType<Test>().configureEach {
+	useJUnitPlatform()
 }
 
 tasks.withType<JavaCompile>().configureEach {
