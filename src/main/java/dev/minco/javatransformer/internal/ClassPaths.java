@@ -33,7 +33,7 @@ import lombok.val;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.github.javaparser.JavaParser;
+import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 
 import dev.minco.javatransformer.api.ClassInfo;
@@ -150,7 +150,7 @@ public final class ClassPaths {
 		}
 
 		private void findJavaPaths(InputStream is) {
-			val parsed = JavaParser.parse(is);
+			val parsed = StaticJavaParser.parse(is);
 			findJavaPaths(parsed);
 		}
 
