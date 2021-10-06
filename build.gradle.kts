@@ -36,7 +36,7 @@ minimallyCorrectDefaults.configureProject(project)
 
 dependencies {
 	testImplementation("junit:junit:4.13.2")
-	implementation("com.github.javaparser:javaparser-core:3.23.0")
+	implementation("com.github.javaparser:javaparser-core:3.23.1")
 	api("com.google.code.findbugs:jsr305:3.0.2")
 	api("org.jetbrains:annotations:22.0.0")
 
