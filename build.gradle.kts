@@ -45,7 +45,7 @@ dependencies {
 	implementation("org.ow2.asm:asm-util:$asmVer")
 	implementation("org.ow2.asm:asm-tree:$asmVer")
 
-	val lombok = "org.projectlombok:lombok:1.18.20"
+	val lombok = "org.projectlombok:lombok:1.18.22"
 	compileOnly(lombok)
 	testCompileOnly(lombok)
 	annotationProcessor(lombok)
