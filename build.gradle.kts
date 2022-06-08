@@ -3,10 +3,10 @@ plugins {
 	id("java")
 	id("java-library")
 	id("maven-publish")
-	id("dev.minco.gradle.defaults-plugin") version "0.2.58"
+	id("dev.minco.gradle.defaults-plugin") version "0.2.60"
 	id("org.shipkit.shipkit-auto-version") version "1.2.0"
-	id("org.shipkit.shipkit-changelog") version "1.1.15"
-	id("org.shipkit.shipkit-github-release") version "1.1.15"
+	id("org.shipkit.shipkit-changelog") version "1.2.0"
+	id("org.shipkit.shipkit-github-release") version "1.2.0"
 }
 
 apply(from = "properties.gradle")
