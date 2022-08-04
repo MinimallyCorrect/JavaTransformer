@@ -3,8 +3,8 @@ plugins {
 	id("java")
 	id("java-library")
 	id("maven-publish")
-	id("dev.minco.gradle.defaults-plugin") version "0.2.60"
-	id("org.shipkit.shipkit-auto-version") version "1.2.0"
+	id("dev.minco.gradle.defaults-plugin") version "0.2.61"
+	id("org.shipkit.shipkit-auto-version") version "1.2.1"
 	id("org.shipkit.shipkit-changelog") version "1.2.0"
 	id("org.shipkit.shipkit-github-release") version "1.2.0"
 }
@@ -36,7 +36,7 @@ minimallyCorrectDefaults.configureProject(project)
 
 dependencies {
 	testImplementation("junit:junit:4.13.2")
-	implementation("com.github.javaparser:javaparser-core:3.24.2")
+	implementation("com.github.javaparser:javaparser-core:3.24.4")
 	api("com.google.code.findbugs:jsr305:3.0.2")
 	api("org.jetbrains:annotations:23.0.0")
 
