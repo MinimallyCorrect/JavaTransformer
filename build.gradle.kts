@@ -3,8 +3,8 @@ plugins {
 	id("java")
 	id("java-library")
 	id("maven-publish")
-	id("dev.minco.gradle.defaults-plugin") version "0.2.61"
-	id("org.shipkit.shipkit-auto-version") version "1.2.1"
+	id("dev.minco.gradle.defaults-plugin") version "0.2.62"
+	id("org.shipkit.shipkit-auto-version") version "1.2.2"
 	id("org.shipkit.shipkit-changelog") version "1.2.0"
 	id("org.shipkit.shipkit-github-release") version "1.2.0"
 }
@@ -36,16 +36,16 @@ minimallyCorrectDefaults.configureProject(project)
 
 dependencies {
 	testImplementation("junit:junit:4.13.2")
-	implementation("com.github.javaparser:javaparser-core:3.24.4")
+	implementation("com.github.javaparser:javaparser-core:3.25.1")
 	api("com.google.code.findbugs:jsr305:3.0.2")
-	api("org.jetbrains:annotations:23.0.0")
+	api("org.jetbrains:annotations:23.1.0")
 
-	val asmVer = "9.3"
+	val asmVer = "9.4"
 	implementation("org.ow2.asm:asm:$asmVer")
 	implementation("org.ow2.asm:asm-util:$asmVer")
 	implementation("org.ow2.asm:asm-tree:$asmVer")
 
-	val lombok = "org.projectlombok:lombok:1.18.24"
+	val lombok = "org.projectlombok:lombok:1.18.26"
 	compileOnly(lombok)
 	testCompileOnly(lombok)
 	annotationProcessor(lombok)
