@@ -12,7 +12,7 @@ jobs:
     verify-gradle-wrapper:
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # tag=v3
+            - uses: actions/checkout@24cb9080177205b6e8c946b17badbe402adc938f # v3
             - uses: gradle/wrapper-validation-action@8d49e559aae34d3e0eb16cde532684bc9702762b # v1.0.6
 
     build:
@@ -22,7 +22,7 @@ jobs:
             matrix:
                 jdk: [11, 15, 16]
         steps:
-            - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # tag=v3
+            - uses: actions/checkout@24cb9080177205b6e8c946b17badbe402adc938f # v3
             - uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # v3.3.1
               with:
                 path: |
@@ -50,7 +50,7 @@ jobs:
 
         steps:
             - name: Check out code
-              uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # tag=v3
+              uses: actions/checkout@24cb9080177205b6e8c946b17badbe402adc938f # v3
               with:
                   fetch-depth: '0' # https://github.com/shipkit/shipkit-changelog#fetch-depth-on-ci
 
