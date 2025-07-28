@@ -13,7 +13,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@24cb9080177205b6e8c946b17badbe402adc938f # v3
-            - uses: gradle/wrapper-validation-action@8d49e559aae34d3e0eb16cde532684bc9702762b # v1.0.6
+            - uses: gradle/wrapper-validation-action@f9c9c575b8b21b6485636a91ffecd10e558c62f6 # v3.5.0
 
     build:
         if: "! contains(toJSON(github.event.commits.*.message), '[skip ci]')"
